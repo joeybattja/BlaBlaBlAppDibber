@@ -1,11 +1,3 @@
-##################
-## Added by myself
-##################
-
-gen/
-lint.xml
-proguard-project.txt
-
 #################
 ## Eclipse
 #################
