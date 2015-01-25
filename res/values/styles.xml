@@ -1,0 +1,13 @@
+<resources xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- Application theme. -->
+    <style name="CustomTheme" parent="Theme.AppCompat.Light">
+        <item name="searchViewStyle">@style/SearchViewWidget</item>
+        <item name="colorPrimary">@color/plain_background</item>
+    </style>
+
+    <style name="SearchViewWidget" parent="Widget.AppCompat.Light.SearchView">
+        <item name="searchIcon">@drawable/ic_action_search</item>
+    </style>
+
+</resources>

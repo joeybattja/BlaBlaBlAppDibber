@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">BlaBlaBlApp</string>
+    <string name="logo">Logo</string>
+    <string name="Image">Afbeelding</string>
+    <string name="search_title">Zoeken</string>
+    <string name="search_hint">Zoeken</string>
+    <string name="author_name">door %1$s</string>
+    <string name="no_connection">Kan geen verbinding maken met het internet</string>
+    <string name="refresh">Vernieuwen</string>
+
+</resources>

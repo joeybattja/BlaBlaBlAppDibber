@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <color name="plain_background">@color/white</color>
+    <color name="primary_text">#000000</color>
+    <color name="divider_line">#787878</color>
+    <color name="white">#FFFFFF</color>
+    <color name="red">#F72B2F</color>
+    <color name="yellow">#FFE93B</color>
+    <color name="lightgrey">#C2C2C2</color>
+    <color name="darkgrey">#787878</color>
+    <color name="black">#000000</color>
+    <color name="transparent">#00000000</color>
+
+</resources>
