@@ -10,7 +10,7 @@ import android.util.Log;
 
 public class AssetsPropertyReader {
 	
-    private static String PROPERTY_FILENAME = "config.properties";
+    private static String PROPERTY_FILENAME = "blog.properties";
     
     public static Properties getProperties(Context context) {
     	Properties properties = new Properties();

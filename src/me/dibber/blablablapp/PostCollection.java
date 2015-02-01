@@ -34,7 +34,6 @@ public class PostCollection {
 			
 	private static PostCollection postCollection;
 	private static PostCollection filteredPostCollection;
-	private static PostCollection pageCollection;
 	private final static String MIMETYPE_IMAGE = "image/jpeg";
 	private final static int THUMBNAIL_WIDTH = 240;
 	private final static int THUMBNAIL_HEIGHT = 180;
@@ -47,6 +46,12 @@ public class PostCollection {
 	
 	public void addPost(Post post) {
 		posts.put(post.id, post);
+	}
+	
+	
+	public void removePost(int postId) {
+		cleanUpAttachments(postId, getAttachments(postId));
+		posts.remove(postId);
 	}
 	
 	public Post getPost(int postId) {
@@ -220,15 +225,6 @@ public class PostCollection {
 		return filteredPostCollection;
 	}
 	
-	public static PostCollection getPageCollection() {
-		if (pageCollection == null) {
-			pageCollection = new PostCollection();
-		}
-		return pageCollection;
-	}
-	
-	
-	
 	public enum DrawableType {LOGO_COLOR, LOGO_GREYSCALE, POST_IMAGE, LIST_IMAGE, FULLSCREEN_IMAGE};
 		
 	
@@ -266,10 +262,10 @@ public class PostCollection {
 		
 		switch (type) {
 		case LOGO_COLOR:
-			setImage(v, ((GlobalState) GlobalState.getContext()).getResources().getDrawable(R.drawable.blablablog_color), 0, 0);
+			setImage(v, ((GlobalState) GlobalState.getContext()).getResources().getDrawable(R.drawable.logo_color), 0, 0);
 			break;
 		case LOGO_GREYSCALE:
-			setImage(v, ((GlobalState) GlobalState.getContext()).getResources().getDrawable(R.drawable.blablablog_grey), 0, 0);
+			setImage(v, ((GlobalState) GlobalState.getContext()).getResources().getDrawable(R.drawable.logo_grey), 0, 0);
 			break;
 		case POST_IMAGE:
 			if (pc.countImages(postId) != 0) {
@@ -288,7 +284,7 @@ public class PostCollection {
 			break;
 		case LIST_IMAGE:
 			if (pc.countImages(postId) == 0) {
-				setThumbnail(v, decodeThumbnailFromResources(GlobalState.getContext().getResources(), R.drawable.blablablog_grey), postId);
+				setThumbnail(v, decodeThumbnailFromResources(GlobalState.getContext().getResources(), R.drawable.logo_grey), postId);
 			} else {
 				setThumbnail(v, pc.getThumbnail(postId), postId);
 			} 
@@ -417,7 +413,7 @@ public class PostCollection {
 	private static void setThumbnail(final ImageView v, final Bitmap b, final int postId) {
 		
 		if (b == null) {
-			setThumbnail(v, decodeThumbnailFromResources(GlobalState.getContext().getResources(), R.drawable.blablablog_grey), postId);
+			setThumbnail(v, decodeThumbnailFromResources(GlobalState.getContext().getResources(), R.drawable.logo_grey), postId);
 			retrieveImages(postId, false, new ImagesRetrievalListener() {
 				
 				@Override
@@ -517,6 +513,18 @@ public class PostCollection {
 		options.inSampleSize = calculateInSampleSize(options, THUMBNAIL_WIDTH, THUMBNAIL_HEIGHT);
 	    options.inJustDecodeBounds = false;
 	    return Bitmap.createScaledBitmap(BitmapFactory.decodeResource(res, id, options), THUMBNAIL_WIDTH, THUMBNAIL_HEIGHT, false);
+	}
+	
+	public static void cleanUpPostCollection(int max) {
+		PostCollection pc = getPostCollection();
+		if (pc.getAllPosts().size() <= max) {
+			return;
+		}
+		for (int i = max; i < pc.getAllPosts().size(); ) {
+			int postId = pc.getAllPosts().get(i);
+			pc.removePost(postId);
+		}
+		DataLoader.cleanUpPostsOnDisk(pc);
 	}
 	
 	public static void cleanUpAttachments(int postId, ArrayList<Attachment> attachments) {

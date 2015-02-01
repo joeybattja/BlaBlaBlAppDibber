@@ -29,18 +29,10 @@ public class DataLoader {
 	
 	public final static int JSON = 0;
 	public final static int XML = 1;
-	public static enum PostType {PAGE, POST};
 	
 	
-	public DataLoader(PostType postType) {
-		if (postType == PostType.POST) {
-			posts = ( (GlobalState) GlobalState.getContext() ).getPosts();
-			type = "posts";
-		} else {
-			posts = ( (GlobalState) GlobalState.getContext() ).getPages();
-			type = "pages";
-			
-		}
+	public DataLoader() {
+		posts = ( (GlobalState) GlobalState.getContext() ).getPosts();
 		state = State.IDLE;
 		setStreamType(JSON);
 	}
@@ -103,7 +95,6 @@ public class DataLoader {
 	private int datatype;
 	private PostCollection posts;	
 	private DataLoaderListener dll;
-	private String type;
 	private JSONArray postsdisk;
 	private boolean internetConnection;
 	
@@ -197,6 +188,68 @@ public class DataLoader {
 		t.start();
 	}
 	
+	/**
+	 * Cleans up all posts from disk which are no longer in the PostCollection
+	 * @param The PostCollection with all current posts
+	 */
+	public static void cleanUpPostsOnDisk(final PostCollection pc) {
+		
+		Thread t = new Thread(new Runnable() {
+			
+			@Override
+			public void run() {
+				
+				JSONArray postsdsk = new JSONArray();
+				
+				// first read from disk 
+				final Context c = GlobalState.getContext();
+				File file = c.getFileStreamPath(FILE_LOCATION);
+				boolean fileExists = true;
+				if (file == null || !file.exists())
+					fileExists = false;
+				if (fileExists) {
+					try {
+						FileInputStream fin = new FileInputStream(file);
+						BufferedReader bin = new BufferedReader(new InputStreamReader(fin));
+						StringBuilder sb = new StringBuilder();
+						String s;
+						while ( (s = bin.readLine()) != null) {
+							sb.append(s);
+						}
+						bin.close();
+						JSONObject obj = new JSONObject(sb.toString());
+						JSONArray jArr = obj.getJSONArray("posts");
+						ArrayList<Integer> intList = new ArrayList<Integer>();  
+						intList.addAll(pc.getAllPosts());
+						for (int j = 0; j < jArr.length(); j++) {
+							int index = intList.indexOf(jArr.getJSONObject(j).getInt("id"));
+							if (index  >= 0) {
+								postsdsk.put(jArr.getJSONObject(j));
+								intList.remove(index);
+							};
+						}
+						JSONObject writeObj = new JSONObject();
+						writeObj.put("status", "OK");
+						writeObj.put("count", postsdsk.length());
+						writeObj.put("posts", postsdsk);
+						
+						FileOutputStream os = c.openFileOutput(FILE_LOCATION, Context.MODE_PRIVATE);
+						os.write(writeObj.toString().getBytes());
+						os.close();
+						
+						
+					} catch (IOException | JSONException e) {
+						Log.w("Error trying to read file from disk", e.toString());
+					}
+				}
+
+				
+			}
+		});
+		t.start();
+	}
+		
+	
 	private void JSONreceived(String JSONobject) {
 
 		try {
@@ -205,7 +258,7 @@ public class DataLoader {
 				Log.w("error parsing the JSON object", "Status is not 'OK'");
 				return;
 			}
-			JSONcreatePosts(obj.getJSONArray(type));
+			JSONcreatePosts(obj.getJSONArray("posts"));
 		} catch (JSONException e) {
 			Log.w("error parsing the JSON object", e.toString());
 		}
