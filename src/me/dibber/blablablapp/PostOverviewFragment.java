@@ -12,6 +12,8 @@ import android.text.TextUtils.TruncateAt;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AbsListView;
+import android.widget.AbsListView.OnScrollListener;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ArrayAdapter;
@@ -20,6 +22,8 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 public class PostOverviewFragment extends Fragment {
+	
+	public static final String ARG_ID = "last_id";
 	
 	private PostCollection posts;
 	private List<Integer> postsIds;
@@ -33,16 +37,39 @@ public class PostOverviewFragment extends Fragment {
 		postsIds = posts.getAllPosts();
 		
 		mGridView = (GridView)rootView.findViewById(R.id.gridview_post_overview);
-		
 		adapter = new PostOverviewAdapter(getActivity(), R.layout.item_post_overview, postsIds);
 		
 		mGridView.setAdapter(adapter);
+		int lastId = getArguments().getInt(ARG_ID);
+		if (lastId != 0) {
+			int p = postsIds.indexOf(lastId);
+			if (p > 0) {
+				mGridView.setSelection(p);
+			}
+		}
 		mGridView.setOnItemClickListener(new OnItemClickListener() {
 			@Override
 			public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
 				((HomeActivity) getActivity()).replaceContentFrame(ContentFrameType.POST, postsIds.get(position));
 			}
 		}); 
+		mGridView.setOnScrollListener(new OnScrollListener() {
+			
+			@Override
+			public void onScrollStateChanged(AbsListView view, int scrollState) {
+				
+			}
+			
+			@Override
+			public void onScroll(AbsListView view, int firstVisibleItem,
+					int visibleItemCount, int totalItemCount) {
+				if(firstVisibleItem + visibleItemCount >= totalItemCount) {
+					if ( postsIds.size() > 0 ) {
+						((HomeActivity) getActivity()).getMorePosts(postsIds.get(postsIds.size() - 1));
+					}
+				}
+			}
+		});
 		
 		return rootView;
 	}
@@ -87,10 +114,5 @@ public class PostOverviewFragment extends Fragment {
 			
 			return listItem;
 		}
-		
-		
-
 	}
-	
-	
 }

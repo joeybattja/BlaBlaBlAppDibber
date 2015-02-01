@@ -4,7 +4,6 @@ import java.net.MalformedURLException;
 import java.util.Properties;
 
 import me.dibber.blablablapp.DataLoader.DataLoaderListener;
-import me.dibber.blablablapp.DataLoader.PostType;
 import me.dibber.blablablapp.PostDetailFragment.PostFragment;
 import android.app.SearchManager;
 import android.content.Context;
@@ -37,6 +36,7 @@ public class HomeActivity extends ActionBarActivity implements DataLoaderListene
 	
 	private int currentId;
 	private ContentFrameType currentType;
+	private int lastPosition;
 	
 	private MenuItem menuItem;
 	private MenuItem refresh;
@@ -80,6 +80,7 @@ public class HomeActivity extends ActionBarActivity implements DataLoaderListene
         } catch (NullPointerException e) {
         	replaceContentFrame(ContentFrameType.PAGE, 0);
         }
+        refreshPosts();
 	}
 	
 
@@ -123,11 +124,7 @@ public class HomeActivity extends ActionBarActivity implements DataLoaderListene
 				MenuItemCompat.collapseActionView(menuItem);
 				return;
 			}
-			Intent intent = new Intent(Intent.ACTION_MAIN);
-		    intent.addCategory(Intent.CATEGORY_HOME);
-		    intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-		    startActivity(intent);	
-		    this.finish();
+			exitApplication();
 		}		
 	}
 	
@@ -245,6 +242,13 @@ public class HomeActivity extends ActionBarActivity implements DataLoaderListene
 		case PAGE:
 			if (id == 0) {
 				fragment = new PostOverviewFragment();
+				Bundle args = new Bundle();
+				if (lastPosition != 0) {
+					args.putInt(PostOverviewFragment.ARG_ID, lastPosition);
+				} else {
+					args.putInt(PostOverviewFragment.ARG_ID, 0);
+				}
+				fragment.setArguments(args);
 			} else { 
 				fragment = new PageFragment();
 				Bundle args = new Bundle();
@@ -255,6 +259,7 @@ public class HomeActivity extends ActionBarActivity implements DataLoaderListene
 		    setTitle(pageTitles[id]);
 			break;
 		case POST:
+			lastPosition = id;
 			fragment = new PostDetailFragment();
 			Bundle args = new Bundle();
 			args.putInt(PostDetailFragment.ARG_ID, id);
@@ -290,17 +295,44 @@ public class HomeActivity extends ActionBarActivity implements DataLoaderListene
 			return;
 		}
 		((GlobalState)GlobalState.getContext()).refresh(true);
-		DataLoader dl = new DataLoader(PostType.POST);
+		DataLoader dl = new DataLoader();
 		dl.setDataLoaderListener(this);
 		dl.setStreamType(DataLoader.JSON);
 		try {
 			Properties p = AssetsPropertyReader.getProperties(this);
-			String URL = p.getProperty("URL") + p.getProperty("GET_RECENT_POSTS") + p.getProperty("NUMBER_OF_POSTS");
+			String URL = p.getProperty("URL") + p.getProperty("APIPHP") + p.getProperty("GET_RECENT_POSTS") + "&count=" + p.getProperty("NUMBER_OF_POSTS_PER_REQUEST");
 			dl.setDataSource(URL);
 		} catch (MalformedURLException e) {
 			Log.d("Path incorrect", e.toString());
 		}
-		refresh.setActionView(R.layout.actionbar_indeterminate_progress);
+		// Need to check if the MenuItem is already available, since this method is called in onCreate and onCreateOptionsMenu is called after onCreate has ended.
+		if (refresh != null) {
+			refresh.setActionView(R.layout.actionbar_indeterminate_progress);
+		}
+		dl.prepareAsync();
+	}
+	
+	public void getMorePosts(int lastPostId) {
+		lastPosition = lastPostId;
+		if ( ((GlobalState)GlobalState.getContext()).isRefreshing()  ) {
+			return;
+		}
+		((GlobalState)GlobalState.getContext()).refresh(true);
+		DataLoader dl = new DataLoader();
+		dl.setDataLoaderListener(this);
+		dl.setStreamType(DataLoader.JSON);
+		try {
+			Properties p = AssetsPropertyReader.getProperties(this);
+			String URL = p.getProperty("URL") + p.getProperty("APIPHP") + p.getProperty("GET_RECENT_POSTS") + "&count=" + p.getProperty("NUMBER_OF_POSTS_PER_REQUEST") 
+					+ "&afterPostId=" + lastPostId;
+			dl.setDataSource(URL);
+		} catch (MalformedURLException e) {
+			Log.d("Path incorrect", e.toString());
+		}
+		// Need to check if the MenuItem is already available, since this method is called in onCreate and onCreateOptionsMenu is called after onCreate has ended.
+		if (refresh != null) {
+			refresh.setActionView(R.layout.actionbar_indeterminate_progress);
+		}
 		dl.prepareAsync();
 	}
 
@@ -335,7 +367,17 @@ public class HomeActivity extends ActionBarActivity implements DataLoaderListene
 		        }
 			}
 		});
-		
+	}
+	
+	private void exitApplication() {
+		Intent intent = new Intent(Intent.ACTION_MAIN);
+	    intent.addCategory(Intent.CATEGORY_HOME);
+	    intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+	    startActivity(intent);
+	    Properties p = AssetsPropertyReader.getProperties(this);
+	    int max = Integer.parseInt(p.getProperty("MAX_NUMBER_OF_POSTS"));
+	    PostCollection.cleanUpPostCollection(max);
+	    this.finish();
 	}
 }
 

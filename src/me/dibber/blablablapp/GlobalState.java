@@ -6,7 +6,6 @@ import android.content.Context;
 public class GlobalState extends Application {
 	
 	PostCollection posts;
-	PostCollection pages;
 	private static Context context;
 	private String searchQuery;
 	private boolean refreshing;
@@ -26,13 +25,6 @@ public class GlobalState extends Application {
 		} else {
 			return PostCollection.getFilteredPostCollection(searchQuery.split(" "));
 		}
-	}
-	
-	public PostCollection getPages() {
-		if (pages == null) {
-			pages = PostCollection.getPageCollection();
-		}
-		return pages;
 	}
 	
 	public void search(String query) {

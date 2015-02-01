@@ -1635,15 +1635,15 @@ containing a value of this type.
         public static final int abc_textfield_search_default_mtrl_alpha=0x7f020031;
         public static final int abc_textfield_search_material=0x7f020032;
         public static final int background_body=0x7f020033;
-        public static final int blablablog_color=0x7f020034;
-        public static final int blablablog_grey=0x7f020035;
-        public static final int ic_action_refresh=0x7f020036;
-        public static final int ic_action_search=0x7f020037;
-        public static final int ic_drawer=0x7f020038;
-        public static final int ic_launcher=0x7f020039;
-        public static final int image_background=0x7f02003a;
-        public static final int item_curved_corners=0x7f02003b;
-        public static final int item_selectable=0x7f02003c;
+        public static final int ic_action_refresh=0x7f020034;
+        public static final int ic_action_search=0x7f020035;
+        public static final int ic_drawer=0x7f020036;
+        public static final int ic_launcher=0x7f020037;
+        public static final int image_background=0x7f020038;
+        public static final int item_curved_corners=0x7f020039;
+        public static final int item_selectable=0x7f02003a;
+        public static final int logo_color=0x7f02003b;
+        public static final int logo_grey=0x7f02003c;
     }
     public static final class id {
         public static final int action_bar=0x7f0a0032;
@@ -1858,10 +1858,16 @@ containing a value of this type.
         public static final int drawer_close=0x7f0b0012;
         public static final int drawer_open=0x7f0b0011;
         public static final int logo=0x7f0b0013;
+        public static final int no=0x7f0b001c;
         public static final int no_connection=0x7f0b0018;
-        public static final int refresh=0x7f0b0019;
+        public static final int no_connection_dialog_message=0x7f0b001a;
+        public static final int no_connection_dialog_title=0x7f0b0019;
+        public static final int ok=0x7f0b001e;
+        public static final int refresh=0x7f0b001f;
         public static final int search_hint=0x7f0b0016;
         public static final int search_title=0x7f0b0015;
+        public static final int unsupported_version_dialog_message=0x7f0b001d;
+        public static final int yes=0x7f0b001b;
     }
     public static final class style {
         /** 
