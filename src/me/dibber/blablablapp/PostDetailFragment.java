@@ -219,13 +219,15 @@ public class PostDetailFragment extends Fragment {
 			if (!(getResources().getBoolean(R.bool.isLandscape))) {
 				return;
 			}
+			if (mContentView != null) {
+				return;
+			}
 			
 			View view = null;
 			if (mImageView != null) {
 				view = mImageView;
-			} else if (mYouTubeFrame != null) {
-				view = mYouTubeFrame;
 			}
+			
 			final View updateView = view;
 			
 			if (updateView != null) {

@@ -169,7 +169,21 @@ public class PostCollection {
 		if (videoURL == null) {
 			return null;
 		}
-		return videoURL.replaceAll("http://www.youtube.com/embed/", "");
+		int cut = 0;
+		for (int i = 0; i < videoURL.length(); i++) {
+			if (videoURL.charAt(i) == '/') {
+				cut = i;
+			}
+		}
+		String videoID = (String) videoURL.subSequence(cut+1, videoURL.length());
+		StringBuilder sb = new StringBuilder();
+		for (int i = 0; i < videoID.length(); i++) {
+			if (videoID.charAt(i) == '?') {
+				break;
+			}
+			sb.append(videoID.charAt(i));
+		}
+		return sb.toString();
 	}
 	
 	public int countImages(int postId) {
