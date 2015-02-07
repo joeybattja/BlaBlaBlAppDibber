@@ -1675,7 +1675,7 @@ containing a value of this type.
         public static final int end=0x7f0a001d;
         public static final int expand_activities_button=0x7f0a0023;
         public static final int expanded_menu=0x7f0a0029;
-        public static final int gridview_post_overview=0x7f0a004b;
+        public static final int gridview_post_overview=0x7f0a004c;
         public static final int home=0x7f0a0000;
         public static final int homeAsUp=0x7f0a000f;
         public static final int icon=0x7f0a0027;
@@ -1685,12 +1685,12 @@ containing a value of this type.
         public static final int img_fullscreen=0x7f0a0045;
         public static final int left_drawer=0x7f0a0042;
         public static final int listMode=0x7f0a000b;
-        public static final int list_image=0x7f0a004d;
+        public static final int list_image=0x7f0a004e;
         public static final int list_item=0x7f0a0026;
-        public static final int list_meta=0x7f0a0050;
-        public static final int list_short_content=0x7f0a0051;
-        public static final int list_text=0x7f0a004e;
-        public static final int list_title=0x7f0a004f;
+        public static final int list_meta=0x7f0a0051;
+        public static final int list_short_content=0x7f0a0052;
+        public static final int list_text=0x7f0a004f;
+        public static final int list_title=0x7f0a0050;
         public static final int middle=0x7f0a001e;
         public static final int never=0x7f0a0018;
         public static final int none=0x7f0a0010;
@@ -1699,13 +1699,14 @@ containing a value of this type.
         public static final int postImageView=0x7f0a0049;
         public static final int postMeta=0x7f0a0048;
         public static final int postTitle=0x7f0a0047;
-        public static final int post_pager=0x7f0a004c;
+        public static final int postYouTubeFrame=0x7f0a004b;
+        public static final int post_pager=0x7f0a004d;
         public static final int progressBar1=0x7f0a0043;
         public static final int progress_circular=0x7f0a0007;
         public static final int progress_horizontal=0x7f0a0008;
         public static final int radio=0x7f0a002c;
-        public static final int refresh=0x7f0a0053;
-        public static final int search=0x7f0a0052;
+        public static final int refresh=0x7f0a0054;
+        public static final int search=0x7f0a0053;
         public static final int search_badge=0x7f0a0036;
         public static final int search_bar=0x7f0a0035;
         public static final int search_button=0x7f0a0037;
@@ -1787,10 +1788,11 @@ containing a value of this type.
         public static final int drawer_list_item=0x7f03001b;
         public static final int fragment_page=0x7f03001c;
         public static final int fragment_post_details=0x7f03001d;
-        public static final int fragment_post_overview=0x7f03001e;
-        public static final int fragment_post_pager=0x7f03001f;
-        public static final int item_post_overview=0x7f030020;
-        public static final int support_simple_spinner_dropdown_item=0x7f030021;
+        public static final int fragment_post_details_youtube=0x7f03001e;
+        public static final int fragment_post_overview=0x7f03001f;
+        public static final int fragment_post_pager=0x7f030020;
+        public static final int item_post_overview=0x7f030021;
+        public static final int support_simple_spinner_dropdown_item=0x7f030022;
     }
     public static final class menu {
         public static final int options_menu=0x7f0d0000;

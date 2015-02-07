@@ -27,9 +27,15 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver.OnGlobalLayoutListener;
+import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+
+import com.google.android.youtube.player.YouTubeInitializationResult;
+import com.google.android.youtube.player.YouTubePlayer;
+import com.google.android.youtube.player.YouTubePlayer.Provider;
+import com.google.android.youtube.player.YouTubePlayerSupportFragment;
 
 public class PostDetailFragment extends Fragment {
 	
@@ -137,23 +143,64 @@ public class PostDetailFragment extends Fragment {
 	
 	public static class PostFragment extends Fragment {
 		private ImageView mImageView;
+		private FrameLayout mYouTubeFrame;
+		private PostYouTubeFragment mYouTubeFragment;
+		private String videoId;
+		
 		private TextView mTitleView;
 		private TextView mMetaView;
 		private TextView mContentView;
 		private int postId;
 		
 		public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-			View rootView = inflater.inflate( R.layout.fragment_post_details, container, false);
 			postId = getArguments().getInt(ARG_ID);
 			posts = ((GlobalState) GlobalState.getContext() ).getPosts();
+			videoId = posts.getIemYouTubeVideoID(postId);
+			
+			View rootView = null;
+			if (videoId != null) {
+				rootView = inflater.inflate(R.layout.fragment_post_details_youtube, container, false);
+			} else {
+				rootView = inflater.inflate(R.layout.fragment_post_details, container, false);
+			}
 			
 			mTitleView = (TextView) rootView.findViewById(R.id.postTitle);
 			mMetaView = (TextView) rootView.findViewById(R.id.postMeta);
 			mImageView = (ImageView) rootView.findViewById(R.id.postImageView);
 			mContentView = (TextView) rootView.findViewById(R.id.postContent);
+			mYouTubeFrame = (FrameLayout) rootView.findViewById(R.id.postYouTubeFrame);
 			
-			mContentView.setText(posts.getItemContent(postId));			
-			PostCollection.setImage(mImageView, DrawableType.POST_IMAGE, postId);
+			if (mYouTubeFrame != null) {
+				mYouTubeFragment = PostYouTubeFragment.newInstance(videoId);
+				getChildFragmentManager().beginTransaction().replace(R.id.postYouTubeFrame, mYouTubeFragment).commit();
+				updateTextMargins();
+			}
+			
+			mContentView.setText(posts.getItemContent(postId));
+			
+			if (mImageView != null) {
+				PostCollection.setImage(mImageView, DrawableType.POST_IMAGE, postId, new PostCollection.SetImageListener() {
+					
+					@Override
+					public void onImageSet() {
+						updateTextMargins();
+						
+					}
+				});
+				mImageView.setOnClickListener(new OnClickListener() {
+					
+					@Override
+					public void onClick(View v) {
+						if (posts.countImages(postId) == 0) {
+							return;
+						} else {
+							Intent i = new Intent((GlobalState) GlobalState.getContext(), ViewImageFullScreenActivity.class);
+							i.putExtra(ViewImageFullScreenActivity.POSTID, postId);
+							startActivity(i);
+						}
+					}
+				});
+			}
 			
 			if (mTitleView != null) {
 				mTitleView.setTypeface(null, Typeface.BOLD);
@@ -164,45 +211,42 @@ public class PostDetailFragment extends Fragment {
 				mMetaView.setText(posts.getItemMeta(postId));
 			}
 			
-			mImageView.setOnClickListener(new OnClickListener() {
-				
-				@Override
-				public void onClick(View v) {
-					if (posts.countImages(postId) == 0) {
-						return;
-					} else {
-						Intent i = new Intent((GlobalState) GlobalState.getContext(), ViewImageFullScreenActivity.class);
-						i.putExtra(ViewImageFullScreenActivity.POSTID, postId);
-						startActivity(i);
-					}
-				}
-			});
 			
 			return rootView;
 		}
 		
 		public void updateTextMargins() {
-			if (mImageView == null || !(getResources().getBoolean(R.bool.isLandscape))) {
+			if (!(getResources().getBoolean(R.bool.isLandscape))) {
 				return;
-			} else {
-				mImageView.getViewTreeObserver().addOnGlobalLayoutListener(new OnGlobalLayoutListener() {
+			}
+			
+			View view = null;
+			if (mImageView != null) {
+				view = mImageView;
+			} else if (mYouTubeFrame != null) {
+				view = mYouTubeFrame;
+			}
+			final View updateView = view;
+			
+			if (updateView != null) {
+				updateView.getViewTreeObserver().addOnGlobalLayoutListener(new OnGlobalLayoutListener() {
 					 @SuppressLint("NewApi")
 					 @SuppressWarnings("deprecation")
 					 @Override
 					  public void onGlobalLayout() {
-						 int w = mImageView.getMeasuredWidth();
-						 int h = mImageView.getMeasuredHeight();
+						 int w = updateView.getMeasuredWidth();
+						 int h = updateView.getMeasuredHeight();
 						 
 						 if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.JELLY_BEAN) {
-							 mImageView.getViewTreeObserver().removeOnGlobalLayoutListener(this);							 
+							 updateView.getViewTreeObserver().removeOnGlobalLayoutListener(this);							 
 						 } else {
-							 mImageView.getViewTreeObserver().removeGlobalOnLayoutListener(this);
+							 updateView.getViewTreeObserver().removeGlobalOnLayoutListener(this);
 						 }
 						 
 						 onUpdateTextMarginsDone(w,h);
 					 }
 				});
-			}
+			} 
 		}
 		
 		public void onUpdateTextMarginsDone(int imgWidth, int imgHeight) {
@@ -215,7 +259,7 @@ public class PostDetailFragment extends Fragment {
 			imgWidth += marginPixels;
 			imgHeight += marginPixels;
 			
-			if (mImageView == null || mContentView == null) {
+			if (mContentView == null) {
 				return;
 			}
 			
@@ -271,6 +315,43 @@ public class PostDetailFragment extends Fragment {
 				}
 			});
 		}
+	}
+	
+	public static class PostYouTubeFragment extends YouTubePlayerSupportFragment {
+		
+		private static String YOUTUBE_API_KEY = "AIzaSyD7xWiQl4I8KW987uZyns8qma0eWfCY_8c";
+		public static String VIDEO_ID = "YouTube ID";
+	    private YouTubePlayer mPlayer;
+
+	    public static PostYouTubeFragment newInstance(String videoID) {
+
+	    	PostYouTubeFragment youTubeFragment = new PostYouTubeFragment();
+
+	        Bundle bundle = new Bundle();
+	        bundle.putString(VIDEO_ID, videoID);
+
+	        youTubeFragment.setArguments(bundle);
+	        youTubeFragment.init();
+
+	        return youTubeFragment;
+	    }
+
+	    private void init() {
+
+	        initialize(YOUTUBE_API_KEY, new YouTubePlayer.OnInitializedListener() {
+
+	            @Override
+	            public void onInitializationFailure(Provider provider, YouTubeInitializationResult error) { }
+
+	            @Override
+	            public void onInitializationSuccess(YouTubePlayer.Provider provider, YouTubePlayer player, boolean wasRestored) {
+	                mPlayer = player;
+	                if (!wasRestored) {
+	                	mPlayer.cueVideo(getArguments().getString(VIDEO_ID));
+	                }
+	            }
+	        });
+	    }
 	}
 			
 	static class ImageMarginSpan implements LeadingMarginSpan.LeadingMarginSpan2 {
