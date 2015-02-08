@@ -155,7 +155,7 @@ public class PostDetailFragment extends Fragment {
 		public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 			postId = getArguments().getInt(ARG_ID);
 			posts = ((GlobalState) GlobalState.getContext() ).getPosts();
-			videoId = posts.getIemYouTubeVideoID(postId);
+			videoId = posts.getItemYouTubeVideoID(postId);
 			
 			View rootView = null;
 			if (videoId != null) {
@@ -219,30 +219,20 @@ public class PostDetailFragment extends Fragment {
 			if (!(getResources().getBoolean(R.bool.isLandscape))) {
 				return;
 			}
-			if (mContentView != null) {
-				return;
-			}
 			
-			View view = null;
 			if (mImageView != null) {
-				view = mImageView;
-			}
-			
-			final View updateView = view;
-			
-			if (updateView != null) {
-				updateView.getViewTreeObserver().addOnGlobalLayoutListener(new OnGlobalLayoutListener() {
+				mImageView.getViewTreeObserver().addOnGlobalLayoutListener(new OnGlobalLayoutListener() {
 					 @SuppressLint("NewApi")
 					 @SuppressWarnings("deprecation")
 					 @Override
 					  public void onGlobalLayout() {
-						 int w = updateView.getMeasuredWidth();
-						 int h = updateView.getMeasuredHeight();
+						 int w = mImageView.getMeasuredWidth();
+						 int h = mImageView.getMeasuredHeight();
 						 
 						 if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.JELLY_BEAN) {
-							 updateView.getViewTreeObserver().removeOnGlobalLayoutListener(this);							 
+							 mImageView.getViewTreeObserver().removeOnGlobalLayoutListener(this);							 
 						 } else {
-							 updateView.getViewTreeObserver().removeGlobalOnLayoutListener(this);
+							 mImageView.getViewTreeObserver().removeGlobalOnLayoutListener(this);
 						 }
 						 
 						 onUpdateTextMarginsDone(w,h);
@@ -321,7 +311,7 @@ public class PostDetailFragment extends Fragment {
 	
 	public static class PostYouTubeFragment extends YouTubePlayerSupportFragment {
 		
-		private static String YOUTUBE_API_KEY = "AIzaSyD7xWiQl4I8KW987uZyns8qma0eWfCY_8c";
+		private final static String YOUTUBE_API_KEY = "AIzaSyD7xWiQl4I8KW987uZyns8qma0eWfCY_8c";
 		public static String VIDEO_ID = "YouTube ID";
 	    private YouTubePlayer mPlayer;
 

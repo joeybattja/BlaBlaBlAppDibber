@@ -154,7 +154,7 @@ public class PostCollection {
 		}
 	}
 	
-	public String getIemYouTubeVideoID(int postId) {
+	public String getItemYouTubeVideoID(int postId) {
 		if (posts.get(postId) == null) {
 			return " ";
 		}
