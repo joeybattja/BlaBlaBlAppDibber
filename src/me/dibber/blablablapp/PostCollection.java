@@ -35,6 +35,7 @@ public class PostCollection {
 	private static PostCollection postCollection;
 	private static PostCollection filteredPostCollection;
 	private final static String MIMETYPE_IMAGE = "image/jpeg";
+	private final static String MIMETYPE_YOUTUBE = "video/youtube";
 	private final static int THUMBNAIL_WIDTH = 240;
 	private final static int THUMBNAIL_HEIGHT = 180;
 	private TreeMap<Integer,Post> posts;
@@ -153,6 +154,38 @@ public class PostCollection {
 		}
 	}
 	
+	public String getItemYouTubeVideoID(int postId) {
+		if (posts.get(postId) == null) {
+			return " ";
+		}
+		String videoURL = null;
+		ArrayList<Post.Attachment> att = posts.get(postId).attachments;
+		for (int i = 0; i < att.size(); i++) {
+			if (att.get(i).mimeType.equals(MIMETYPE_YOUTUBE)) {
+				videoURL = att.get(i).url;
+				break;
+			}
+		}
+		if (videoURL == null) {
+			return null;
+		}
+		int cut = 0;
+		for (int i = 0; i < videoURL.length(); i++) {
+			if (videoURL.charAt(i) == '/') {
+				cut = i;
+			}
+		}
+		String videoID = (String) videoURL.subSequence(cut+1, videoURL.length());
+		StringBuilder sb = new StringBuilder();
+		for (int i = 0; i < videoID.length(); i++) {
+			if (videoID.charAt(i) == '?') {
+				break;
+			}
+			sb.append(videoID.charAt(i));
+		}
+		return sb.toString();
+	}
+	
 	public int countImages(int postId) {
 		if (posts.get(postId) == null) {
 			return 0;
@@ -231,11 +264,25 @@ public class PostCollection {
 	public static void setImage(ImageView v, DrawableType type) {
 		if (type == DrawableType.POST_IMAGE || type == DrawableType.LIST_IMAGE || type == DrawableType.FULLSCREEN_IMAGE)
 			return;
-		setImage(v,type,-1,-1);
+		setImage(v,type,-1,-1,null);
+	}
+	
+	public static void setImage(ImageView v, DrawableType type, SetImageListener listener) {
+		if (type == DrawableType.POST_IMAGE || type == DrawableType.LIST_IMAGE || type == DrawableType.FULLSCREEN_IMAGE)
+			return;
+		setImage(v,type,-1,-1,listener);
 	}
 	
 	public static void setImage(ImageView v, DrawableType type, int postId) {
-		setImage(v,type,postId,-1);
+		setImage(v,type,postId,-1,null);
+	}
+	
+	public static void setImage(ImageView v, DrawableType type, int postId, SetImageListener listener) {
+		setImage(v,type,postId,-1,listener);
+	}
+	
+	public static void setImage(ImageView v, DrawableType type, int postId, int position) {
+		setImage(v,type,postId,position,null);
 	}
 	
 	/**
@@ -254,7 +301,7 @@ public class PostCollection {
 	 * 		If set to an invalid number (e.g. -1) the images will all be set with a delay between images. 
 	 * 		Ignored when only 1 image is present for the post or for LOGO types.
 	 */
-	public static void setImage(ImageView v, DrawableType type, int postId, int position) {
+	public static void setImage(ImageView v, DrawableType type, int postId, int position, SetImageListener listener) {
 		if (v == null || type == null)
 			return;
 		
@@ -262,10 +309,10 @@ public class PostCollection {
 		
 		switch (type) {
 		case LOGO_COLOR:
-			setImage(v, ((GlobalState) GlobalState.getContext()).getResources().getDrawable(R.drawable.logo_color), 0, 0);
+			setImage(v, ((GlobalState) GlobalState.getContext()).getResources().getDrawable(R.drawable.logo_color), 0, 0, listener);
 			break;
 		case LOGO_GREYSCALE:
-			setImage(v, ((GlobalState) GlobalState.getContext()).getResources().getDrawable(R.drawable.logo_grey), 0, 0);
+			setImage(v, ((GlobalState) GlobalState.getContext()).getResources().getDrawable(R.drawable.logo_grey), 0, 0, listener);
 			break;
 		case POST_IMAGE:
 			if (pc.countImages(postId) != 0) {
@@ -273,20 +320,20 @@ public class PostCollection {
 					ArrayList<Drawable> images = pc.getImages(postId);
 		
 					if (position < 0 || position > images.size() ) {
-						setMultipleImages(v, images, postId);
+						setMultipleImages(v, images, postId, listener);
 					} else {
-						setImage(v, images.get(position), postId, position);
+						setImage(v, images.get(position), postId, position, listener);
 					}
 				} else {
-					setImage(v, pc.getImages(postId).get(0), postId, 0);
+					setImage(v, pc.getImages(postId).get(0), postId, 0, listener);
 				}
 			} 
 			break;
 		case LIST_IMAGE:
 			if (pc.countImages(postId) == 0) {
-				setThumbnail(v, decodeThumbnailFromResources(GlobalState.getContext().getResources(), R.drawable.logo_grey), postId);
+				setThumbnail(v, decodeThumbnailFromResources(GlobalState.getContext().getResources(), R.drawable.logo_grey), postId, listener);
 			} else {
-				setThumbnail(v, pc.getThumbnail(postId), postId);
+				setThumbnail(v, pc.getThumbnail(postId), postId, listener);
 			} 
 			break;
 		case FULLSCREEN_IMAGE:
@@ -295,12 +342,12 @@ public class PostCollection {
 					ArrayList<Drawable> images = pc.getImages(postId);
 					
 					if (position < 0 || position > images.size() ) {
-						setMultipleImages(v, images, postId);
+						setMultipleImages(v, images, postId, listener);
 					} else {
-						setImage(v, images.get(position), postId, position);
+						setImage(v, images.get(position), postId, position, listener);
 					}
 				} else {
-					setImage(v, pc.getImages(postId).get(0), postId, 0);
+					setImage(v, pc.getImages(postId).get(0), postId, 0, listener);
 				}
 			}
 		default:
@@ -379,14 +426,14 @@ public class PostCollection {
 		t.start(); 
 	}
 
-	private static void setImage(final ImageView v, final Drawable d, final int postId, final int position) { 
+	private static void setImage(final ImageView v, final Drawable d, final int postId, final int position, final SetImageListener listener) { 
 		
 		if (d == null) {
 			retrieveImages(postId, true, new ImagesRetrievalListener() {
 				
 				@Override
 				public void onImagesRetrieved() {
-					setImage(v, getPostCollection().getImages(postId).get(position), postId, position);
+					setImage(v, getPostCollection().getImages(postId).get(position), postId, position, listener);
 				}
 			});
 			return;
@@ -400,25 +447,22 @@ public class PostCollection {
 								
 				v.setAdjustViewBounds(true);
 				v.setImageDrawable(d);
-				if (a instanceof HomeActivity) {
-					PostDetailFragment.PostFragment f = ((HomeActivity)a).getCurrentPostFragment(postId);
-						if (f != null) {
-							f.updateTextMargins();
-						}
+				if (listener != null) {
+					listener.onImageSet();
 				}
 			}
 		});
 	}
 	
-	private static void setThumbnail(final ImageView v, final Bitmap b, final int postId) {
+	private static void setThumbnail(final ImageView v, final Bitmap b, final int postId, final SetImageListener listener) {
 		
 		if (b == null) {
-			setThumbnail(v, decodeThumbnailFromResources(GlobalState.getContext().getResources(), R.drawable.logo_grey), postId);
+			setThumbnail(v, decodeThumbnailFromResources(GlobalState.getContext().getResources(), R.drawable.logo_grey), postId, listener);
 			retrieveImages(postId, false, new ImagesRetrievalListener() {
 				
 				@Override
 				public void onImagesRetrieved() {
-					setThumbnail(v, getPostCollection().getThumbnail(postId), postId);
+					setThumbnail(v, getPostCollection().getThumbnail(postId), postId, listener);
 				}
 			});
 			return;
@@ -432,11 +476,14 @@ public class PostCollection {
 				
 				v.setAdjustViewBounds(true);
 				v.setImageBitmap(b);
+				if (listener != null) {
+					listener.onImageSet();
+				}
 			}
 		});
 	}
 
-	private static void setMultipleImages(final ImageView v, final ArrayList<Drawable> images, final int postId) {
+	private static void setMultipleImages(final ImageView v, final ArrayList<Drawable> images, final int postId, final SetImageListener listener) {
 		
 		if (activeHandlers == null) {
 			activeHandlers = new SparseArray<Handler>();
@@ -457,7 +504,7 @@ public class PostCollection {
 			int j = 0;
 			@Override
 			public void run() {
-				setImage(v, images.get(j), postId, j);
+				setImage(v, images.get(j), postId, j, listener);
 				j++;
 				if (j > images.size() - 1) {
 					j = 0;
@@ -543,6 +590,11 @@ public class PostCollection {
 				}
 			}
 		}
+	}
+	
+	public interface SetImageListener {
+		
+		void onImageSet();
 	}
 	
 	private interface ImagesRetrievalListener {

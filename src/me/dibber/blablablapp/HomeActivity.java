@@ -1,7 +1,11 @@
 package me.dibber.blablablapp;
 
 import java.net.MalformedURLException;
+import java.util.HashMap;
+import java.util.Map.Entry;
 import java.util.Properties;
+
+import com.google.android.youtube.player.YouTubeThumbnailLoader;
 
 import me.dibber.blablablapp.DataLoader.DataLoaderListener;
 import me.dibber.blablablapp.PostDetailFragment.PostFragment;
@@ -137,8 +141,26 @@ public class HomeActivity extends ActionBarActivity implements DataLoaderListene
 
     @Override
     public void onConfigurationChanged(Configuration newConfig) {
+    	Fragment frag = getSupportFragmentManager().findFragmentByTag(TAG_FRAGMENT_CONTENT);
+    	if (frag instanceof PostDetailFragment) {
+    		currentId = ((PostDetailFragment) frag).getViewPagerCurrentItem();
+    	}
         super.onConfigurationChanged(newConfig);
         mDrawerToggle.onConfigurationChanged(newConfig);
+        
+        // Reload the frame to make sure the layout is adapter correctly. However if the current frame is a fragment with youTube, don't reload the frame
+        // This is not perfect, since actually the layout of the postdetails-fragment can become incorrect. However if the user was just watching 
+        // a YouTube video the video will restart if I reload the frame.
+    	if (frag instanceof PostDetailFragment) {
+    		int item = ((PostDetailFragment)frag).getViewPagerCurrentItem();
+    		if (PostCollection.getPostCollection().getItemYouTubeVideoID(item) != null) {
+    			return;
+    		}
+    	}
+    	
+        if (currentType != null) {
+        	replaceContentFrame(currentType, currentId);
+        }
     }
     
     @Override
@@ -374,9 +396,17 @@ public class HomeActivity extends ActionBarActivity implements DataLoaderListene
 	    intent.addCategory(Intent.CATEGORY_HOME);
 	    intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 	    startActivity(intent);
+	    
+	    // clean up the post collection (incl disk) to contain no more than the set max. 
 	    Properties p = AssetsPropertyReader.getProperties(this);
 	    int max = Integer.parseInt(p.getProperty("MAX_NUMBER_OF_POSTS"));
 	    PostCollection.cleanUpPostCollection(max);
+	    
+	    // release all active YouTubeThumbnailLoaders.
+	    HashMap<View,YouTubeThumbnailLoader> loaders = ((GlobalState)GlobalState.getContext()).getYouTubeThumbnailLoaderList();
+	    for (Entry<View, YouTubeThumbnailLoader> entry : loaders.entrySet() ) {
+	    	entry.getValue().release();
+	    }
 	    this.finish();
 	}
 }

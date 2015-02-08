@@ -1,7 +1,12 @@
 package me.dibber.blablablapp;
 
+import java.util.HashMap;
+
+import com.google.android.youtube.player.YouTubeThumbnailLoader;
+
 import android.app.Application;
 import android.content.Context;
+import android.view.View;
 
 public class GlobalState extends Application {
 	
@@ -10,6 +15,7 @@ public class GlobalState extends Application {
 	private String searchQuery;
 	private boolean refreshing;
 	private HomeActivity homeActivity;
+	private HashMap<View,YouTubeThumbnailLoader> youTubeThumbnailLoaders;
 	
 	@Override
 	public void onCreate() {
@@ -55,6 +61,13 @@ public class GlobalState extends Application {
 
 	public void setCurrentHomeActivity(HomeActivity homeActivity) {
 		this.homeActivity = homeActivity;
+	}
+	
+	public HashMap<View,YouTubeThumbnailLoader> getYouTubeThumbnailLoaderList() {
+		if (youTubeThumbnailLoaders == null) {
+			youTubeThumbnailLoaders = new HashMap<View,YouTubeThumbnailLoader>();
+		}
+		return youTubeThumbnailLoaders;
 	}
 	
 	public static Context getContext() {
