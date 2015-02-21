@@ -10,7 +10,6 @@ import me.dibber.blablablapp.PostDetailFragment.PostFragment;
 import android.app.SearchManager;
 import android.content.Context;
 import android.content.Intent;
-import android.content.res.Configuration;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
@@ -26,6 +25,7 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.Toast;
@@ -43,7 +43,7 @@ public class HomeActivity extends ActionBarActivity implements DataLoaderListene
 	private int currentPost;
 	private ContentFrameType currentType;
 	
-	private MenuItem menuItem;
+	private MenuItem searchItem;
 	private MenuItem refresh;
 	
 	private DrawerLayout mDrawerLayout;
@@ -76,7 +76,13 @@ public class HomeActivity extends ActionBarActivity implements DataLoaderListene
 		mDrawerLayout.setDrawerListener(mDrawerToggle);
         mDrawerList = (ListView) findViewById(R.id.left_drawer);
         mDrawerList.setAdapter(new ArrayAdapter<>(this, R.layout.drawer_list_item, pageTitles));
-        mDrawerList.setOnItemClickListener(new DrawerItemClickListener());
+        mDrawerList.setOnItemClickListener(new OnItemClickListener() {
+			@Override
+			public void onItemClick(AdapterView<?> parent, View view,
+					int position, long id) {
+				replaceContentFrame(ContentFrameType.PAGE, position);
+			}
+		});
         
         try {
         	currentId = savedInstanceState.getInt(CURRENT_ID);
@@ -85,11 +91,10 @@ public class HomeActivity extends ActionBarActivity implements DataLoaderListene
             replaceContentFrame(currentType, currentId);
         } catch (NullPointerException e) {
         	replaceContentFrame(ContentFrameType.PAGE, 0);
+        	refreshPosts();
         }
-        refreshPosts();
 	}
 	
-
 	@Override
 	protected void onResume() {
 		super.onResume();
@@ -127,24 +132,6 @@ public class HomeActivity extends ActionBarActivity implements DataLoaderListene
 	    loaders.clear();
 	}
 	
-
-
-	@Override
-	public void onBackPressed() {
-		saveLastPosition();
-		Fragment fragment = (Fragment) getSupportFragmentManager().findFragmentByTag(TAG_FRAGMENT_CONTENT);
-		if (fragment instanceof PostDetailFragment) {
-			replaceContentFrame(ContentFrameType.PAGE, 0);
-		} else {
-			
-			if (menuItem != null && MenuItemCompat.isActionViewExpanded(menuItem)) {
-				MenuItemCompat.collapseActionView(menuItem);
-				return;
-			}
-			exitApplication();
-		}		
-	}
-	
 	@Override
     protected void onPostCreate(Bundle savedInstanceState) {
         super.onPostCreate(savedInstanceState);
@@ -152,10 +139,24 @@ public class HomeActivity extends ActionBarActivity implements DataLoaderListene
         mDrawerToggle.syncState();
     }
 
-    @Override
-    public void onConfigurationChanged(Configuration newConfig) {
-        mDrawerToggle.onConfigurationChanged(newConfig);
-    }
+	@Override
+	public void onBackPressed() {
+		saveLastPosition();
+		if (mDrawerLayout.isDrawerOpen(mDrawerList)) {
+			mDrawerLayout.closeDrawer(mDrawerList);
+			return;
+		}
+		Fragment fragment = (Fragment) getSupportFragmentManager().findFragmentByTag(TAG_FRAGMENT_CONTENT);
+		if (fragment instanceof PostDetailFragment) {
+			replaceContentFrame(ContentFrameType.PAGE, 0);
+			return;
+		}
+		if (searchItem != null && MenuItemCompat.isActionViewExpanded(searchItem)) {
+			MenuItemCompat.collapseActionView(searchItem);
+			return;
+		}
+		exitApplication();
+	}
     
     @Override
     public void onSaveInstanceState(Bundle savedInstanceState) {
@@ -182,11 +183,11 @@ public class HomeActivity extends ActionBarActivity implements DataLoaderListene
         inflater.inflate(R.menu.options_menu, menu);
 
         // Associate searchable configuration with the SearchView
-        menuItem = menu.findItem(R.id.search);
+        searchItem = menu.findItem(R.id.search);
         SearchManager searchManager = (SearchManager) getSystemService(Context.SEARCH_SERVICE);
-        final SearchView searchView = (SearchView) MenuItemCompat.getActionView(menuItem);
+        final SearchView searchView = (SearchView) MenuItemCompat.getActionView(searchItem);
         searchView.setSearchableInfo(searchManager.getSearchableInfo(getComponentName()));
-        MenuItemCompat.setOnActionExpandListener(menuItem, new MenuItemCompat.OnActionExpandListener() {
+        MenuItemCompat.setOnActionExpandListener(searchItem, new MenuItemCompat.OnActionExpandListener() {
 			
 			@Override
 			public boolean onMenuItemActionExpand(MenuItem item) {
@@ -195,14 +196,15 @@ public class HomeActivity extends ActionBarActivity implements DataLoaderListene
 			
 			@Override
 			public boolean onMenuItemActionCollapse(MenuItem item) {
-				((GlobalState)GlobalState.getContext()).search(null);
+				if (searchView.isEnabled()) {
+					((GlobalState)GlobalState.getContext()).search(null);
+				}
 				return true;
 			}
 		});
         String currentSearchQuery = ((GlobalState)GlobalState.getContext()).getSearchQuery();
-        if (currentSearchQuery == null) {
-        } else {
-        	menuItem.expandActionView();
+        if (currentSearchQuery != null) {
+        	searchItem.expandActionView();
         	searchView.setQuery(currentSearchQuery, false);
         	searchView.clearFocus();
         }
@@ -233,15 +235,41 @@ public class HomeActivity extends ActionBarActivity implements DataLoaderListene
         return true;
     }
     
+    public void simpleOptionsMenu(boolean simple) {
+    	if (searchItem != null) {
+    		searchItem.setEnabled(!simple);
+    		searchItem.setVisible(!simple);
+    	}
+    	if (refresh != null) {
+	    	refresh.setEnabled(!simple);
+	    	refresh.setVisible(!simple);
+    	}
+    	if (simple) {
+    		mDrawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED);
+    		mDrawerToggle.setDrawerIndicatorEnabled(false);
+    		getSupportActionBar().setHomeAsUpIndicator(getV7DrawerToggleDelegate().getThemeUpIndicator());
+    	} else {
+    		mDrawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_UNLOCKED);
+    		mDrawerToggle.setDrawerIndicatorEnabled(true);
+    	}
+    }
+    
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         // Pass the event to ActionBarDrawerToggle, if it returns
         // true, then it has handled the app icon touch event
         if (mDrawerToggle.onOptionsItemSelected(item)) {
-          return true;
+        	return true;
         }
         
         switch (item.getItemId()) {
+        case android.R.id.home:
+        	if (mDrawerToggle.isDrawerIndicatorEnabled()) {
+        		return mDrawerToggle.onOptionsItemSelected(item);
+        	} else {
+        		onBackPressed();
+        		return true;
+        	}
         case R.id.refresh:
         	refreshPosts();
     		return true;
@@ -250,13 +278,6 @@ public class HomeActivity extends ActionBarActivity implements DataLoaderListene
         }
     }
 	
-	private class DrawerItemClickListener implements ListView.OnItemClickListener {
-	    @Override
-	    public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-	    	replaceContentFrame(ContentFrameType.PAGE, position);
-	    }
-	}
-
 	public void replaceContentFrame(ContentFrameType type, int id) {
 		Fragment fragment = null;
 		currentType = type;
@@ -264,6 +285,7 @@ public class HomeActivity extends ActionBarActivity implements DataLoaderListene
 		
 		switch (type) {
 		case PAGE:
+			simpleOptionsMenu(false);
 			if (id == 0) {
 				fragment = new PostOverviewFragment();
 				Bundle args = new Bundle();
@@ -283,6 +305,7 @@ public class HomeActivity extends ActionBarActivity implements DataLoaderListene
 		    setTitle(pageTitles[id]);
 			break;
 		case POST:
+			simpleOptionsMenu(true);
 			currentPost = id;
 			fragment = new PostDetailFragment();
 			Bundle args = new Bundle();
