@@ -2,11 +2,11 @@ package me.dibber.blablablapp;
 
 import java.util.HashMap;
 
-import com.google.android.youtube.player.YouTubeThumbnailLoader;
-
 import android.app.Application;
 import android.content.Context;
 import android.view.View;
+
+import com.google.android.youtube.player.YouTubeThumbnailLoader;
 
 public class GlobalState extends Application {
 	
@@ -15,15 +15,19 @@ public class GlobalState extends Application {
 	private String searchQuery;
 	private boolean refreshing;
 	private HomeActivity homeActivity;
-	private HashMap<View,YouTubeThumbnailLoader> youTubeThumbnailLoaders;
 	
 	@Override
 	public void onCreate() {
 		super.onCreate();
 		context = getApplicationContext();
-		searchQuery = null;
 		refreshing = false;
 	}
+	
+	// Needed to get the Context from anywhere within the application
+	public static Context getContext() {
+		return context;
+	}
+	
 	
 	public PostCollection getPosts() {
 		if (searchQuery == null) {
@@ -63,6 +67,12 @@ public class GlobalState extends Application {
 		this.homeActivity = homeActivity;
 	}
 	
+	
+//--------------------------- YouTube support -----------------------------------
+	private HashMap<View,YouTubeThumbnailLoader> youTubeThumbnailLoaders;
+	private String currentYouTubeVideo;
+	private int currentYouTubeTime;
+	
 	public HashMap<View,YouTubeThumbnailLoader> getYouTubeThumbnailLoaderList() {
 		if (youTubeThumbnailLoaders == null) {
 			youTubeThumbnailLoaders = new HashMap<View,YouTubeThumbnailLoader>();
@@ -70,8 +80,17 @@ public class GlobalState extends Application {
 		return youTubeThumbnailLoaders;
 	}
 	
-	public static Context getContext() {
-		return context;
+	public void setCurrentYouTubeVideoTime(String videoID, int currentTimeMillis) {
+		currentYouTubeVideo = videoID;
+		currentYouTubeTime = currentTimeMillis;
+	}
+	
+	public int getYouTubeCurrentTimeMilis() {
+		return currentYouTubeTime;
+	}
+	
+	public String getCurrentYouTubeVideo() {
+		return currentYouTubeVideo;
 	}
 
 }

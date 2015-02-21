@@ -79,7 +79,14 @@ public class PostOverviewFragment extends Fragment {
 			}
 		});
 		
+		
 		return rootView;
+	}
+	
+	public int getLastPosition() {
+		if (mGridView == null || postsIds == null)
+			return 0;
+		return postsIds.get(mGridView.getFirstVisiblePosition());
 	}
 	
 	private class PostOverviewAdapter extends ArrayAdapter<Integer> implements OnInitializedListener {
@@ -186,7 +193,7 @@ public class PostOverviewFragment extends Fragment {
 				if (loader == null && mYouTubeView.getTag() == null) {
 					mYouTubeView.setTag(videoID);
 					mYouTubeView.initialize(YOUTUBE_API_KEY, this);
-				} else if (loader != null) {					
+				} else if (loader != null) {
 					loader.setVideo(videoID);
 					updateLayoutYouTubeThumbnail(mYouTubeView);
 				}

@@ -68,7 +68,8 @@ public class PostCollection {
 
 			@Override
 			public int compare(Integer lhs, Integer rhs) {
-				return rhs - lhs;
+				
+				return getItemDate(rhs).compareTo(getItemDate(lhs));
 			}
 		});
 		return list;
@@ -86,7 +87,7 @@ public class PostCollection {
 		}
 	}
 	
-	public String getItemDate(int postId) {
+	public String getItemDateAsString(int postId) {
 		if (posts.get(postId) == null) {
 			return " ";
 		} 
@@ -97,6 +98,19 @@ public class PostCollection {
 			return df.format(d);
 		} else {
 			return " ";
+		}
+	}
+	
+	public Date getItemDate(int postId) {
+		if (posts.get(postId) == null) {
+			return null;
+		} 
+		Date d = posts.get(postId).date;
+		
+		if (d != null) {
+			return d;
+		} else {
+			return null;
 		}
 	}
 	
@@ -113,7 +127,7 @@ public class PostCollection {
 	}
 	
 	public String getItemMeta(int postId) {
-		return (getItemDate(postId) + " " + GlobalState.getContext().getString(R.string.author_name, getItemAuthor(postId)));
+		return (getItemDateAsString(postId) + " " + GlobalState.getContext().getString(R.string.author_name, getItemAuthor(postId)));
 	}
 
 	public CharSequence getItemContent(int postId) {

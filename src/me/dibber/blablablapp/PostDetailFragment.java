@@ -20,7 +20,6 @@ import android.text.SpannableStringBuilder;
 import android.text.TextUtils;
 import android.text.style.LeadingMarginSpan;
 import android.util.DisplayMetrics;
-import android.util.Log;
 import android.util.SparseArray;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -281,13 +280,11 @@ public class PostDetailFragment extends Fragment {
 	        		
 					int linesCount = mContentView.getLayout().getLineCount();
 					SpannableString spanS =  new  SpannableString ( posts.getItemContent(postId) );
-					Log.d("lines " + postId, "" + lines);
 					if (linesCount <= lines) {
 						spanS.setSpan(new ImageMarginSpan(lines, marginWidth), 0, spanS.length(), 0);
 						
 					} else {
 						
-						Log.d("linesCount " + postId, "" + linesCount);
 						int breakpoint = mContentView.getLayout().getLineEnd(lines-2);
 						Spannable s1 = new SpannableStringBuilder(spanS, 0, breakpoint);
 					    s1.setSpan(new ImageMarginSpan(lines, marginWidth), 0, s1.length(), 0);
@@ -313,7 +310,8 @@ public class PostDetailFragment extends Fragment {
 		
 		private final static String YOUTUBE_API_KEY = "AIzaSyD7xWiQl4I8KW987uZyns8qma0eWfCY_8c";
 		public static String VIDEO_ID = "YouTube ID";
-	    private YouTubePlayer mPlayer;
+	    private static YouTubePlayer youTubePlayer;
+	    private static String youTubeVideo;
 
 	    public static PostYouTubeFragment newInstance(String videoID) {
 
@@ -321,10 +319,10 @@ public class PostDetailFragment extends Fragment {
 
 	        Bundle bundle = new Bundle();
 	        bundle.putString(VIDEO_ID, videoID);
-
 	        youTubeFragment.setArguments(bundle);
+	        youTubeVideo = videoID;
 	        youTubeFragment.init();
-
+	        
 	        return youTubeFragment;
 	    }
 
@@ -337,13 +335,37 @@ public class PostDetailFragment extends Fragment {
 
 	            @Override
 	            public void onInitializationSuccess(YouTubePlayer.Provider provider, YouTubePlayer player, boolean wasRestored) {
-	                mPlayer = player;
+	            	youTubePlayer = player;
+	                
+	                youTubePlayer.setFullscreenControlFlags(0);
+	                youTubePlayer.setOnFullscreenListener(new YouTubePlayer.OnFullscreenListener() {
+						
+						@Override
+						public void onFullscreen(boolean isFullscreen) {
+							youTubePlayer.setFullscreen(isFullscreen);
+						}
+					});
 	                if (!wasRestored) {
-	                	mPlayer.cueVideo(getArguments().getString(VIDEO_ID));
+	                	String currentVideo = ((GlobalState)GlobalState.getContext()).getCurrentYouTubeVideo();
+	                	if (currentVideo != null && currentVideo.equals(youTubeVideo)) {
+	            			youTubePlayer.loadVideo(youTubeVideo, ((GlobalState)GlobalState.getContext()).getYouTubeCurrentTimeMilis());
+	                	} else {
+		                	youTubePlayer.cueVideo(youTubeVideo);
+	                	}
 	                }
 	            }
 	        });
 	    }
+
+		@Override
+		public void onStop() {
+			if (youTubePlayer != null && youTubePlayer.isPlaying()) {
+				((GlobalState)GlobalState.getContext()).setCurrentYouTubeVideoTime(youTubeVideo, youTubePlayer.getCurrentTimeMillis());
+			}
+			super.onStop();
+		}
+	    
+	    
 	}
 			
 	static class ImageMarginSpan implements LeadingMarginSpan.LeadingMarginSpan2 {

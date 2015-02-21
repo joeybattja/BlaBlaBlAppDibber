@@ -5,8 +5,6 @@ import java.util.HashMap;
 import java.util.Map.Entry;
 import java.util.Properties;
 
-import com.google.android.youtube.player.YouTubeThumbnailLoader;
-
 import me.dibber.blablablapp.DataLoader.DataLoaderListener;
 import me.dibber.blablablapp.PostDetailFragment.PostFragment;
 import android.app.SearchManager;
@@ -32,15 +30,18 @@ import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.Toast;
 
+import com.google.android.youtube.player.YouTubeThumbnailLoader;
+
 public class HomeActivity extends ActionBarActivity implements DataLoaderListener {
 	
 	private final static String TAG_FRAGMENT_CONTENT = "TAG_FR_C";
 	private final static String CURRENT_TYPE = "CUR_TYPE";
 	private final static String CURRENT_ID = "CUR_ID";
+	private final static String CURRENT_POST = "CUR_POST";
 	
 	private int currentId;
+	private int currentPost;
 	private ContentFrameType currentType;
-	private int lastPosition;
 	
 	private MenuItem menuItem;
 	private MenuItem refresh;
@@ -79,6 +80,7 @@ public class HomeActivity extends ActionBarActivity implements DataLoaderListene
         
         try {
         	currentId = savedInstanceState.getInt(CURRENT_ID);
+        	currentPost = savedInstanceState.getInt(CURRENT_POST);
             currentType = (ContentFrameType) savedInstanceState.getSerializable(CURRENT_TYPE);
             replaceContentFrame(currentType, currentId);
         } catch (NullPointerException e) {
@@ -106,6 +108,7 @@ public class HomeActivity extends ActionBarActivity implements DataLoaderListene
 	@Override
 	protected void onDestroy() {
 		clearHomeActivityReference();
+		releaseYoutubeLoaders();
 		super.onDestroy();
 	}
 	
@@ -115,10 +118,20 @@ public class HomeActivity extends ActionBarActivity implements DataLoaderListene
 			((GlobalState)GlobalState.getContext()).setCurrentHomeActivity(null);
 		}
 	}
+	
+	private void releaseYoutubeLoaders() {
+	    HashMap<View,YouTubeThumbnailLoader> loaders = ((GlobalState)GlobalState.getContext()).getYouTubeThumbnailLoaderList();
+	    for (Entry<View, YouTubeThumbnailLoader> entry : loaders.entrySet() ) {
+	    	entry.getValue().release();
+	    }
+	    loaders.clear();
+	}
+	
 
 
 	@Override
 	public void onBackPressed() {
+		saveLastPosition();
 		Fragment fragment = (Fragment) getSupportFragmentManager().findFragmentByTag(TAG_FRAGMENT_CONTENT);
 		if (fragment instanceof PostDetailFragment) {
 			replaceContentFrame(ContentFrameType.PAGE, 0);
@@ -141,38 +154,27 @@ public class HomeActivity extends ActionBarActivity implements DataLoaderListene
 
     @Override
     public void onConfigurationChanged(Configuration newConfig) {
-    	Fragment frag = getSupportFragmentManager().findFragmentByTag(TAG_FRAGMENT_CONTENT);
-    	if (frag instanceof PostDetailFragment) {
-    		currentId = ((PostDetailFragment) frag).getViewPagerCurrentItem();
-    	}
-        super.onConfigurationChanged(newConfig);
         mDrawerToggle.onConfigurationChanged(newConfig);
-        
-        // Reload the frame to make sure the layout is adapter correctly. However if the current frame is a fragment with youTube, don't reload the frame
-        // This is not perfect, since actually the layout of the postdetails-fragment can become incorrect. However if the user was just watching 
-        // a YouTube video the video will restart if I reload the frame.
-    	if (frag instanceof PostDetailFragment) {
-    		int item = ((PostDetailFragment)frag).getViewPagerCurrentItem();
-    		if (PostCollection.getPostCollection().getItemYouTubeVideoID(item) != null) {
-    			return;
-    		}
-    	}
-    	
-        if (currentType != null) {
-        	replaceContentFrame(currentType, currentId);
-        }
     }
     
     @Override
     public void onSaveInstanceState(Bundle savedInstanceState) {
     	super.onSaveInstanceState(savedInstanceState);
-    	Fragment frag = getSupportFragmentManager().findFragmentByTag(TAG_FRAGMENT_CONTENT);
-    	if (frag instanceof PostDetailFragment) {
-    		currentId = ((PostDetailFragment) frag).getViewPagerCurrentItem();
-    	}
+    	saveLastPosition();
     	savedInstanceState.putInt(CURRENT_ID, currentId);
+    	savedInstanceState.putInt(CURRENT_POST, currentPost);
     	savedInstanceState.putSerializable(CURRENT_TYPE, currentType);
     }
+    
+	private void saveLastPosition() {
+    	Fragment frag = getSupportFragmentManager().findFragmentByTag(TAG_FRAGMENT_CONTENT);
+    	if (frag instanceof PostDetailFragment) {
+    		currentPost = ((PostDetailFragment) frag).getViewPagerCurrentItem();
+    		currentId = currentPost;
+    	} else if (frag instanceof PostOverviewFragment) {
+    		currentPost = ((PostOverviewFragment)frag).getLastPosition();
+		}
+	}
     
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -265,8 +267,8 @@ public class HomeActivity extends ActionBarActivity implements DataLoaderListene
 			if (id == 0) {
 				fragment = new PostOverviewFragment();
 				Bundle args = new Bundle();
-				if (lastPosition != 0) {
-					args.putInt(PostOverviewFragment.ARG_ID, lastPosition);
+				if (currentPost != 0) {
+					args.putInt(PostOverviewFragment.ARG_ID, currentPost);
 				} else {
 					args.putInt(PostOverviewFragment.ARG_ID, 0);
 				}
@@ -281,12 +283,12 @@ public class HomeActivity extends ActionBarActivity implements DataLoaderListene
 		    setTitle(pageTitles[id]);
 			break;
 		case POST:
-			lastPosition = id;
+			currentPost = id;
 			fragment = new PostDetailFragment();
 			Bundle args = new Bundle();
-			args.putInt(PostDetailFragment.ARG_ID, id);
+			args.putInt(PostDetailFragment.ARG_ID, currentPost);
 			fragment.setArguments(args);
-			setTitle(PostCollection.getPostCollection().getItemTitle(id));
+			setTitle(PostCollection.getPostCollection().getItemTitle(currentPost));
 			break;
 		default:
 			break;
@@ -335,7 +337,7 @@ public class HomeActivity extends ActionBarActivity implements DataLoaderListene
 	}
 	
 	public void getMorePosts(int lastPostId) {
-		lastPosition = lastPostId;
+		saveLastPosition();
 		if ( ((GlobalState)GlobalState.getContext()).isRefreshing()  ) {
 			return;
 		}
@@ -402,11 +404,6 @@ public class HomeActivity extends ActionBarActivity implements DataLoaderListene
 	    int max = Integer.parseInt(p.getProperty("MAX_NUMBER_OF_POSTS"));
 	    PostCollection.cleanUpPostCollection(max);
 	    
-	    // release all active YouTubeThumbnailLoaders.
-	    HashMap<View,YouTubeThumbnailLoader> loaders = ((GlobalState)GlobalState.getContext()).getYouTubeThumbnailLoaderList();
-	    for (Entry<View, YouTubeThumbnailLoader> entry : loaders.entrySet() ) {
-	    	entry.getValue().release();
-	    }
 	    this.finish();
 	}
 }
