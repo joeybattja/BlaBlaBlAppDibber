@@ -5,14 +5,12 @@ import java.util.HashMap;
 import java.util.Map.Entry;
 import java.util.Properties;
 
-import com.google.android.youtube.player.YouTubeThumbnailLoader;
-
 import me.dibber.blablablapp.DataLoader.DataLoaderListener;
+import me.dibber.blablablapp.Pages.PageType;
 import me.dibber.blablablapp.PostDetailFragment.PostFragment;
 import android.app.SearchManager;
 import android.content.Context;
 import android.content.Intent;
-import android.content.res.Configuration;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
@@ -28,27 +26,32 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.Toast;
+
+import com.google.android.youtube.player.YouTubeThumbnailLoader;
 
 public class HomeActivity extends ActionBarActivity implements DataLoaderListener {
 	
 	private final static String TAG_FRAGMENT_CONTENT = "TAG_FR_C";
 	private final static String CURRENT_TYPE = "CUR_TYPE";
 	private final static String CURRENT_ID = "CUR_ID";
+	private final static String CURRENT_POST = "CUR_POST";
 	
 	private int currentId;
+	private int currentPost;
 	private ContentFrameType currentType;
-	private int lastPosition;
+	private Pages.PageType currentPageType;
 	
-	private MenuItem menuItem;
+	private MenuItem searchItem;
 	private MenuItem refresh;
 	
 	private DrawerLayout mDrawerLayout;
 	private ActionBarDrawerToggle mDrawerToggle;
     private ListView mDrawerList;
-    private CharSequence[] pageTitles;
+    //private CharSequence[] pageTitles;
     public enum ContentFrameType {PAGE,POST}
 
 	@Override
@@ -56,7 +59,7 @@ public class HomeActivity extends ActionBarActivity implements DataLoaderListene
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_home);
 		
-		pageTitles = new CharSequence[] {"Home","Over Theo","eBook winkel"};
+		//pageTitles = new CharSequence[] {"Home","Over Theo","eBook winkel"};
 		getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 		
 		mDrawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
@@ -74,20 +77,26 @@ public class HomeActivity extends ActionBarActivity implements DataLoaderListene
 		};
 		mDrawerLayout.setDrawerListener(mDrawerToggle);
         mDrawerList = (ListView) findViewById(R.id.left_drawer);
-        mDrawerList.setAdapter(new ArrayAdapter<>(this, R.layout.drawer_list_item, pageTitles));
-        mDrawerList.setOnItemClickListener(new DrawerItemClickListener());
+        mDrawerList.setAdapter(new ArrayAdapter<>(this, R.layout.drawer_list_item, Pages.getPageTitles() ));
+        mDrawerList.setOnItemClickListener(new OnItemClickListener() {
+			@Override
+			public void onItemClick(AdapterView<?> parent, View view,
+					int position, long id) {
+				replaceContentFrame(ContentFrameType.PAGE, position);
+			}
+		});
         
         try {
         	currentId = savedInstanceState.getInt(CURRENT_ID);
+        	currentPost = savedInstanceState.getInt(CURRENT_POST);
             currentType = (ContentFrameType) savedInstanceState.getSerializable(CURRENT_TYPE);
             replaceContentFrame(currentType, currentId);
         } catch (NullPointerException e) {
         	replaceContentFrame(ContentFrameType.PAGE, 0);
+        	refreshPosts();
         }
-        refreshPosts();
 	}
 	
-
 	@Override
 	protected void onResume() {
 		super.onResume();
@@ -106,6 +115,7 @@ public class HomeActivity extends ActionBarActivity implements DataLoaderListene
 	@Override
 	protected void onDestroy() {
 		clearHomeActivityReference();
+		releaseYoutubeLoaders();
 		super.onDestroy();
 	}
 	
@@ -115,21 +125,13 @@ public class HomeActivity extends ActionBarActivity implements DataLoaderListene
 			((GlobalState)GlobalState.getContext()).setCurrentHomeActivity(null);
 		}
 	}
-
-
-	@Override
-	public void onBackPressed() {
-		Fragment fragment = (Fragment) getSupportFragmentManager().findFragmentByTag(TAG_FRAGMENT_CONTENT);
-		if (fragment instanceof PostDetailFragment) {
-			replaceContentFrame(ContentFrameType.PAGE, 0);
-		} else {
-			
-			if (menuItem != null && MenuItemCompat.isActionViewExpanded(menuItem)) {
-				MenuItemCompat.collapseActionView(menuItem);
-				return;
-			}
-			exitApplication();
-		}		
+	
+	private void releaseYoutubeLoaders() {
+	    HashMap<View,YouTubeThumbnailLoader> loaders = ((GlobalState)GlobalState.getContext()).getYouTubeThumbnailLoaderList();
+	    for (Entry<View, YouTubeThumbnailLoader> entry : loaders.entrySet() ) {
+	    	entry.getValue().release();
+	    }
+	    loaders.clear();
 	}
 	
 	@Override
@@ -139,40 +141,59 @@ public class HomeActivity extends ActionBarActivity implements DataLoaderListene
         mDrawerToggle.syncState();
     }
 
-    @Override
-    public void onConfigurationChanged(Configuration newConfig) {
-    	Fragment frag = getSupportFragmentManager().findFragmentByTag(TAG_FRAGMENT_CONTENT);
-    	if (frag instanceof PostDetailFragment) {
-    		currentId = ((PostDetailFragment) frag).getViewPagerCurrentItem();
-    	}
-        super.onConfigurationChanged(newConfig);
-        mDrawerToggle.onConfigurationChanged(newConfig);
-        
-        // Reload the frame to make sure the layout is adapter correctly. However if the current frame is a fragment with youTube, don't reload the frame
-        // This is not perfect, since actually the layout of the postdetails-fragment can become incorrect. However if the user was just watching 
-        // a YouTube video the video will restart if I reload the frame.
-    	if (frag instanceof PostDetailFragment) {
-    		int item = ((PostDetailFragment)frag).getViewPagerCurrentItem();
-    		if (PostCollection.getPostCollection().getItemYouTubeVideoID(item) != null) {
-    			return;
-    		}
-    	}
-    	
-        if (currentType != null) {
-        	replaceContentFrame(currentType, currentId);
-        }
-    }
+	@Override
+	public void onBackPressed() {
+		// So, when pressing the back button : 
+		// First, save the current state, since that's probably interesting for the next frame
+		saveLastPosition();
+		// Close the drawer if open, else...
+		if (mDrawerLayout.isDrawerOpen(mDrawerList)) {
+			mDrawerLayout.closeDrawer(mDrawerList);
+			return;
+		}
+		// If currently the details of a post are being shown...
+		Fragment fragment = (Fragment) getSupportFragmentManager().findFragmentByTag(TAG_FRAGMENT_CONTENT);
+		if (fragment instanceof PostDetailFragment) {
+			// close the YouTubePlayer's fullscreen in case it was fullscreen, else...
+			if (getCurrentPostFragment().setYouTubeFullscreen(false)){
+				return;
+			}
+			// Go back to the Home screen, else...
+			replaceContentFrame(ContentFrameType.PAGE, 0);
+			return;
+		}
+		// If currently a Webpage is shown
+		if (fragment instanceof WebPageFragment) {
+			replaceContentFrame(ContentFrameType.PAGE, 0);
+			return;
+		}
+		// collapse the search view, else...
+		if (searchItem != null && MenuItemCompat.isActionViewExpanded(searchItem)) {
+			MenuItemCompat.collapseActionView(searchItem);
+			return;
+		}
+		// close the application.
+		exitApplication();
+	}
     
     @Override
     public void onSaveInstanceState(Bundle savedInstanceState) {
     	super.onSaveInstanceState(savedInstanceState);
-    	Fragment frag = getSupportFragmentManager().findFragmentByTag(TAG_FRAGMENT_CONTENT);
-    	if (frag instanceof PostDetailFragment) {
-    		currentId = ((PostDetailFragment) frag).getViewPagerCurrentItem();
-    	}
+    	saveLastPosition();
     	savedInstanceState.putInt(CURRENT_ID, currentId);
+    	savedInstanceState.putInt(CURRENT_POST, currentPost);
     	savedInstanceState.putSerializable(CURRENT_TYPE, currentType);
     }
+    
+	private void saveLastPosition() {
+    	Fragment frag = getSupportFragmentManager().findFragmentByTag(TAG_FRAGMENT_CONTENT);
+    	if (frag instanceof PostDetailFragment) {
+    		currentPost = ((PostDetailFragment) frag).getViewPagerCurrentItem();
+    		currentId = currentPost;
+    	} else if (frag instanceof PostOverviewFragment) {
+    		currentPost = ((PostOverviewFragment)frag).getLastPosition();
+		}
+	}
     
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -180,11 +201,11 @@ public class HomeActivity extends ActionBarActivity implements DataLoaderListene
         inflater.inflate(R.menu.options_menu, menu);
 
         // Associate searchable configuration with the SearchView
-        menuItem = menu.findItem(R.id.search);
+        searchItem = menu.findItem(R.id.search);
         SearchManager searchManager = (SearchManager) getSystemService(Context.SEARCH_SERVICE);
-        final SearchView searchView = (SearchView) MenuItemCompat.getActionView(menuItem);
+        final SearchView searchView = (SearchView) MenuItemCompat.getActionView(searchItem);
         searchView.setSearchableInfo(searchManager.getSearchableInfo(getComponentName()));
-        MenuItemCompat.setOnActionExpandListener(menuItem, new MenuItemCompat.OnActionExpandListener() {
+        MenuItemCompat.setOnActionExpandListener(searchItem, new MenuItemCompat.OnActionExpandListener() {
 			
 			@Override
 			public boolean onMenuItemActionExpand(MenuItem item) {
@@ -193,14 +214,15 @@ public class HomeActivity extends ActionBarActivity implements DataLoaderListene
 			
 			@Override
 			public boolean onMenuItemActionCollapse(MenuItem item) {
-				((GlobalState)GlobalState.getContext()).search(null);
+				if (searchView.isEnabled()) {
+					((GlobalState)GlobalState.getContext()).search(null);
+				}
 				return true;
 			}
 		});
         String currentSearchQuery = ((GlobalState)GlobalState.getContext()).getSearchQuery();
-        if (currentSearchQuery == null) {
-        } else {
-        	menuItem.expandActionView();
+        if (currentSearchQuery != null) {
+        	searchItem.expandActionView();
         	searchView.setQuery(currentSearchQuery, false);
         	searchView.clearFocus();
         }
@@ -227,8 +249,31 @@ public class HomeActivity extends ActionBarActivity implements DataLoaderListene
         if (((GlobalState)GlobalState.getContext()).isRefreshing()) {
         	refresh.setActionView(R.layout.actionbar_indeterminate_progress);
         }
+        
+        if (currentType == ContentFrameType.POST) {
+        	simpleOptionsMenu(true);
+        }
 
         return true;
+    }
+    
+    public void simpleOptionsMenu(boolean simple) {
+    	if (searchItem != null) {
+    		searchItem.setEnabled(!simple);
+    		searchItem.setVisible(!simple);
+    	}
+    	if (refresh != null) {
+	    	refresh.setEnabled(!simple);
+	    	refresh.setVisible(!simple);
+    	}
+    	if (simple) {
+    		mDrawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED);
+    		mDrawerToggle.setDrawerIndicatorEnabled(false);
+    		getSupportActionBar().setHomeAsUpIndicator(getV7DrawerToggleDelegate().getThemeUpIndicator());
+    	} else {
+    		mDrawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_UNLOCKED);
+    		mDrawerToggle.setDrawerIndicatorEnabled(true);
+    	}
     }
     
     @Override
@@ -236,10 +281,17 @@ public class HomeActivity extends ActionBarActivity implements DataLoaderListene
         // Pass the event to ActionBarDrawerToggle, if it returns
         // true, then it has handled the app icon touch event
         if (mDrawerToggle.onOptionsItemSelected(item)) {
-          return true;
+        	return true;
         }
         
         switch (item.getItemId()) {
+        case android.R.id.home:
+        	if (mDrawerToggle.isDrawerIndicatorEnabled()) {
+        		return mDrawerToggle.onOptionsItemSelected(item);
+        	} else {
+        		onBackPressed();
+        		return true;
+        	}
         case R.id.refresh:
         	refreshPosts();
     		return true;
@@ -248,47 +300,49 @@ public class HomeActivity extends ActionBarActivity implements DataLoaderListene
         }
     }
 	
-	private class DrawerItemClickListener implements ListView.OnItemClickListener {
-	    @Override
-	    public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-	    	replaceContentFrame(ContentFrameType.PAGE, position);
-	    }
-	}
-
 	public void replaceContentFrame(ContentFrameType type, int id) {
 		Fragment fragment = null;
 		currentType = type;
 		currentId = id;
+		if (currentType == ContentFrameType.PAGE) {
+			currentPageType = Pages.getPageType(id);
+		}
 		
 		switch (type) {
 		case PAGE:
-			if (id == 0) {
+			((GlobalState)GlobalState.getContext()).showOnlyFavorites(currentPageType == Pages.PageType.FAVORITES);
+			switch (currentPageType) {
+			case POSTS:
+			case FAVORITES:
+				simpleOptionsMenu(false);
 				fragment = new PostOverviewFragment();
-				Bundle args = new Bundle();
-				if (lastPosition != 0) {
-					args.putInt(PostOverviewFragment.ARG_ID, lastPosition);
+				Bundle argsO = new Bundle();
+				if (currentPost != 0) {
+					argsO.putInt(PostOverviewFragment.ARG_ID, currentPost);
 				} else {
-					args.putInt(PostOverviewFragment.ARG_ID, 0);
+					argsO.putInt(PostOverviewFragment.ARG_ID, 0);
 				}
-				fragment.setArguments(args);
-			} else { 
-				fragment = new PageFragment();
-				Bundle args = new Bundle();
-				args.putInt(PostDetailFragment.ARG_ID, id);
-				fragment.setArguments(args);
+				fragment.setArguments(argsO);
+				break;
+			case WEBPAGE:
+				simpleOptionsMenu(true);
+				fragment = new WebPageFragment();
+				Bundle argsW = new Bundle();
+				argsW.putString(WebPageFragment.ARG_URL, Pages.getPageURL(id));
+				fragment.setArguments(argsW);
+				break;
 			}
 			mDrawerList.setItemChecked(id, true);
-		    setTitle(pageTitles[id]);
+		    setTitle(Pages.getPageTitles()[id]);
 			break;
 		case POST:
-			lastPosition = id;
+			simpleOptionsMenu(true);
+			currentPost = id;
 			fragment = new PostDetailFragment();
-			Bundle args = new Bundle();
-			args.putInt(PostDetailFragment.ARG_ID, id);
-			fragment.setArguments(args);
-			setTitle(PostCollection.getPostCollection().getItemTitle(id));
-			break;
-		default:
+			Bundle argsD = new Bundle();
+			argsD.putInt(PostDetailFragment.ARG_ID, currentPost);
+			fragment.setArguments(argsD);
+			setTitle(PostCollection.getPostCollection().getItemTitle(currentPost));
 			break;
 		}
 		if (fragment != null) {
@@ -305,9 +359,29 @@ public class HomeActivity extends ActionBarActivity implements DataLoaderListene
 		return (Fragment) getSupportFragmentManager().findFragmentByTag(TAG_FRAGMENT_CONTENT);
 	}
 	
-	public PostFragment getCurrentPostFragment(int postId) {
+	/**
+	 * Returns the PostFragment related to the postId, if this PostFragment exists. 
+	 * If the PostFragment does not exist, either because the content frame is currently not showing a PostFragment or
+	 * because the adapter is showing other posts, this will return null	
+	 * @param postId The id of the post of the requested PostFragment
+	 * @return the PostFragment object or null.
+	 */
+	public PostFragment getPostFragment(int postId) {
 		if (getCurrentFragment() instanceof PostDetailFragment) {
 			return (PostFragment) ((PostDetailFragment)getCurrentFragment()).getViewPagerItem(postId);
+		} 
+		return null;
+	}
+	
+	/**
+	 * Returns the PostFragment which is currently shown, or null if the content frame is currently not showing post details.
+	 * @return the current PostFragment object or null
+	 */
+	public PostFragment getCurrentPostFragment() {
+		Fragment f = getCurrentFragment();
+		if (f instanceof PostDetailFragment) {
+			int currentitemId = ((PostDetailFragment)f).getViewPagerCurrentItem();
+			return (PostFragment) ((PostDetailFragment)f).getViewPagerItem(currentitemId);
 		} 
 		return null;
 	}
@@ -319,7 +393,6 @@ public class HomeActivity extends ActionBarActivity implements DataLoaderListene
 		((GlobalState)GlobalState.getContext()).refresh(true);
 		DataLoader dl = new DataLoader();
 		dl.setDataLoaderListener(this);
-		dl.setStreamType(DataLoader.JSON);
 		try {
 			Properties p = AssetsPropertyReader.getProperties(this);
 			String URL = p.getProperty("URL") + p.getProperty("APIPHP") + p.getProperty("GET_RECENT_POSTS") + "&count=" + p.getProperty("NUMBER_OF_POSTS_PER_REQUEST");
@@ -335,14 +408,16 @@ public class HomeActivity extends ActionBarActivity implements DataLoaderListene
 	}
 	
 	public void getMorePosts(int lastPostId) {
-		lastPosition = lastPostId;
+		if (currentPageType == PageType.FAVORITES) { // nothing to refresh if showing favorites 
+			return;
+		}
+		saveLastPosition();
 		if ( ((GlobalState)GlobalState.getContext()).isRefreshing()  ) {
 			return;
 		}
 		((GlobalState)GlobalState.getContext()).refresh(true);
 		DataLoader dl = new DataLoader();
 		dl.setDataLoaderListener(this);
-		dl.setStreamType(DataLoader.JSON);
 		try {
 			Properties p = AssetsPropertyReader.getProperties(this);
 			String URL = p.getProperty("URL") + p.getProperty("APIPHP") + p.getProperty("GET_RECENT_POSTS") + "&count=" + p.getProperty("NUMBER_OF_POSTS_PER_REQUEST") 
@@ -402,11 +477,6 @@ public class HomeActivity extends ActionBarActivity implements DataLoaderListene
 	    int max = Integer.parseInt(p.getProperty("MAX_NUMBER_OF_POSTS"));
 	    PostCollection.cleanUpPostCollection(max);
 	    
-	    // release all active YouTubeThumbnailLoaders.
-	    HashMap<View,YouTubeThumbnailLoader> loaders = ((GlobalState)GlobalState.getContext()).getYouTubeThumbnailLoaderList();
-	    for (Entry<View, YouTubeThumbnailLoader> entry : loaders.entrySet() ) {
-	    	entry.getValue().release();
-	    }
 	    this.finish();
 	}
 }

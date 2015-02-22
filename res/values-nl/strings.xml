@@ -15,5 +15,9 @@
     <string name="unsupported_version_dialog_message">Helaas maakt u gebruik van een verouderde versie van deze app. Update de app in de Play store aub.</string>
     <string name="ok">OK</string>
     <string name="refresh">Vernieuwen</string>
+	<string name="Home">Home</string>
+	<string name="Favorites">Favorieten</string>
+	<string name="About_Theo">Over Theo</string>
+	<string name="eBook_store">eBook winkel</string>
 
 </resources>

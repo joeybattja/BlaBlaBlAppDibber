@@ -33,7 +33,6 @@ import android.widget.ImageView;
 public class PostCollection {
 			
 	private static PostCollection postCollection;
-	private static PostCollection filteredPostCollection;
 	private final static String MIMETYPE_IMAGE = "image/jpeg";
 	private final static String MIMETYPE_YOUTUBE = "video/youtube";
 	private final static int THUMBNAIL_WIDTH = 240;
@@ -68,7 +67,8 @@ public class PostCollection {
 
 			@Override
 			public int compare(Integer lhs, Integer rhs) {
-				return rhs - lhs;
+				
+				return getItemDate(rhs).compareTo(getItemDate(lhs));
 			}
 		});
 		return list;
@@ -86,7 +86,7 @@ public class PostCollection {
 		}
 	}
 	
-	public String getItemDate(int postId) {
+	public String getItemDateAsString(int postId) {
 		if (posts.get(postId) == null) {
 			return " ";
 		} 
@@ -97,6 +97,19 @@ public class PostCollection {
 			return df.format(d);
 		} else {
 			return " ";
+		}
+	}
+	
+	public Date getItemDate(int postId) {
+		if (posts.get(postId) == null) {
+			return null;
+		} 
+		Date d = posts.get(postId).date;
+		
+		if (d != null) {
+			return d;
+		} else {
+			return null;
 		}
 	}
 	
@@ -113,7 +126,7 @@ public class PostCollection {
 	}
 	
 	public String getItemMeta(int postId) {
-		return (getItemDate(postId) + " " + GlobalState.getContext().getString(R.string.author_name, getItemAuthor(postId)));
+		return (getItemDateAsString(postId) + " " + GlobalState.getContext().getString(R.string.author_name, getItemAuthor(postId)));
 	}
 
 	public CharSequence getItemContent(int postId) {
@@ -152,6 +165,20 @@ public class PostCollection {
 		} else {
 			return " ";
 		}
+	}
+	
+	public boolean itemIsFavorite(int postId) {
+		if (posts.get(postId) == null) {
+			return false;
+		}
+		return posts.get(postId).favorite;
+	}
+	
+	public void setItemFavorite(int postId, boolean favorite) {
+		if (posts.get(postId) == null) {
+			return;
+		}
+		posts.get(postId).favorite = favorite;
 	}
 	
 	public String getItemYouTubeVideoID(int postId) {
@@ -238,12 +265,15 @@ public class PostCollection {
 		return postCollection;
 	}
 	
-	public static PostCollection getFilteredPostCollection(String[] query) {
-		if (postCollection == null) {
-			postCollection = new PostCollection();
+	public static PostCollection getFilteredPostCollection(String[] query, boolean filterFromFavorites) {
+		PostCollection sourcePc;
+		if (filterFromFavorites) {
+			sourcePc = getFavoritesPostCollection();
+		} else {
+			sourcePc = getPostCollection();
 		}
-		filteredPostCollection = new PostCollection();
-		for (Post p : postCollection.posts.values()) {
+		PostCollection filteredPostCollection = new PostCollection();
+		for (Post p : sourcePc.posts.values()) {
 			boolean addToPC = true;
 			for (String arg : query) {
 				if (!(p.title.toLowerCase().contains(arg.toLowerCase()) || p.content.toLowerCase().contains(arg.toLowerCase())) ) {
@@ -256,6 +286,19 @@ public class PostCollection {
 			}
 		}
 		return filteredPostCollection;
+	}
+	
+	public static PostCollection getFavoritesPostCollection() {
+		if (postCollection == null) {
+			postCollection = new PostCollection();
+		}
+		PostCollection favoritesPostCollection = new PostCollection();
+		for (Post p : postCollection.posts.values()) {
+			if (p.favorite) {
+				favoritesPostCollection.addPost(p);
+			}
+		}
+		return favoritesPostCollection;
 	}
 	
 	public enum DrawableType {LOGO_COLOR, LOGO_GREYSCALE, POST_IMAGE, LIST_IMAGE, FULLSCREEN_IMAGE};
@@ -511,7 +554,7 @@ public class PostCollection {
 				}
 				Activity a = (Activity) v.getContext();
 				if (a instanceof HomeActivity && 
-						((HomeActivity)a).getCurrentPostFragment(postId) != null) {
+						((HomeActivity)a).getPostFragment(postId) != null) {
 					handler.postDelayed(this, 2000);
 				} else {
 					activeHandlers.remove(uniqueId);
@@ -565,11 +608,16 @@ public class PostCollection {
 	public static void cleanUpPostCollection(int max) {
 		PostCollection pc = getPostCollection();
 		if (pc.getAllPosts().size() <= max) {
+			DataLoader.cleanUpPostsOnDisk(pc);
 			return;
 		}
 		for (int i = max; i < pc.getAllPosts().size(); ) {
 			int postId = pc.getAllPosts().get(i);
-			pc.removePost(postId);
+			if (pc.itemIsFavorite(postId)) {
+				i++;
+			} else {
+				pc.removePost(postId);
+			}
 		}
 		DataLoader.cleanUpPostsOnDisk(pc);
 	}

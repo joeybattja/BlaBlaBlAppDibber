@@ -17,9 +17,10 @@ public class Post {
 	public ArrayList<Attachment> attachments;
 	public ArrayList<Comment> comments; //not yet used in new_api
 	public boolean commentstatus; //not yet used in new_api
+	public boolean favorite;
 	
 	public static class Attachment {
-		public int id; //not used in new_api
+		public int id; 
 		public String mimeType;
 		public Drawable image;
 		public Bitmap thumbnail;
