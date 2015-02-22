@@ -7,30 +7,16 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.webkit.WebView;
 
-public class PageFragment extends Fragment {
+public class WebPageFragment extends Fragment {
 	
 	private WebView mWebView;
+	public final static String ARG_URL = "Web address"; 
 	
 	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 		View rootView = inflater.inflate( R.layout.fragment_page, container, false);
-		int id = getArguments().getInt(PostDetailFragment.ARG_ID);
+		String url = getArguments().getString(ARG_URL);
 		mWebView = (WebView) rootView.findViewById(R.id.webView1);
-		mWebView.loadUrl(getPageURL(id));
+		mWebView.loadUrl(url);
 		return rootView;
 	}
-	
-	private String getPageURL(int id) {
-		if (id < 1 || id > 2) {
-			return "http://www.blablablog.nl/about/";
-		}
-		switch(id) {
-		case 1:
-			return "http://www.blablablog.nl/about/";
-		case 2:
-			return "http://www.blablablog.nl/ebooks/";
-		default:
-			return "http://www.blablablog.nl/about/";
-		}
-	}
-
 }

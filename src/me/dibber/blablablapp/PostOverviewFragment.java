@@ -14,6 +14,7 @@ import android.text.TextUtils.TruncateAt;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.View.OnClickListener;
 import android.view.ViewTreeObserver.OnGlobalLayoutListener;
 import android.widget.AbsListView;
 import android.widget.AbsListView.OnScrollListener;
@@ -112,6 +113,7 @@ public class PostOverviewFragment extends Fragment {
 			
 			TextView mTitleView;
 			TextView mMetaView;
+			ImageView mFavoIconView;
 			TextView mContEllipsView;
 			ImageView mImageView;
 			YouTubeThumbnailView mYouTubeView;
@@ -137,12 +139,8 @@ public class PostOverviewFragment extends Fragment {
 			}
 			
 			if (listItem == null) {
-			
-				if (videoID == null) {
-					listItem = inflater.inflate(R.layout.item_post_overview, parent, false);
-				} else {
-					listItem = inflater.inflate(R.layout.item_post_overview_youtube, parent, false);
-				}
+				
+				listItem = inflater.inflate(R.layout.item_post_overview, parent, false);
 				
 				vh = new ViewHolder();
 				
@@ -150,6 +148,7 @@ public class PostOverviewFragment extends Fragment {
 				
 				mTitleView = (TextView) listItem.findViewById(R.id.list_title);
 				mMetaView = (TextView) listItem.findViewById(R.id.list_meta);
+				mFavoIconView = (ImageView) listItem.findViewById(R.id.list_favoIcon);
 				mContEllipsView= (TextView) listItem.findViewById(R.id.list_short_content);
 				mImageView = (ImageView) listItem.findViewById(R.id.list_image);
 				mYouTubeView = (YouTubeThumbnailView) listItem.findViewById(R.id.list_youtube);
@@ -158,15 +157,18 @@ public class PostOverviewFragment extends Fragment {
 				vh.isLandscape = getActivity().getResources().getBoolean(R.bool.isLandscape);
 				vh.mTitleView = mTitleView;
 				vh.mMetaView = mMetaView;
+				vh.mFavoIconView = mFavoIconView;
 				vh.mContEllipsView = mContEllipsView;
 				vh.mImageView = mImageView;
 				vh.mYouTubeView = mYouTubeView;
 				vh.videoID = videoID;
+				
 			} else {
 				vh = (ViewHolder) listItem.getTag();
 				postId = vh.postId;
 				mTitleView = vh.mTitleView;
 				mMetaView= vh.mMetaView;
+				mFavoIconView = vh.mFavoIconView;
 				mContEllipsView = vh.mContEllipsView;
 				mImageView = vh.mImageView;
 				mYouTubeView = vh.mYouTubeView;
@@ -185,25 +187,56 @@ public class PostOverviewFragment extends Fragment {
 				mMetaView.setTypeface(null, Typeface.ITALIC);
 				mMetaView.setText(posts.getItemMeta(postId));
 			}
+			if (mFavoIconView != null) {
+				if (posts.itemIsFavorite(postId)) {
+					mFavoIconView.setImageResource(R.drawable.ic_action_favo);
+				} else {
+					mFavoIconView.setImageResource(R.drawable.ic_action_no_favo);
+				}
+				final int pid = postId;
+				mFavoIconView.setOnClickListener(new OnClickListener() {
+					
+					@Override
+					public void onClick(View v) {
+						if (posts.itemIsFavorite(pid)) {
+							posts.setItemFavorite(pid, false);
+							((ImageView) v).setImageResource(R.drawable.ic_action_no_favo);
+						} else {
+							posts.setItemFavorite(pid, true);
+							((ImageView) v).setImageResource(R.drawable.ic_action_favo);
+						}
+					}
+				});
+			}
 			if (mContEllipsView != null) {
 				mContEllipsView.setMaxLines(4);
 				mContEllipsView.setEllipsize(TruncateAt.END);
 				mContEllipsView.setText(posts.getItemContentReplaceBreaks(postId));	
 				mContEllipsView.setTypeface(null, Typeface.NORMAL);
 			}
-			if (mImageView != null) {
-				PostCollection.setImage(mImageView, DrawableType.LIST_IMAGE, postId);
-			}
-			if (mYouTubeView != null) {
-				YouTubeThumbnailLoader loader = loaders.get(mYouTubeView);
-				if (loader == null && mYouTubeView.getTag() == null) {
-					mYouTubeView.setTag(videoID);
-					mYouTubeView.initialize(YOUTUBE_API_KEY, this);
-				} else if (loader != null) {
-					loader.setVideo(videoID);
-					updateLayoutYouTubeThumbnail(mYouTubeView);
+			if (videoID == null) {
+				if (mImageView != null) {
+					PostCollection.setImage(mImageView, DrawableType.LIST_IMAGE, postId);
+				}
+				if (mYouTubeView != null) {
+					mYouTubeView.setVisibility(View.GONE);
+				}
+			} else {
+				if (mImageView != null) {
+					mImageView.setVisibility(View.GONE); 
+				}
+				if (mYouTubeView != null) {
+					YouTubeThumbnailLoader loader = loaders.get(mYouTubeView);
+					if (loader == null && mYouTubeView.getTag() == null) {
+						mYouTubeView.setTag(videoID);
+						mYouTubeView.initialize(YOUTUBE_API_KEY, this);
+					} else if (loader != null) {
+						loader.setVideo(videoID);
+						updateLayoutYouTubeThumbnail(mYouTubeView);
+					}
 				}
 			}
+			
 			
 			return listItem;
 		}
@@ -213,6 +246,7 @@ public class PostOverviewFragment extends Fragment {
 			public TextView mMetaView;
 			public TextView mContEllipsView;
 			public ImageView mImageView;
+			public ImageView mFavoIconView;
 			public YouTubeThumbnailView mYouTubeView;
 			public String videoID;
 			public int postId;

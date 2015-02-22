@@ -13,6 +13,7 @@ public class GlobalState extends Application {
 	PostCollection posts;
 	private static Context context;
 	private String searchQuery;
+	private boolean showOnlyFavorites;
 	private boolean refreshing;
 	private HomeActivity homeActivity;
 	
@@ -28,13 +29,20 @@ public class GlobalState extends Application {
 		return context;
 	}
 	
-	
 	public PostCollection getPosts() {
 		if (searchQuery == null) {
-			return PostCollection.getPostCollection();
+			if (!showOnlyFavorites) {
+				return PostCollection.getPostCollection();
+			} else {
+				return PostCollection.getFavoritesPostCollection();
+			}
 		} else {
-			return PostCollection.getFilteredPostCollection(searchQuery.split(" "));
+			return PostCollection.getFilteredPostCollection(searchQuery.split(" "), showOnlyFavorites);
 		}
+	}
+	
+	public void showOnlyFavorites(boolean favorites) {
+		showOnlyFavorites = favorites;
 	}
 	
 	public void search(String query) {
@@ -49,7 +57,6 @@ public class GlobalState extends Application {
 	public String getSearchQuery() {
 		return searchQuery;
 	}
-	
 	
 	public boolean isRefreshing() {
 		return refreshing;
@@ -69,6 +76,7 @@ public class GlobalState extends Application {
 	
 	
 //--------------------------- YouTube support -----------------------------------
+	
 	private HashMap<View,YouTubeThumbnailLoader> youTubeThumbnailLoaders;
 	private String currentYouTubeVideo;
 	private int currentYouTubeTime;

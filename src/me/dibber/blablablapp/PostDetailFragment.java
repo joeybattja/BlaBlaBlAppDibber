@@ -40,7 +40,6 @@ public class PostDetailFragment extends Fragment {
 	
 	public static final String ARG_ID = "post_id";
 	private int currentId;
-	
 	private List<Integer> postIds;
 	private ViewPager mViewPager;
 	private PostPagerAdapter mPagerAdapter;
@@ -142,6 +141,7 @@ public class PostDetailFragment extends Fragment {
 	
 	public static class PostFragment extends Fragment {
 		private ImageView mImageView;
+		private ImageView mFavoView;
 		private FrameLayout mYouTubeFrame;
 		private PostYouTubeFragment mYouTubeFragment;
 		private String videoId;
@@ -156,26 +156,48 @@ public class PostDetailFragment extends Fragment {
 			posts = ((GlobalState) GlobalState.getContext() ).getPosts();
 			videoId = posts.getItemYouTubeVideoID(postId);
 			
-			View rootView = null;
-			if (videoId != null) {
-				rootView = inflater.inflate(R.layout.fragment_post_details_youtube, container, false);
-			} else {
-				rootView = inflater.inflate(R.layout.fragment_post_details, container, false);
-			}
+			View rootView = inflater.inflate(R.layout.fragment_post_details, container, false);
 			
 			mTitleView = (TextView) rootView.findViewById(R.id.postTitle);
 			mMetaView = (TextView) rootView.findViewById(R.id.postMeta);
+			mFavoView = (ImageView) rootView.findViewById(R.id.postFavoIcon);
 			mImageView = (ImageView) rootView.findViewById(R.id.postImageView);
 			mContentView = (TextView) rootView.findViewById(R.id.postContent);
 			mYouTubeFrame = (FrameLayout) rootView.findViewById(R.id.postYouTubeFrame);
 			
-			if (mYouTubeFrame != null) {
-				mYouTubeFragment = PostYouTubeFragment.newInstance(videoId);
-				getChildFragmentManager().beginTransaction().replace(R.id.postYouTubeFrame, mYouTubeFragment).commit();
-				updateTextMargins();
+			if (mTitleView != null) {
+				mTitleView.setTypeface(null, Typeface.BOLD);
+				mTitleView.setText(posts.getItemTitle(postId));
+			}
+			if (mMetaView != null) {
+				mMetaView.setTypeface(null, Typeface.ITALIC);
+				mMetaView.setText(posts.getItemMeta(postId));
 			}
 			
-			mContentView.setText(posts.getItemContent(postId));
+			if (mFavoView != null) {
+				if (posts.itemIsFavorite(postId)) {
+					mFavoView.setImageResource(R.drawable.ic_action_favo);
+				} else {
+					mFavoView.setImageResource(R.drawable.ic_action_no_favo);
+				}
+				mFavoView.setOnClickListener(new OnClickListener() {
+					
+					@Override
+					public void onClick(View v) {
+						if (posts.itemIsFavorite(postId)) {
+							posts.setItemFavorite(postId, false);
+							mFavoView.setImageResource(R.drawable.ic_action_no_favo);
+						} else {
+							posts.setItemFavorite(postId, true);
+							mFavoView.setImageResource(R.drawable.ic_action_favo);
+						}
+					}
+				});
+			}
+			
+			if (mContentView != null) {
+				mContentView.setText(posts.getItemContent(postId));
+			}
 			
 			if (mImageView != null) {
 				PostCollection.setImage(mImageView, DrawableType.POST_IMAGE, postId, new PostCollection.SetImageListener() {
@@ -200,22 +222,21 @@ public class PostDetailFragment extends Fragment {
 					}
 				});
 			}
-			
-			if (mTitleView != null) {
-				mTitleView.setTypeface(null, Typeface.BOLD);
-				mTitleView.setText(posts.getItemTitle(postId));
+						
+			if (mYouTubeFrame != null) {
+				if (videoId == null) {
+					mYouTubeFrame.setVisibility(View.GONE);
+				} else {
+					mYouTubeFragment = PostYouTubeFragment.newInstance(videoId);
+					getChildFragmentManager().beginTransaction().replace(R.id.postYouTubeFrame, mYouTubeFragment).commit();
+				}
 			}
-			if (mMetaView != null) {
-				mMetaView.setTypeface(null, Typeface.ITALIC);
-				mMetaView.setText(posts.getItemMeta(postId));
-			}
-			
 			
 			return rootView;
 		}
 		
 		public void updateTextMargins() {
-			if (!(getResources().getBoolean(R.bool.isLandscape))) {
+			if (!(GlobalState.getContext().getResources().getBoolean(R.bool.isLandscape))) {
 				return;
 			}
 			
@@ -304,13 +325,32 @@ public class PostDetailFragment extends Fragment {
 				}
 			});
 		}
+		
+		/**
+		 * Sets the YouTubePlayer to fullscreen or back depending on the parameter.
+		 * If the PostFragment does not have a YouTubePlayer active or if this call will have no effect (e.g. it is already fullscreen) 
+		 * this will return false 
+		 * @param fullscreen true to set the player fullscreen, false otherwise
+		 * @return true if it changes the player to or from fullscreen, false otherwise; also false if the PostFragment does not have an active YouTubePlayer.
+		 */
+		public boolean setYouTubeFullscreen(boolean fullscreen) {
+			if (mYouTubeFragment != null && mYouTubeFragment.youTubePlayer != null) {
+				if (mYouTubeFragment.isFullscreen != fullscreen) {
+					mYouTubeFragment.youTubePlayer.setFullscreen(fullscreen);
+					return true;
+				}
+			}
+			return false;
+		}
+		
 	}
 	
 	public static class PostYouTubeFragment extends YouTubePlayerSupportFragment {
 		
 		private final static String YOUTUBE_API_KEY = "AIzaSyD7xWiQl4I8KW987uZyns8qma0eWfCY_8c";
 		public static String VIDEO_ID = "YouTube ID";
-	    private static YouTubePlayer youTubePlayer;
+	    public YouTubePlayer youTubePlayer;
+	    public boolean isFullscreen;
 	    private static String youTubeVideo;
 
 	    public static PostYouTubeFragment newInstance(String videoID) {
@@ -341,8 +381,9 @@ public class PostDetailFragment extends Fragment {
 	                youTubePlayer.setOnFullscreenListener(new YouTubePlayer.OnFullscreenListener() {
 						
 						@Override
-						public void onFullscreen(boolean isFullscreen) {
-							youTubePlayer.setFullscreen(isFullscreen);
+						public void onFullscreen(boolean isFullscr) {
+							youTubePlayer.setFullscreen(isFullscr);
+							isFullscreen = isFullscr;
 						}
 					});
 	                if (!wasRestored) {
@@ -364,8 +405,6 @@ public class PostDetailFragment extends Fragment {
 			}
 			super.onStop();
 		}
-	    
-	    
 	}
 			
 	static class ImageMarginSpan implements LeadingMarginSpan.LeadingMarginSpan2 {

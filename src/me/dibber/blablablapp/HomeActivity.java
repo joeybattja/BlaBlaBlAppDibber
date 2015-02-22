@@ -6,6 +6,7 @@ import java.util.Map.Entry;
 import java.util.Properties;
 
 import me.dibber.blablablapp.DataLoader.DataLoaderListener;
+import me.dibber.blablablapp.Pages.PageType;
 import me.dibber.blablablapp.PostDetailFragment.PostFragment;
 import android.app.SearchManager;
 import android.content.Context;
@@ -42,6 +43,7 @@ public class HomeActivity extends ActionBarActivity implements DataLoaderListene
 	private int currentId;
 	private int currentPost;
 	private ContentFrameType currentType;
+	private Pages.PageType currentPageType;
 	
 	private MenuItem searchItem;
 	private MenuItem refresh;
@@ -49,7 +51,7 @@ public class HomeActivity extends ActionBarActivity implements DataLoaderListene
 	private DrawerLayout mDrawerLayout;
 	private ActionBarDrawerToggle mDrawerToggle;
     private ListView mDrawerList;
-    private CharSequence[] pageTitles;
+    //private CharSequence[] pageTitles;
     public enum ContentFrameType {PAGE,POST}
 
 	@Override
@@ -57,7 +59,7 @@ public class HomeActivity extends ActionBarActivity implements DataLoaderListene
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_home);
 		
-		pageTitles = new CharSequence[] {"Home","Over Theo","eBook winkel"};
+		//pageTitles = new CharSequence[] {"Home","Over Theo","eBook winkel"};
 		getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 		
 		mDrawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
@@ -75,7 +77,7 @@ public class HomeActivity extends ActionBarActivity implements DataLoaderListene
 		};
 		mDrawerLayout.setDrawerListener(mDrawerToggle);
         mDrawerList = (ListView) findViewById(R.id.left_drawer);
-        mDrawerList.setAdapter(new ArrayAdapter<>(this, R.layout.drawer_list_item, pageTitles));
+        mDrawerList.setAdapter(new ArrayAdapter<>(this, R.layout.drawer_list_item, Pages.getPageTitles() ));
         mDrawerList.setOnItemClickListener(new OnItemClickListener() {
 			@Override
 			public void onItemClick(AdapterView<?> parent, View view,
@@ -141,20 +143,36 @@ public class HomeActivity extends ActionBarActivity implements DataLoaderListene
 
 	@Override
 	public void onBackPressed() {
+		// So, when pressing the back button : 
+		// First, save the current state, since that's probably interesting for the next frame
 		saveLastPosition();
+		// Close the drawer if open, else...
 		if (mDrawerLayout.isDrawerOpen(mDrawerList)) {
 			mDrawerLayout.closeDrawer(mDrawerList);
 			return;
 		}
+		// If currently the details of a post are being shown...
 		Fragment fragment = (Fragment) getSupportFragmentManager().findFragmentByTag(TAG_FRAGMENT_CONTENT);
 		if (fragment instanceof PostDetailFragment) {
+			// close the YouTubePlayer's fullscreen in case it was fullscreen, else...
+			if (getCurrentPostFragment().setYouTubeFullscreen(false)){
+				return;
+			}
+			// Go back to the Home screen, else...
 			replaceContentFrame(ContentFrameType.PAGE, 0);
 			return;
 		}
+		// If currently a Webpage is shown
+		if (fragment instanceof WebPageFragment) {
+			replaceContentFrame(ContentFrameType.PAGE, 0);
+			return;
+		}
+		// collapse the search view, else...
 		if (searchItem != null && MenuItemCompat.isActionViewExpanded(searchItem)) {
 			MenuItemCompat.collapseActionView(searchItem);
 			return;
 		}
+		// close the application.
 		exitApplication();
 	}
     
@@ -231,6 +249,10 @@ public class HomeActivity extends ActionBarActivity implements DataLoaderListene
         if (((GlobalState)GlobalState.getContext()).isRefreshing()) {
         	refresh.setActionView(R.layout.actionbar_indeterminate_progress);
         }
+        
+        if (currentType == ContentFrameType.POST) {
+        	simpleOptionsMenu(true);
+        }
 
         return true;
     }
@@ -282,38 +304,45 @@ public class HomeActivity extends ActionBarActivity implements DataLoaderListene
 		Fragment fragment = null;
 		currentType = type;
 		currentId = id;
+		if (currentType == ContentFrameType.PAGE) {
+			currentPageType = Pages.getPageType(id);
+		}
 		
 		switch (type) {
 		case PAGE:
-			simpleOptionsMenu(false);
-			if (id == 0) {
+			((GlobalState)GlobalState.getContext()).showOnlyFavorites(currentPageType == Pages.PageType.FAVORITES);
+			switch (currentPageType) {
+			case POSTS:
+			case FAVORITES:
+				simpleOptionsMenu(false);
 				fragment = new PostOverviewFragment();
-				Bundle args = new Bundle();
+				Bundle argsO = new Bundle();
 				if (currentPost != 0) {
-					args.putInt(PostOverviewFragment.ARG_ID, currentPost);
+					argsO.putInt(PostOverviewFragment.ARG_ID, currentPost);
 				} else {
-					args.putInt(PostOverviewFragment.ARG_ID, 0);
+					argsO.putInt(PostOverviewFragment.ARG_ID, 0);
 				}
-				fragment.setArguments(args);
-			} else { 
-				fragment = new PageFragment();
-				Bundle args = new Bundle();
-				args.putInt(PostDetailFragment.ARG_ID, id);
-				fragment.setArguments(args);
+				fragment.setArguments(argsO);
+				break;
+			case WEBPAGE:
+				simpleOptionsMenu(true);
+				fragment = new WebPageFragment();
+				Bundle argsW = new Bundle();
+				argsW.putString(WebPageFragment.ARG_URL, Pages.getPageURL(id));
+				fragment.setArguments(argsW);
+				break;
 			}
 			mDrawerList.setItemChecked(id, true);
-		    setTitle(pageTitles[id]);
+		    setTitle(Pages.getPageTitles()[id]);
 			break;
 		case POST:
 			simpleOptionsMenu(true);
 			currentPost = id;
 			fragment = new PostDetailFragment();
-			Bundle args = new Bundle();
-			args.putInt(PostDetailFragment.ARG_ID, currentPost);
-			fragment.setArguments(args);
+			Bundle argsD = new Bundle();
+			argsD.putInt(PostDetailFragment.ARG_ID, currentPost);
+			fragment.setArguments(argsD);
 			setTitle(PostCollection.getPostCollection().getItemTitle(currentPost));
-			break;
-		default:
 			break;
 		}
 		if (fragment != null) {
@@ -330,9 +359,29 @@ public class HomeActivity extends ActionBarActivity implements DataLoaderListene
 		return (Fragment) getSupportFragmentManager().findFragmentByTag(TAG_FRAGMENT_CONTENT);
 	}
 	
-	public PostFragment getCurrentPostFragment(int postId) {
+	/**
+	 * Returns the PostFragment related to the postId, if this PostFragment exists. 
+	 * If the PostFragment does not exist, either because the content frame is currently not showing a PostFragment or
+	 * because the adapter is showing other posts, this will return null	
+	 * @param postId The id of the post of the requested PostFragment
+	 * @return the PostFragment object or null.
+	 */
+	public PostFragment getPostFragment(int postId) {
 		if (getCurrentFragment() instanceof PostDetailFragment) {
 			return (PostFragment) ((PostDetailFragment)getCurrentFragment()).getViewPagerItem(postId);
+		} 
+		return null;
+	}
+	
+	/**
+	 * Returns the PostFragment which is currently shown, or null if the content frame is currently not showing post details.
+	 * @return the current PostFragment object or null
+	 */
+	public PostFragment getCurrentPostFragment() {
+		Fragment f = getCurrentFragment();
+		if (f instanceof PostDetailFragment) {
+			int currentitemId = ((PostDetailFragment)f).getViewPagerCurrentItem();
+			return (PostFragment) ((PostDetailFragment)f).getViewPagerItem(currentitemId);
 		} 
 		return null;
 	}
@@ -344,7 +393,6 @@ public class HomeActivity extends ActionBarActivity implements DataLoaderListene
 		((GlobalState)GlobalState.getContext()).refresh(true);
 		DataLoader dl = new DataLoader();
 		dl.setDataLoaderListener(this);
-		dl.setStreamType(DataLoader.JSON);
 		try {
 			Properties p = AssetsPropertyReader.getProperties(this);
 			String URL = p.getProperty("URL") + p.getProperty("APIPHP") + p.getProperty("GET_RECENT_POSTS") + "&count=" + p.getProperty("NUMBER_OF_POSTS_PER_REQUEST");
@@ -360,6 +408,9 @@ public class HomeActivity extends ActionBarActivity implements DataLoaderListene
 	}
 	
 	public void getMorePosts(int lastPostId) {
+		if (currentPageType == PageType.FAVORITES) { // nothing to refresh if showing favorites 
+			return;
+		}
 		saveLastPosition();
 		if ( ((GlobalState)GlobalState.getContext()).isRefreshing()  ) {
 			return;
@@ -367,7 +418,6 @@ public class HomeActivity extends ActionBarActivity implements DataLoaderListene
 		((GlobalState)GlobalState.getContext()).refresh(true);
 		DataLoader dl = new DataLoader();
 		dl.setDataLoaderListener(this);
-		dl.setStreamType(DataLoader.JSON);
 		try {
 			Properties p = AssetsPropertyReader.getProperties(this);
 			String URL = p.getProperty("URL") + p.getProperty("APIPHP") + p.getProperty("GET_RECENT_POSTS") + "&count=" + p.getProperty("NUMBER_OF_POSTS_PER_REQUEST") 

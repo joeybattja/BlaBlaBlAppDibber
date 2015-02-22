@@ -27,28 +27,9 @@ import android.util.Log;
 
 public class DataLoader {
 	
-	public final static int JSON = 0;
-	public final static int XML = 1;
-	
-	
 	public DataLoader() {
 		posts = ( (GlobalState) GlobalState.getContext() ).getPosts();
 		state = State.IDLE;
-		setStreamType(JSON);
-	}
-	
-	/**
-	 * Sets the data stream type for this DataLoader.
-	 * Must call this method before prepareAsync() in order for the target stream type to become effective thereafter.
-	 * @param streamType can be either Dataloader.JSON (0) or DataLoader.XML (1)
-	 * @throws IllegalArgumentException if streamType is incorrect.
-	 */
-	public void setStreamType(int streamType) throws IllegalArgumentException {
-		if (streamType < DataLoader.JSON || streamType > DataLoader.XML) {
-			throw new IllegalArgumentException("Stream type " + streamType + " is incorrect. Possible feedtypes are: Dataloader.JSON (0) or DataLoader.XML (1)"); 
-		} else {
-			datatype = streamType;
-		}
 	}
 	
 	/**
@@ -67,16 +48,7 @@ public class DataLoader {
 			throw new IllegalStateException("Dataloader not yet initialized. Call setDataSource() first.");
 		}
 		state = State.BUSY;
-		switch (datatype) {
-		case DataLoader.JSON:
-			parseJSON();
-			break;
-		case DataLoader.XML:
-			parseXML();
-			break;
-		default:
-			break;
-		}
+		parseJSON();
 	}
 	
 	public void setDataLoaderListener(DataLoaderListener dataLoaderListener) {
@@ -92,7 +64,6 @@ public class DataLoader {
     // *****************  private implementation  *******************
 	
 	private URL url;
-	private int datatype;
 	private PostCollection posts;	
 	private DataLoaderListener dll;
 	private JSONArray postsdisk;
@@ -198,7 +169,6 @@ public class DataLoader {
 			
 			@Override
 			public void run() {
-				
 				JSONArray postsdsk = new JSONArray();
 				
 				// first read from disk 
@@ -219,11 +189,13 @@ public class DataLoader {
 						bin.close();
 						JSONObject obj = new JSONObject(sb.toString());
 						JSONArray jArr = obj.getJSONArray("posts");
-						ArrayList<Integer> intList = new ArrayList<Integer>();  
+						ArrayList<Integer> intList = new ArrayList<Integer>();
 						intList.addAll(pc.getAllPosts());
 						for (int j = 0; j < jArr.length(); j++) {
-							int index = intList.indexOf(jArr.getJSONObject(j).getInt("id"));
+							int postId = jArr.getJSONObject(j).getInt("id");
+							int index = intList.indexOf(postId);
 							if (index  >= 0) {
+								jArr.getJSONObject(j).put("favorite", pc.itemIsFavorite(postId));
 								postsdsk.put(jArr.getJSONObject(j));
 								intList.remove(index);
 							};
@@ -236,8 +208,6 @@ public class DataLoader {
 						FileOutputStream os = c.openFileOutput(FILE_LOCATION, Context.MODE_PRIVATE);
 						os.write(writeObj.toString().getBytes());
 						os.close();
-						
-						
 					} catch (IOException | JSONException e) {
 						Log.w("Error trying to read file from disk", e.toString());
 					}
@@ -346,6 +316,9 @@ public class DataLoader {
 			} else {
 				p.commentstatus = false;
 			}
+			try {
+				p.favorite = postobj.getBoolean("favorite");
+			} catch (JSONException e) {	} // if it is not present, don't change it. Since it'll never be present from the feed online.
 			posts.addPost(p);
 			postsdisk.put(postobj);
 		}
@@ -380,11 +353,6 @@ public class DataLoader {
 			return null;
 		}
 	}
-
-    // *****************  implementation for XML  *******************
-
-	private void parseXML() { }
-	// TODO : make XML Parser. 
 	
 	public interface DataLoaderListener {
 		

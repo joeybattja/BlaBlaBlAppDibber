@@ -1635,15 +1635,17 @@ containing a value of this type.
         public static final int abc_textfield_search_default_mtrl_alpha=0x7f020031;
         public static final int abc_textfield_search_material=0x7f020032;
         public static final int background_body=0x7f020033;
-        public static final int ic_action_refresh=0x7f020034;
-        public static final int ic_action_search=0x7f020035;
-        public static final int ic_drawer=0x7f020036;
-        public static final int ic_launcher=0x7f020037;
-        public static final int image_background=0x7f020038;
-        public static final int item_curved_corners=0x7f020039;
-        public static final int item_selectable=0x7f02003a;
-        public static final int logo_color=0x7f02003b;
-        public static final int logo_grey=0x7f02003c;
+        public static final int ic_action_favo=0x7f020034;
+        public static final int ic_action_no_favo=0x7f020035;
+        public static final int ic_action_refresh=0x7f020036;
+        public static final int ic_action_search=0x7f020037;
+        public static final int ic_drawer=0x7f020038;
+        public static final int ic_launcher=0x7f020039;
+        public static final int image_background=0x7f02003a;
+        public static final int item_curved_corners=0x7f02003b;
+        public static final int item_selectable=0x7f02003c;
+        public static final int logo_color=0x7f02003d;
+        public static final int logo_grey=0x7f02003e;
     }
     public static final class id {
         public static final int action_bar=0x7f0a0032;
@@ -1675,7 +1677,7 @@ containing a value of this type.
         public static final int end=0x7f0a001d;
         public static final int expand_activities_button=0x7f0a0023;
         public static final int expanded_menu=0x7f0a0029;
-        public static final int gridview_post_overview=0x7f0a004c;
+        public static final int gridview_post_overview=0x7f0a004d;
         public static final int home=0x7f0a0000;
         public static final int homeAsUp=0x7f0a000f;
         public static final int icon=0x7f0a0027;
@@ -1685,29 +1687,31 @@ containing a value of this type.
         public static final int img_fullscreen=0x7f0a0045;
         public static final int left_drawer=0x7f0a0042;
         public static final int listMode=0x7f0a000b;
-        public static final int list_image=0x7f0a004e;
+        public static final int list_favoIcon=0x7f0a0054;
+        public static final int list_image=0x7f0a0050;
         public static final int list_item=0x7f0a0026;
-        public static final int list_meta=0x7f0a0051;
-        public static final int list_short_content=0x7f0a0052;
-        public static final int list_text=0x7f0a004f;
-        public static final int list_title=0x7f0a0050;
-        public static final int list_youtube=0x7f0a0053;
+        public static final int list_meta=0x7f0a0053;
+        public static final int list_short_content=0x7f0a0055;
+        public static final int list_text=0x7f0a0051;
+        public static final int list_title=0x7f0a0052;
+        public static final int list_youtube=0x7f0a004f;
         public static final int middle=0x7f0a001e;
         public static final int never=0x7f0a0018;
         public static final int none=0x7f0a0010;
         public static final int normal=0x7f0a000c;
-        public static final int postContent=0x7f0a004a;
-        public static final int postImageView=0x7f0a0049;
+        public static final int postContent=0x7f0a004c;
+        public static final int postFavoIcon=0x7f0a0049;
+        public static final int postImageView=0x7f0a004b;
         public static final int postMeta=0x7f0a0048;
         public static final int postTitle=0x7f0a0047;
-        public static final int postYouTubeFrame=0x7f0a004b;
-        public static final int post_pager=0x7f0a004d;
+        public static final int postYouTubeFrame=0x7f0a004a;
+        public static final int post_pager=0x7f0a004e;
         public static final int progressBar1=0x7f0a0043;
         public static final int progress_circular=0x7f0a0007;
         public static final int progress_horizontal=0x7f0a0008;
         public static final int radio=0x7f0a002c;
-        public static final int refresh=0x7f0a0055;
-        public static final int search=0x7f0a0054;
+        public static final int refresh=0x7f0a0057;
+        public static final int search=0x7f0a0056;
         public static final int search_badge=0x7f0a0036;
         public static final int search_bar=0x7f0a0035;
         public static final int search_button=0x7f0a0037;
@@ -1789,17 +1793,18 @@ containing a value of this type.
         public static final int drawer_list_item=0x7f03001b;
         public static final int fragment_page=0x7f03001c;
         public static final int fragment_post_details=0x7f03001d;
-        public static final int fragment_post_details_youtube=0x7f03001e;
-        public static final int fragment_post_overview=0x7f03001f;
-        public static final int fragment_post_pager=0x7f030020;
-        public static final int item_post_overview=0x7f030021;
-        public static final int item_post_overview_youtube=0x7f030022;
-        public static final int support_simple_spinner_dropdown_item=0x7f030023;
+        public static final int fragment_post_overview=0x7f03001e;
+        public static final int fragment_post_pager=0x7f03001f;
+        public static final int item_post_overview=0x7f030020;
+        public static final int support_simple_spinner_dropdown_item=0x7f030021;
     }
     public static final class menu {
         public static final int options_menu=0x7f0d0000;
     }
     public static final class string {
+        public static final int About_Theo=0x7f0b0022;
+        public static final int Favorites=0x7f0b0021;
+        public static final int Home=0x7f0b0020;
         public static final int Image=0x7f0b0014;
         /**  Content description for the action bar "home" affordance. [CHAR LIMIT=NONE] 
          */
@@ -1861,6 +1866,7 @@ containing a value of this type.
         public static final int author_name=0x7f0b0017;
         public static final int drawer_close=0x7f0b0012;
         public static final int drawer_open=0x7f0b0011;
+        public static final int eBook_store=0x7f0b0023;
         public static final int logo=0x7f0b0013;
         public static final int no=0x7f0b001c;
         public static final int no_connection=0x7f0b0018;
