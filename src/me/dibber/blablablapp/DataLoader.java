@@ -17,6 +17,7 @@ import java.util.ArrayList;
 import java.util.Locale;
 
 import me.dibber.blablablapp.Post.Attachment;
+import me.dibber.blablablapp.Post.Comment;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -43,6 +44,10 @@ public class DataLoader {
 		state = State.INITIALIZED;
 	}
 	
+	public void isInSynchWithExistingPosts(boolean synched) {
+		isInSynchWithExistingPosts = synched;
+	}
+	
 	public void prepareAsync() {
 		if (state != State.INITIALIZED) {
 			throw new IllegalStateException("Dataloader not yet initialized. Call setDataSource() first.");
@@ -66,8 +71,8 @@ public class DataLoader {
 	private URL url;
 	private PostCollection posts;	
 	private DataLoaderListener dll;
-	private JSONArray postsdisk;
 	private boolean internetConnection;
+	private boolean isInSynchWithExistingPosts;
 	
 	private static String FILE_LOCATION = "Postdata";
 	
@@ -89,8 +94,6 @@ public class DataLoader {
 			
 			@Override
 			public void run() {
-				
-				postsdisk = new JSONArray();
 				internetConnection = true;
 				
 				// first read from disk 
@@ -109,7 +112,7 @@ public class DataLoader {
 							sb.append(s);
 						}
 						bin.close();
-						JSONreceived(sb.toString());
+						JSONreceived(sb.toString(), false);
 					} catch (IOException e) {
 						Log.w("Error trying to read file from disk", e.toString());
 					}
@@ -126,101 +129,109 @@ public class DataLoader {
 						data.append(line);
 					}
 					r.close();
-					JSONreceived(data.toString());
+					JSONreceived(data.toString(), true);
 				} catch (IOException e) {
 					Log.w("Error trying to setup connections", e.toString());
 					
 					internetConnection = false;
 				}
-				
 				done();
-				try {
-					JSONObject writeObj = new JSONObject();
-					writeObj.put("status", "OK");
-					writeObj.put("count", postsdisk.length());
-					writeObj.put("posts", postsdisk);
-					
-					FileOutputStream os = c.openFileOutput(FILE_LOCATION, Context.MODE_PRIVATE);
-					os.write(writeObj.toString().getBytes());
-					os.close();
-					
-				} catch (JSONException e) {
-					Log.w("Error trying to write data in internal storage", e.toString());
-				} catch (FileNotFoundException e) {
-					Log.w("Error trying to write data in internal storage", e.toString());
-					e.printStackTrace();
-				} catch (IOException e) {
-					Log.w("Error trying to write data in internal storage", e.toString());
-					e.printStackTrace();
+				
+				// write the current postcollection to disk
+				writePostCollectionToDisk(posts);
 				}
-			}
-		}
-		);
+		});
 		t.start();
 	}
 	
-	/**
-	 * Cleans up all posts from disk which are no longer in the PostCollection
-	 * @param The PostCollection with all current posts
-	 */
-	public static void cleanUpPostsOnDisk(final PostCollection pc) {
+	public static void writePostCollectionToDisk(final PostCollection pc) {
 		
 		Thread t = new Thread(new Runnable() {
 			
 			@Override
 			public void run() {
-				JSONArray postsdsk = new JSONArray();
+				JSONObject writeObj = new JSONObject();
+				ArrayList<Integer> postIds = (ArrayList<Integer>) pc.getAllPosts();
 				
-				// first read from disk 
-				final Context c = GlobalState.getContext();
-				File file = c.getFileStreamPath(FILE_LOCATION);
-				boolean fileExists = true;
-				if (file == null || !file.exists())
-					fileExists = false;
-				if (fileExists) {
-					try {
-						FileInputStream fin = new FileInputStream(file);
-						BufferedReader bin = new BufferedReader(new InputStreamReader(fin));
-						StringBuilder sb = new StringBuilder();
-						String s;
-						while ( (s = bin.readLine()) != null) {
-							sb.append(s);
-						}
-						bin.close();
-						JSONObject obj = new JSONObject(sb.toString());
-						JSONArray jArr = obj.getJSONArray("posts");
-						ArrayList<Integer> intList = new ArrayList<Integer>();
-						intList.addAll(pc.getAllPosts());
-						for (int j = 0; j < jArr.length(); j++) {
-							int postId = jArr.getJSONObject(j).getInt("id");
-							int index = intList.indexOf(postId);
-							if (index  >= 0) {
-								jArr.getJSONObject(j).put("favorite", pc.itemIsFavorite(postId));
-								postsdsk.put(jArr.getJSONObject(j));
-								intList.remove(index);
-							};
-						}
-						JSONObject writeObj = new JSONObject();
-						writeObj.put("status", "OK");
-						writeObj.put("count", postsdsk.length());
-						writeObj.put("posts", postsdsk);
+				try {
+					writeObj.put("status", "OK");
+					writeObj.put("count", postIds.size());
+					JSONArray postsArr = new JSONArray();
+					for (int i = 0; i < postIds.size(); i++) {
+						int postId = postIds.get(i);
+						Post p = pc.getPost(postId);
+						JSONObject postObj = new JSONObject();
 						
-						FileOutputStream os = c.openFileOutput(FILE_LOCATION, Context.MODE_PRIVATE);
-						os.write(writeObj.toString().getBytes());
-						os.close();
-					} catch (IOException | JSONException e) {
-						Log.w("Error trying to read file from disk", e.toString());
+						postObj.put("id", postId);
+						postObj.put("title", p.title);
+						postObj.put("url", p.url);
+						postObj.put("content", p.content);
+						
+						JSONObject authObj = new JSONObject();
+						authObj.put("id", Integer.toString(p.id));
+						authObj.put("name", p.authorname);
+						postObj.put("author", authObj);
+						
+						if (p.date != null) {
+							SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.US);
+							postObj.put("date", df.format(p.date));
+						}
+						
+						JSONArray attArr = new JSONArray();
+						for (Attachment att : p.attachments) {
+							JSONObject attObj = new JSONObject();
+							attObj.put("id", Integer.toString(att.id));
+							attObj.put("url", att.url);
+							attObj.put("mime_type", att.mimeType);
+							attArr.put(attObj);
+						}
+						postObj.put("attachments", attArr);
+						
+						JSONArray commArr = new JSONArray();
+						for (Comment cmnt : p.comments) {
+							JSONObject cmntObj = new JSONObject();
+							cmntObj.put("id", cmnt.id);
+							cmntObj.put("author", cmnt.author);
+							cmntObj.put("content", cmnt.content);
+							if (cmnt.date != null) {
+								SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.US);
+								cmntObj.put("date", df.format(cmnt.date));
+							}
+						}
+						postObj.put("comments", commArr);
+						
+						postObj.put("comment_status", p.commentstatus);
+						if (p.favorite == 'Y') {
+							postObj.put("favorite", "Y");
+						} else {
+							postObj.put("favorite", "N");
+						}
+						postsArr.put(postObj);
 					}
+					
+					writeObj.put("posts", postsArr);
+					
+				} catch (JSONException e) {
+					Log.e("error reading postcollection while creating JSON for disk", e.toString());
 				}
-
 				
+				try {
+					Context c = GlobalState.getContext();
+					FileOutputStream os = c.openFileOutput(FILE_LOCATION, Context.MODE_PRIVATE);
+					os.write(writeObj.toString().getBytes());
+					os.close();
+				} catch (FileNotFoundException e) {
+					Log.e("Error trying to write data in internal storage", e.toString());
+				} catch (IOException e) {
+					Log.e("Error trying to write data in internal storage", e.toString());
+				}
 			}
 		});
 		t.start();
 	}
-		
 	
-	private void JSONreceived(String JSONobject) {
+	
+	private void JSONreceived(String JSONobject, boolean synchedOnline) {
 
 		try {
 			JSONObject obj = new JSONObject(JSONobject);
@@ -228,17 +239,16 @@ public class DataLoader {
 				Log.w("error parsing the JSON object", "Status is not 'OK'");
 				return;
 			}
-			JSONcreatePosts(obj.getJSONArray("posts"));
+			JSONcreatePosts(obj.getJSONArray("posts"), synchedOnline);
 		} catch (JSONException e) {
 			Log.w("error parsing the JSON object", e.toString());
 		}
 	}
 	
 	
-	private void JSONcreatePosts(JSONArray postdata) throws JSONException {
+	private void JSONcreatePosts(JSONArray postdata, boolean synchedOnline) throws JSONException {
 
 		for (int i = 0; i < postdata.length(); i++) {
-			
 			
 			JSONObject postobj = postdata.getJSONObject(i);
 			
@@ -252,9 +262,11 @@ public class DataLoader {
 			p.title = getStringFromJSON(postobj,"title");
 			p.content = getStringFromJSON(postobj,"content");
 			try {
-			p.author = getStringFromJSON(postobj.getJSONObject("author"),"name");
+			p.authorname = getStringFromJSON(postobj.getJSONObject("author"),"name");
+			p.authorid = Integer.parseInt(getStringFromJSON(postobj.getJSONObject("author"),"id") );
 			} catch (JSONException e) {
-				p.author = null;
+				p.authorname = null;
+				p.authorid = 0;
 			}
 			try {
 			SimpleDateFormat  df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.US);
@@ -311,19 +323,38 @@ public class DataLoader {
 			} catch (JSONException e) {
 				// no "comments" object in JSON 
 			}
-			if ("open".equals(getStringFromJSON(postobj,"comment_status"))) {
-				p.commentstatus = true;
-			} else {
-				p.commentstatus = false;
-			}
 			try {
-				p.favorite = postobj.getBoolean("favorite");
-			} catch (JSONException e) {	} // if it is not present, don't change it. Since it'll never be present from the feed online.
+				p.commentstatus = postobj.getBoolean("comment_status");
+			} catch (JSONException e) {
+				if ("open".equals(getStringFromJSON(postobj,"comment_status"))) {
+					p.commentstatus = true;
+				} else {
+					p.commentstatus = false;
+				}
+			}
+			if (p.favorite != 'Y' && p.favorite != 'N') {
+				if (getStringFromJSON(postobj, "favorite") != null && getStringFromJSON(postobj, "favorite").charAt(0) == 'Y') {
+					p.favorite = 'Y';
+				} else {
+					p.favorite = 'N';
+				}
+			}
+			if (synchedOnline && isInSynchWithExistingPosts) {
+				int oldPost = ((GlobalState)GlobalState.getContext()).getOldestSynchedPost();
+				if (posts.getItemDate(oldPost) == null || posts.getItemDate(oldPost).after(p.date)) {
+					((GlobalState)GlobalState.getContext()).setOldestSynchedPost(p.id);
+				}
+			}
 			posts.addPost(p);
-			postsdisk.put(postobj);
 		}
 	}
 
+	/**
+	 * Checks if two lists of attachments are similar.
+	 * @param tempAttachments First ArrayList of attachments
+	 * @param attachments Second ArrayList of attachments
+	 * @return true if they are equal, false otherwise
+	 */
 	private boolean attachmentsEqual(ArrayList<Attachment> tempAttachments,
 			ArrayList<Attachment> attachments) {
 		if (attachments == null && tempAttachments == null) { 
@@ -346,6 +377,13 @@ public class DataLoader {
 		return (countIds == countTempIds);
 	}
 
+	/**
+	 * Utility method to parse a String from JSON object, or returns null if the String is not present.
+	 * Since this method will not throw a JSONException, it can be used to prevent lots of try/catch clauses.
+	 * @param JSONObj the JSONObject
+	 * @param name the name of the String
+	 * @return returns the String or null of not present
+	 */
 	private String getStringFromJSON(JSONObject JSONObj, String name) {
 		try {
 			return JSONObj.getString(name);

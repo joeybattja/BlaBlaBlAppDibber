@@ -37,13 +37,12 @@ public class HomeActivity extends ActionBarActivity implements DataLoaderListene
 	
 	private final static String TAG_FRAGMENT_CONTENT = "TAG_FR_C";
 	private final static String CURRENT_TYPE = "CUR_TYPE";
-	private final static String CURRENT_ID = "CUR_ID";
+	private final static String CURRENT_PAGE = "CUR_PAGE";
 	private final static String CURRENT_POST = "CUR_POST";
 	
-	private int currentId;
 	private int currentPost;
+	private int currentPage;
 	private ContentFrameType currentType;
-	private Pages.PageType currentPageType;
 	
 	private MenuItem searchItem;
 	private MenuItem refresh;
@@ -51,7 +50,6 @@ public class HomeActivity extends ActionBarActivity implements DataLoaderListene
 	private DrawerLayout mDrawerLayout;
 	private ActionBarDrawerToggle mDrawerToggle;
     private ListView mDrawerList;
-    //private CharSequence[] pageTitles;
     public enum ContentFrameType {PAGE,POST}
 
 	@Override
@@ -59,7 +57,6 @@ public class HomeActivity extends ActionBarActivity implements DataLoaderListene
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_home);
 		
-		//pageTitles = new CharSequence[] {"Home","Over Theo","eBook winkel"};
 		getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 		
 		mDrawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
@@ -82,17 +79,19 @@ public class HomeActivity extends ActionBarActivity implements DataLoaderListene
 			@Override
 			public void onItemClick(AdapterView<?> parent, View view,
 					int position, long id) {
+				currentPage = position;
 				replaceContentFrame(ContentFrameType.PAGE, position);
 			}
 		});
-        
-        try {
-        	currentId = savedInstanceState.getInt(CURRENT_ID);
-        	currentPost = savedInstanceState.getInt(CURRENT_POST);
-            currentType = (ContentFrameType) savedInstanceState.getSerializable(CURRENT_TYPE);
-            replaceContentFrame(currentType, currentId);
-        } catch (NullPointerException e) {
-        	replaceContentFrame(ContentFrameType.PAGE, 0);
+        if (savedInstanceState != null) {
+	        currentPost = savedInstanceState.getInt(CURRENT_POST);
+	    	currentPage = savedInstanceState.getInt(CURRENT_PAGE);
+	        currentType = (ContentFrameType) savedInstanceState.getSerializable(CURRENT_TYPE);
+        } else {
+        	currentType = ContentFrameType.PAGE;
+        }
+        invalidateContentFrame();
+        if (((GlobalState)GlobalState.getContext()).getPosts().getAllPosts().size() == 0) {
         	refreshPosts();
         }
 	}
@@ -159,7 +158,7 @@ public class HomeActivity extends ActionBarActivity implements DataLoaderListene
 				return;
 			}
 			// Go back to the Home screen, else...
-			replaceContentFrame(ContentFrameType.PAGE, 0);
+			replaceContentFrame(ContentFrameType.PAGE, currentPage);
 			return;
 		}
 		// If currently a Webpage is shown
@@ -180,8 +179,8 @@ public class HomeActivity extends ActionBarActivity implements DataLoaderListene
     public void onSaveInstanceState(Bundle savedInstanceState) {
     	super.onSaveInstanceState(savedInstanceState);
     	saveLastPosition();
-    	savedInstanceState.putInt(CURRENT_ID, currentId);
     	savedInstanceState.putInt(CURRENT_POST, currentPost);
+    	savedInstanceState.putInt(CURRENT_PAGE, currentPage);
     	savedInstanceState.putSerializable(CURRENT_TYPE, currentType);
     }
     
@@ -189,7 +188,6 @@ public class HomeActivity extends ActionBarActivity implements DataLoaderListene
     	Fragment frag = getSupportFragmentManager().findFragmentByTag(TAG_FRAGMENT_CONTENT);
     	if (frag instanceof PostDetailFragment) {
     		currentPost = ((PostDetailFragment) frag).getViewPagerCurrentItem();
-    		currentId = currentPost;
     	} else if (frag instanceof PostOverviewFragment) {
     		currentPost = ((PostOverviewFragment)frag).getLastPosition();
 		}
@@ -232,7 +230,7 @@ public class HomeActivity extends ActionBarActivity implements DataLoaderListene
 			@Override
 			public boolean onQueryTextSubmit(String text) {
 				((GlobalState)GlobalState.getContext()).search(text); 
-				replaceContentFrame(ContentFrameType.PAGE, 0);
+				replaceContentFrame(ContentFrameType.PAGE, currentPage);
 				searchView.clearFocus();
 				return true;
 			}
@@ -240,7 +238,7 @@ public class HomeActivity extends ActionBarActivity implements DataLoaderListene
 			@Override
 			public boolean onQueryTextChange(String text) {
 				((GlobalState)GlobalState.getContext()).search(text); 
-				replaceContentFrame(ContentFrameType.PAGE, 0);
+				replaceContentFrame(ContentFrameType.PAGE, currentPage);
 				return true;
 			}
 		});  
@@ -299,22 +297,33 @@ public class HomeActivity extends ActionBarActivity implements DataLoaderListene
             return super.onOptionsItemSelected(item);
         }
     }
+    
+    private void invalidateContentFrame() {
+    	if (currentType == null) {
+    		currentType = ContentFrameType.PAGE;
+        	replaceContentFrame(ContentFrameType.PAGE, currentPage);
+    	} else if (currentType == ContentFrameType.POST) {
+    		replaceContentFrame(ContentFrameType.POST, currentPost);
+        } else {
+        	replaceContentFrame(ContentFrameType.PAGE, currentPage);
+        }
+    }
 	
 	public void replaceContentFrame(ContentFrameType type, int id) {
 		Fragment fragment = null;
 		currentType = type;
-		currentId = id;
-		if (currentType == ContentFrameType.PAGE) {
-			currentPageType = Pages.getPageType(id);
-		}
 		
 		switch (type) {
 		case PAGE:
-			((GlobalState)GlobalState.getContext()).showOnlyFavorites(currentPageType == Pages.PageType.FAVORITES);
-			switch (currentPageType) {
+			currentPage = id;
+			mDrawerList.setItemChecked(id, true);
+		    setTitle(Pages.getPageTitles()[id]);
+		    
+			switch (Pages.getPageType(currentPage)) {
 			case POSTS:
 			case FAVORITES:
 				simpleOptionsMenu(false);
+				((GlobalState)GlobalState.getContext()).showOnlyFavorites(Pages.getPageType(currentPage) == Pages.PageType.FAVORITES);
 				fragment = new PostOverviewFragment();
 				Bundle argsO = new Bundle();
 				if (currentPost != 0) {
@@ -332,8 +341,7 @@ public class HomeActivity extends ActionBarActivity implements DataLoaderListene
 				fragment.setArguments(argsW);
 				break;
 			}
-			mDrawerList.setItemChecked(id, true);
-		    setTitle(Pages.getPageTitles()[id]);
+			
 			break;
 		case POST:
 			simpleOptionsMenu(true);
@@ -393,6 +401,7 @@ public class HomeActivity extends ActionBarActivity implements DataLoaderListene
 		((GlobalState)GlobalState.getContext()).refresh(true);
 		DataLoader dl = new DataLoader();
 		dl.setDataLoaderListener(this);
+		dl.isInSynchWithExistingPosts(true);
 		try {
 			Properties p = AssetsPropertyReader.getProperties(this);
 			String URL = p.getProperty("URL") + p.getProperty("APIPHP") + p.getProperty("GET_RECENT_POSTS") + "&count=" + p.getProperty("NUMBER_OF_POSTS_PER_REQUEST");
@@ -408,7 +417,7 @@ public class HomeActivity extends ActionBarActivity implements DataLoaderListene
 	}
 	
 	public void getMorePosts(int lastPostId) {
-		if (currentPageType == PageType.FAVORITES) { // nothing to refresh if showing favorites 
+		if (Pages.getPageType(currentPage) == PageType.FAVORITES) { // nothing to refresh if showing favorites 
 			return;
 		}
 		saveLastPosition();
@@ -418,6 +427,7 @@ public class HomeActivity extends ActionBarActivity implements DataLoaderListene
 		((GlobalState)GlobalState.getContext()).refresh(true);
 		DataLoader dl = new DataLoader();
 		dl.setDataLoaderListener(this);
+		dl.isInSynchWithExistingPosts(true);
 		try {
 			Properties p = AssetsPropertyReader.getProperties(this);
 			String URL = p.getProperty("URL") + p.getProperty("APIPHP") + p.getProperty("GET_RECENT_POSTS") + "&count=" + p.getProperty("NUMBER_OF_POSTS_PER_REQUEST") 
@@ -457,11 +467,7 @@ public class HomeActivity extends ActionBarActivity implements DataLoaderListene
 			@Override
 			public void run() {
 				homeA.refresh.setActionView(null);
-				try {
-					homeA.replaceContentFrame(currentType, currentId);
-		        } catch (NullPointerException e) {
-		        	homeA.replaceContentFrame(ContentFrameType.PAGE, 0);
-		        }
+				invalidateContentFrame();
 			}
 		});
 	}
@@ -476,6 +482,7 @@ public class HomeActivity extends ActionBarActivity implements DataLoaderListene
 	    Properties p = AssetsPropertyReader.getProperties(this);
 	    int max = Integer.parseInt(p.getProperty("MAX_NUMBER_OF_POSTS"));
 	    PostCollection.cleanUpPostCollection(max);
+	    ((GlobalState)GlobalState.getContext()).setOldestSynchedPost(0);
 	    
 	    this.finish();
 	}

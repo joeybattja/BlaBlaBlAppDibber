@@ -33,7 +33,8 @@ import android.widget.ImageView;
 public class PostCollection {
 			
 	private static PostCollection postCollection;
-	private final static String MIMETYPE_IMAGE = "image/jpeg";
+	private final static String MIMETYPE_JPEG = "image/jpeg";
+	private final static String MIMETYPE_PNG = "image/png";
 	private final static String MIMETYPE_YOUTUBE = "video/youtube";
 	private final static int THUMBNAIL_WIDTH = 240;
 	private final static int THUMBNAIL_HEIGHT = 180;
@@ -117,12 +118,19 @@ public class PostCollection {
 		if (posts.get(postId) == null) {
 			return " ";
 		} 
-		String a = posts.get(postId).author;
+		String a = posts.get(postId).authorname;
 		if (a != null) {
 			return a;
 		} else {
 			return " ";
 		}
+	}
+	
+	public int getItemAuthorId(int postId) {
+		if (posts.get(postId) == null) {
+			return -1;
+		} 
+		return posts.get(postId).id;
 	}
 	
 	public String getItemMeta(int postId) {
@@ -171,14 +179,18 @@ public class PostCollection {
 		if (posts.get(postId) == null) {
 			return false;
 		}
-		return posts.get(postId).favorite;
+		return posts.get(postId).favorite == 'Y';
 	}
 	
 	public void setItemFavorite(int postId, boolean favorite) {
 		if (posts.get(postId) == null) {
 			return;
 		}
-		posts.get(postId).favorite = favorite;
+		if (favorite) {
+			posts.get(postId).favorite = 'Y';
+		} else {
+			posts.get(postId).favorite = 'N';
+		}
 	}
 	
 	public String getItemYouTubeVideoID(int postId) {
@@ -219,7 +231,7 @@ public class PostCollection {
 		} 
 		int count = 0;
 		for (Post.Attachment a : posts.get(postId).attachments) {
-			if (a.mimeType.equals(MIMETYPE_IMAGE)) {
+			if (a.mimeType.equals(MIMETYPE_JPEG) || a.mimeType.equals(MIMETYPE_PNG)) {
 				count++;
 			}
 		}
@@ -240,7 +252,7 @@ public class PostCollection {
 		ArrayList<Drawable> images = new ArrayList<Drawable>();
 		ArrayList<Post.Attachment> att = posts.get(postId).attachments;
 		for (int i = 0; i < att.size(); i++) {
-			if (att.get(i).mimeType.equals(MIMETYPE_IMAGE)) {
+			if (att.get(i).mimeType.equals(MIMETYPE_JPEG) || att.get(i).mimeType.equals(MIMETYPE_PNG)) {
 				images.add(att.get(i).image);
 			}
 		}
@@ -294,7 +306,7 @@ public class PostCollection {
 		}
 		PostCollection favoritesPostCollection = new PostCollection();
 		for (Post p : postCollection.posts.values()) {
-			if (p.favorite) {
+			if (p.favorite == 'Y') {
 				favoritesPostCollection.addPost(p);
 			}
 		}
@@ -408,7 +420,7 @@ public class PostCollection {
 				PostCollection pc = getPostCollection();
 				ArrayList<Post.Attachment> att = pc.getAttachments(postId); 
 				for (Post.Attachment a : att) {
-					if (a.mimeType.equals(MIMETYPE_IMAGE)) {
+					if (a.mimeType.equals(MIMETYPE_JPEG) || a.mimeType.equals(MIMETYPE_PNG)) {
 						
 						try {
 						
@@ -434,15 +446,17 @@ public class PostCollection {
 								InputStream is = url.openStream();
 								Bitmap b = ((BitmapDrawable) Drawable.createFromStream(is, "src")).getBitmap();
 								ByteArrayOutputStream stream = new ByteArrayOutputStream();
-								b.compress(Bitmap.CompressFormat.JPEG, 100, stream);
-								
+								if (a.mimeType.equals(MIMETYPE_JPEG)){
+									b.compress(Bitmap.CompressFormat.JPEG, 100, stream);
+								} else {
+									b.compress(Bitmap.CompressFormat.PNG, 100, stream);
+								}
 								FileOutputStream fos = c.openFileOutput("" + postId + a.id, Context.MODE_PRIVATE);
 								fos.write(stream.toByteArray());
 								fos.close();
 								
 							} catch (IOException e2) {
 								Log.w("error retrieving image from web or saving image in internal storage", e2.toString());
-								// TODO --- find a way to be able to proceed without internal storage. E.g. for devices with little or full internal storage. 
 							}
 							try {
 								if (fullsized) {
@@ -458,7 +472,6 @@ public class PostCollection {
 						} 
 					} catch (Exception e) {
 						Log.e("Unexpected error for post " + postId + "/" + a.id + " titled: " + pc.getItemTitle(postId), e.toString());
-						e.printStackTrace();
 					}
 				} 
 					
@@ -608,7 +621,7 @@ public class PostCollection {
 	public static void cleanUpPostCollection(int max) {
 		PostCollection pc = getPostCollection();
 		if (pc.getAllPosts().size() <= max) {
-			DataLoader.cleanUpPostsOnDisk(pc);
+			DataLoader.writePostCollectionToDisk(pc);
 			return;
 		}
 		for (int i = max; i < pc.getAllPosts().size(); ) {
@@ -619,13 +632,13 @@ public class PostCollection {
 				pc.removePost(postId);
 			}
 		}
-		DataLoader.cleanUpPostsOnDisk(pc);
+		DataLoader.writePostCollectionToDisk(pc);
 	}
 	
 	public static void cleanUpAttachments(int postId, ArrayList<Attachment> attachments) {
 		Context c = GlobalState.getContext();
 		for (Post.Attachment a : attachments) {
-			if (a.mimeType.equals(MIMETYPE_IMAGE)) {
+			if (a.mimeType.equals(MIMETYPE_JPEG) || a.mimeType.equals(MIMETYPE_PNG)) {
 				boolean fileExists = true;
 				File file = c.getFileStreamPath("" + postId + a.id);
 				if (file == null || !file.exists())
