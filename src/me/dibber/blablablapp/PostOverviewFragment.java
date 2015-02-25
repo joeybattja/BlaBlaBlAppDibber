@@ -56,12 +56,18 @@ public class PostOverviewFragment extends Fragment {
 				mGridView.setSelection(p);
 			}
 		}
+		
+		int lastSynchId = ((GlobalState)GlobalState.getContext()).getOldestSynchedPost();
+		final int posToSynch = postsIds.indexOf(lastSynchId);
+		
 		mGridView.setOnItemClickListener(new OnItemClickListener() {
 			@Override
 			public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
 				((HomeActivity) getActivity()).replaceContentFrame(ContentFrameType.POST, postsIds.get(position));
 			}
 		}); 
+		
+		
 		mGridView.setOnScrollListener(new OnScrollListener() {
 			
 			@Override
@@ -72,10 +78,16 @@ public class PostOverviewFragment extends Fragment {
 			@Override
 			public void onScroll(AbsListView view, int firstVisibleItem,
 					int visibleItemCount, int totalItemCount) {
+				
+				// refreshing posts when reaching the bottom of the view
 				if(firstVisibleItem + visibleItemCount >= totalItemCount) {
 					if ( postsIds.size() > 0 ) {
 						((HomeActivity) getActivity()).getMorePosts(postsIds.get(postsIds.size() - 1));
 					}
+				}
+				
+				if (posToSynch != -1 && firstVisibleItem + visibleItemCount > posToSynch) {
+					((HomeActivity) getActivity()).getMorePosts(postsIds.get(posToSynch));
 				}
 			}
 		});

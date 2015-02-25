@@ -16,6 +16,7 @@ public class GlobalState extends Application {
 	private boolean showOnlyFavorites;
 	private boolean refreshing;
 	private HomeActivity homeActivity;
+	private int oldestSynchedPost;
 	
 	@Override
 	public void onCreate() {
@@ -74,6 +75,14 @@ public class GlobalState extends Application {
 		this.homeActivity = homeActivity;
 	}
 	
+	public int getOldestSynchedPost() {
+		return oldestSynchedPost;
+	}
+
+	public void setOldestSynchedPost(int oldestSynchedPost) {
+		this.oldestSynchedPost = oldestSynchedPost;
+	}
+
 	
 //--------------------------- YouTube support -----------------------------------
 	
