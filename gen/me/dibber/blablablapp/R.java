@@ -1683,8 +1683,8 @@ containing a value of this type.
         public static final int icon=0x7f0a0027;
         public static final int ifRoom=0x7f0a0017;
         public static final int image=0x7f0a0024;
-        public static final int imageViewLogo=0x7f0a0044;
-        public static final int img_fullscreen=0x7f0a0045;
+        public static final int imageViewLogo=0x7f0a0043;
+        public static final int img_fullscreen=0x7f0a0044;
         public static final int left_drawer=0x7f0a0042;
         public static final int listMode=0x7f0a000b;
         public static final int list_favoIcon=0x7f0a0054;
@@ -1699,6 +1699,8 @@ containing a value of this type.
         public static final int never=0x7f0a0018;
         public static final int none=0x7f0a0010;
         public static final int normal=0x7f0a000c;
+        public static final int page_progressbar=0x7f0a0046;
+        public static final int page_webView=0x7f0a0045;
         public static final int postContent=0x7f0a004c;
         public static final int postFavoIcon=0x7f0a0049;
         public static final int postImageView=0x7f0a004b;
@@ -1706,7 +1708,6 @@ containing a value of this type.
         public static final int postTitle=0x7f0a0047;
         public static final int postYouTubeFrame=0x7f0a004a;
         public static final int post_pager=0x7f0a004e;
-        public static final int progressBar1=0x7f0a0043;
         public static final int progress_circular=0x7f0a0007;
         public static final int progress_horizontal=0x7f0a0008;
         public static final int radio=0x7f0a002c;
@@ -1733,7 +1734,6 @@ containing a value of this type.
         public static final int up=0x7f0a0001;
         public static final int useLogo=0x7f0a0014;
         public static final int viewpager1=0x7f0a0009;
-        public static final int webView1=0x7f0a0046;
         public static final int withText=0x7f0a0019;
         public static final int wrap_content=0x7f0a000a;
     }

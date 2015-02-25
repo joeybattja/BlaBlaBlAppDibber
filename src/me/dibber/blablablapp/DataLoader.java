@@ -71,7 +71,6 @@ public class DataLoader {
 	private URL url;
 	private PostCollection posts;	
 	private DataLoaderListener dll;
-	private boolean internetConnection;
 	private boolean isInSynchWithExistingPosts;
 	
 	private static String FILE_LOCATION = "Postdata";
@@ -83,7 +82,6 @@ public class DataLoader {
 	
 	private void done() {
 		state = State.DONE;
-		dll.onDataLoaderDone(internetConnection);
 	}
 	 
     // *****************  implementation for JSON  *******************
@@ -94,8 +92,6 @@ public class DataLoader {
 			
 			@Override
 			public void run() {
-				internetConnection = true;
-				
 				// first read from disk 
 				final Context c = GlobalState.getContext();
 				File file = c.getFileStreamPath(FILE_LOCATION);
@@ -115,8 +111,10 @@ public class DataLoader {
 						JSONreceived(sb.toString(), false);
 					} catch (IOException e) {
 						Log.w("Error trying to read file from disk", e.toString());
+						dll.onDataLoaderDiskDone(false);
 					}
 				}
+				dll.onDataLoaderDiskDone(true);
 				
 				// then read from network
 				try {
@@ -132,13 +130,15 @@ public class DataLoader {
 					JSONreceived(data.toString(), true);
 				} catch (IOException e) {
 					Log.w("Error trying to setup connections", e.toString());
-					
-					internetConnection = false;
+					dll.onDataLoaderOnlineDone(false);
 				}
+				dll.onDataLoaderOnlineDone(true);
+
 				done();
 				
 				// write the current postcollection to disk
 				writePostCollectionToDisk(posts);
+				state = State.DONE;
 				}
 		});
 		t.start();
@@ -394,7 +394,8 @@ public class DataLoader {
 	
 	public interface DataLoaderListener {
 		
-		void onDataLoaderDone(boolean internetConnection);
+		void onDataLoaderDiskDone(boolean success);
+		void onDataLoaderOnlineDone(boolean success);
 		
 	}
 	

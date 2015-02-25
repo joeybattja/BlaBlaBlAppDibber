@@ -442,9 +442,29 @@ public class HomeActivity extends ActionBarActivity implements DataLoaderListene
 		}
 		dl.prepareAsync();
 	}
+	
+	@Override
+	public void onDataLoaderDiskDone(boolean success) {
+		if (!success) {
+			return;
+		}
+		final HomeActivity homeA = ((GlobalState)GlobalState.getContext()).getCurrentHomeActivity();
+		
+		if (homeA == null) {
+			return;
+		}
+		homeA.runOnUiThread(new Runnable() {
+			
+			@Override
+			public void run() {
+				saveLastPosition();
+				invalidateContentFrame();
+			}
+		});
+	}
 
 	@Override
-	public void onDataLoaderDone(boolean internetConnection) {
+	public void onDataLoaderOnlineDone(boolean success) {
 		((GlobalState)GlobalState.getContext()).refresh(false);
 		
 		final HomeActivity homeA = ((GlobalState)GlobalState.getContext()).getCurrentHomeActivity();
@@ -453,7 +473,7 @@ public class HomeActivity extends ActionBarActivity implements DataLoaderListene
 			return;
 		}
 		
-		if (!internetConnection) {
+		if (!success) {
 			homeA.runOnUiThread(new Runnable() {
 				
 				@Override
@@ -467,6 +487,7 @@ public class HomeActivity extends ActionBarActivity implements DataLoaderListene
 			@Override
 			public void run() {
 				homeA.refresh.setActionView(null);
+				saveLastPosition();
 				invalidateContentFrame();
 			}
 		});
