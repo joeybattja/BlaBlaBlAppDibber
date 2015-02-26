@@ -13,11 +13,12 @@ public class WebPageFragment extends Fragment {
 	
 	private WebView mWebView;
 	private ProgressBar mProgressBar;
+	private String url;
 	public final static String ARG_URL = "Web address"; 
 	
 	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 		View rootView = inflater.inflate( R.layout.fragment_page, container, false);
-		String url = getArguments().getString(ARG_URL);
+		url = getArguments().getString(ARG_URL);
 		mWebView = (WebView) rootView.findViewById(R.id.page_webView);
 		mProgressBar = (ProgressBar) rootView.findViewById(R.id.page_progressbar);
 		mWebView.setVisibility(View.GONE);
@@ -33,5 +34,9 @@ public class WebPageFragment extends Fragment {
 		});
 		mWebView.loadUrl(url);
 		return rootView;
+	}
+	
+	public String getURL() {
+		return url;
 	}
 }

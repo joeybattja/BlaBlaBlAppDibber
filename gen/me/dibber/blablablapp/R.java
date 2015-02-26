@@ -1639,13 +1639,14 @@ containing a value of this type.
         public static final int ic_action_no_favo=0x7f020035;
         public static final int ic_action_refresh=0x7f020036;
         public static final int ic_action_search=0x7f020037;
-        public static final int ic_drawer=0x7f020038;
-        public static final int ic_launcher=0x7f020039;
-        public static final int image_background=0x7f02003a;
-        public static final int item_curved_corners=0x7f02003b;
-        public static final int item_selectable=0x7f02003c;
-        public static final int logo_color=0x7f02003d;
-        public static final int logo_grey=0x7f02003e;
+        public static final int ic_action_share=0x7f020038;
+        public static final int ic_drawer=0x7f020039;
+        public static final int ic_launcher=0x7f02003a;
+        public static final int image_background=0x7f02003b;
+        public static final int item_curved_corners=0x7f02003c;
+        public static final int item_selectable=0x7f02003d;
+        public static final int logo_color=0x7f02003e;
+        public static final int logo_grey=0x7f02003f;
     }
     public static final class id {
         public static final int action_bar=0x7f0a0032;
@@ -1723,6 +1724,7 @@ containing a value of this type.
         public static final int search_plate=0x7f0a003a;
         public static final int search_src_text=0x7f0a003b;
         public static final int search_voice_btn=0x7f0a003f;
+        public static final int share=0x7f0a0058;
         public static final int shortcut=0x7f0a002b;
         public static final int showCustom=0x7f0a0011;
         public static final int showHome=0x7f0a0012;
@@ -1802,9 +1804,9 @@ containing a value of this type.
         public static final int options_menu=0x7f0d0000;
     }
     public static final class string {
-        public static final int About_Theo=0x7f0b0022;
-        public static final int Favorites=0x7f0b0021;
-        public static final int Home=0x7f0b0020;
+        public static final int About_Theo=0x7f0b0024;
+        public static final int Favorites=0x7f0b0023;
+        public static final int Home=0x7f0b0022;
         public static final int Image=0x7f0b0014;
         /**  Content description for the action bar "home" affordance. [CHAR LIMIT=NONE] 
          */
@@ -1866,7 +1868,7 @@ containing a value of this type.
         public static final int author_name=0x7f0b0017;
         public static final int drawer_close=0x7f0b0012;
         public static final int drawer_open=0x7f0b0011;
-        public static final int eBook_store=0x7f0b0023;
+        public static final int eBook_store=0x7f0b0025;
         public static final int logo=0x7f0b0013;
         public static final int no=0x7f0b001c;
         public static final int no_connection=0x7f0b0018;
@@ -1876,6 +1878,8 @@ containing a value of this type.
         public static final int refresh=0x7f0b001f;
         public static final int search_hint=0x7f0b0016;
         public static final int search_title=0x7f0b0015;
+        public static final int share=0x7f0b0020;
+        public static final int share_title=0x7f0b0021;
         public static final int unsupported_version_dialog_message=0x7f0b001d;
         public static final int yes=0x7f0b001b;
     }

@@ -46,6 +46,7 @@ public class HomeActivity extends ActionBarActivity implements DataLoaderListene
 	
 	private MenuItem searchItem;
 	private MenuItem refresh;
+	private MenuItem share;
 	
 	private DrawerLayout mDrawerLayout;
 	private ActionBarDrawerToggle mDrawerToggle;
@@ -247,6 +248,9 @@ public class HomeActivity extends ActionBarActivity implements DataLoaderListene
         if (((GlobalState)GlobalState.getContext()).isRefreshing()) {
         	refresh.setActionView(R.layout.actionbar_indeterminate_progress);
         }
+        share = menu.findItem(R.id.share);
+        share.setEnabled(false);
+        share.setVisible(false);
         
         if (currentType == ContentFrameType.POST) {
         	simpleOptionsMenu(true);
@@ -263,6 +267,10 @@ public class HomeActivity extends ActionBarActivity implements DataLoaderListene
     	if (refresh != null) {
 	    	refresh.setEnabled(!simple);
 	    	refresh.setVisible(!simple);
+    	}
+    	if (share != null) {
+    		share.setEnabled(simple);
+    		share.setVisible(simple);
     	}
     	if (simple) {
     		mDrawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED);
@@ -293,6 +301,9 @@ public class HomeActivity extends ActionBarActivity implements DataLoaderListene
         case R.id.refresh:
         	refreshPosts();
     		return true;
+        case R.id.share:
+        	sharePost();
+        	return true;
         default:
             return super.onOptionsItemSelected(item);
         }
@@ -414,6 +425,28 @@ public class HomeActivity extends ActionBarActivity implements DataLoaderListene
 			refresh.setActionView(R.layout.actionbar_indeterminate_progress);
 		}
 		dl.prepareAsync();
+	}
+	
+	public void sharePost() {
+		String url;
+		String title;
+		Fragment fragment = (Fragment) getSupportFragmentManager().findFragmentByTag(TAG_FRAGMENT_CONTENT);
+		if (fragment instanceof PostDetailFragment) {
+			currentPost = ((PostDetailFragment) fragment).getViewPagerCurrentItem();
+			url = ((GlobalState)GlobalState.getContext()).getPosts().getItemUrl(currentPost);
+			title = ((GlobalState)GlobalState.getContext()).getPosts().getItemTitle(currentPost).toString();
+		} else if (fragment instanceof WebPageFragment) {
+			url = ((WebPageFragment)fragment).getURL();
+			title = Pages.getPageTitle(currentPage);
+		} else {
+			return;
+		}
+		Intent intent = new Intent(Intent.ACTION_SEND);
+		intent.setType("text/plain");
+		intent.putExtra(android.content.Intent.EXTRA_SUBJECT, title);
+		String message = title + "\n" + url;
+		intent.putExtra(Intent.EXTRA_TEXT, message);
+		startActivity(Intent.createChooser(intent, getResources().getString(R.string.share_title)));
 	}
 	
 	public void getMorePosts(int lastPostId) {

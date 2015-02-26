@@ -16,7 +16,9 @@
     <string name="no">No</string>
     <string name="unsupported_version_dialog_message">Unfortunately, you are using an outdated version of this app. Please update the app in the Play store.</string>
     <string name="ok">OK</string>
-   <string name="refresh">Refresh</string>
+	<string name="refresh">Refresh</string>
+	<string name="share">Share</string>
+	<string name="share_title">Share this post with:</string>
 	<string name="Home">Home</string>
 	<string name="Favorites">Favorites</string>
 	<string name="About_Theo">About Theo</string>
