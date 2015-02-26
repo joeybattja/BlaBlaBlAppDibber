@@ -443,9 +443,8 @@ public class HomeActivity extends ActionBarActivity implements DataLoaderListene
 		}
 		Intent intent = new Intent(Intent.ACTION_SEND);
 		intent.setType("text/plain");
-		intent.putExtra(android.content.Intent.EXTRA_SUBJECT, title);
-		String message = title + "\n" + url;
-		intent.putExtra(Intent.EXTRA_TEXT, message);
+		intent.putExtra(android.content.Intent.EXTRA_SUBJECT, getResources().getString(R.string.app_name) + ": " + title);
+		intent.putExtra(Intent.EXTRA_TEXT, title + "\n" + url);
 		startActivity(Intent.createChooser(intent, getResources().getString(R.string.share_title)));
 	}
 	
