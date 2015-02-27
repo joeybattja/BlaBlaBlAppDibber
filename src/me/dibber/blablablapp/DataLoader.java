@@ -197,6 +197,7 @@ public class DataLoader {
 								SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.US);
 								cmntObj.put("date", df.format(cmnt.date));
 							}
+							commArr.put(cmntObj);
 						}
 						postObj.put("comments", commArr);
 						
@@ -319,6 +320,7 @@ public class DataLoader {
 					} catch (ParseException e) {
 							Log.d("Error parsing date from JSON comment " + k + " of post " + p.id + " " + p.title, e.toString());
 					}
+					p.comments.add(c);
 				}
 			} catch (JSONException e) {
 				// no "comments" object in JSON 

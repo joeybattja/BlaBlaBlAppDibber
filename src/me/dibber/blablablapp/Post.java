@@ -35,5 +35,6 @@ public class Post {
 		public String author;		
 		public Date date;
 		public String content;
+		public int parent;
 	}
 }

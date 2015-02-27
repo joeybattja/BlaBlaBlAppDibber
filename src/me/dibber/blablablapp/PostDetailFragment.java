@@ -144,12 +144,15 @@ public class PostDetailFragment extends Fragment {
 		private ImageView mFavoView;
 		private FrameLayout mYouTubeFrame;
 		private PostYouTubeFragment mYouTubeFragment;
+		private FrameLayout mCommentFrame;
+		private CommentsFragment mCommentsFragment;
 		private String videoId;
 		
 		private TextView mTitleView;
 		private TextView mMetaView;
 		private TextView mContentView;
 		private int postId;
+		
 		
 		public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 			postId = getArguments().getInt(ARG_ID);
@@ -164,6 +167,7 @@ public class PostDetailFragment extends Fragment {
 			mImageView = (ImageView) rootView.findViewById(R.id.postImageView);
 			mContentView = (TextView) rootView.findViewById(R.id.postContent);
 			mYouTubeFrame = (FrameLayout) rootView.findViewById(R.id.postYouTubeFrame);
+			mCommentFrame = (FrameLayout) rootView.findViewById(R.id.postCommentFrame);
 			
 			if (mTitleView != null) {
 				mTitleView.setTypeface(null, Typeface.BOLD);
@@ -222,7 +226,6 @@ public class PostDetailFragment extends Fragment {
 					}
 				});
 			}
-						
 			if (mYouTubeFrame != null) {
 				if (videoId == null) {
 					mYouTubeFrame.setVisibility(View.GONE);
@@ -232,6 +235,17 @@ public class PostDetailFragment extends Fragment {
 				}
 			}
 			
+			if (mCommentFrame != null) {
+				if ( ((GlobalState)GlobalState.getContext()).optionReadComments() ) {
+					mCommentsFragment = new CommentsFragment();
+					Bundle args = new Bundle();
+					args.putInt(ARG_ID, postId);
+					mCommentsFragment.setArguments(args);
+					getChildFragmentManager().beginTransaction().replace(R.id.postCommentFrame, mCommentsFragment).commit();
+				} else {
+					mCommentFrame.setVisibility(View.GONE);
+				}
+			}
 			return rootView;
 		}
 		

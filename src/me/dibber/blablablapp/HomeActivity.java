@@ -462,7 +462,7 @@ public class HomeActivity extends ActionBarActivity implements DataLoaderListene
 		dl.isInSynchWithExistingPosts(true);
 		try {
 			Properties p = AssetsPropertyReader.getProperties(this);
-			String URL = p.getProperty("URL") + p.getProperty("APIPHP") + p.getProperty("GET_RECENT_POSTS") + "&count=" + p.getProperty("NUMBER_OF_POSTS_PER_REQUEST") 
+			String URL = p.getProperty("URL") + p.getProperty("APIPHP") + p.getProperty("GET_RECENT_POSTS") + "&count=" + p.getProperty("NUMBER_OF_POSTS_PER_REQUEST","20") 
 					+ "&afterPostId=" + lastPostId;
 			dl.setDataSource(URL);
 		} catch (MalformedURLException e) {

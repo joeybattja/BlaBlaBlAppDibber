@@ -12,9 +12,7 @@ public class Pages {
 			new Page(GlobalState.getContext().getResources().getString(R.string.Favorites),		
 					PageType.FAVORITES,	null),
 			new Page(GlobalState.getContext().getResources().getString(R.string.About_Theo), 
-					PageType.WEBPAGE, "http://www.blablablog.nl/about/"),
-			new Page(GlobalState.getContext().getResources().getString(R.string.eBook_store), 
-					PageType.WEBPAGE, "http://www.blablablog.nl/ebooks/")
+					PageType.WEBPAGE, "http://www.blablablog.nl/about/")
 			};
 	
 	private static class Page {

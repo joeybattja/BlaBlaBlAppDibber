@@ -1,6 +1,7 @@
 package me.dibber.blablablapp;
 
 import java.util.HashMap;
+import java.util.Properties;
 
 import android.app.Application;
 import android.content.Context;
@@ -12,6 +13,7 @@ public class GlobalState extends Application {
 	
 	PostCollection posts;
 	private static Context context;
+	String[] options;
 	private String searchQuery;
 	private boolean showOnlyFavorites;
 	private boolean refreshing;
@@ -23,6 +25,8 @@ public class GlobalState extends Application {
 		super.onCreate();
 		context = getApplicationContext();
 		refreshing = false;
+		Properties p = AssetsPropertyReader.getProperties(getContext());
+		options = p.getProperty("ADDITIONAL_OPTIONS").split(";");
 	}
 	
 	// Needed to get the Context from anywhere within the application
@@ -108,6 +112,35 @@ public class GlobalState extends Application {
 	
 	public String getCurrentYouTubeVideo() {
 		return currentYouTubeVideo;
+	}
+	
+	//--------------------------- options -----------------------------------
+	
+	public boolean optionReadComments() {
+		for (String option : options) {
+			if (option.equals("COMMENTS_READONLY") || option.equals("COMMENTS_READWRITE")) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	public boolean optionWriteComments() {
+		for (String option : options) {
+			if (option.equals("COMMENTS_READWRITE")) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	public boolean optionListenPodcast() {
+		for (String option : options) {
+			if (option.equals("PODCAST")) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 }

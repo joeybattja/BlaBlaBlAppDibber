@@ -1,25 +1,48 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
+    <!-- General -->
     <string name="app_name">BlaBlaBlApp</string>
+    <string name="drawer_open">Open lade</string>
+    <string name="drawer_close">Sluit lade</string>
     <string name="logo">Logo</string>
     <string name="Image">Afbeelding</string>
-    <string name="search_title">Zoeken</string>
-    <string name="search_hint">Zoeken</string>
-    <string name="author_name">door %1$s</string>
-    <string name="no_connection">Netwerk niet beschikbaar</string>
-    <string name="no_connection_dialog_title">Netwerk niet beschikbaar</string>
-    <string name="no_connection_dialog_message">Wilt u doorgaan?</string>
-    <string name="yes">Ja</string>
-    <string name="no">Nee</string>
-    <string name="unsupported_version_dialog_message">Helaas maakt u gebruik van een verouderde versie van deze app. Update de app in de Play store aub.</string>
-    <string name="ok">OK</string>
-    <string name="refresh">Vernieuwen</string>
-	<string name="share">Delen</string>
-	<string name="share_title">Deel dit item met:</string>
+    
+	<!-- Pages titles -->
 	<string name="Home">Home</string>
 	<string name="Favorites">Favorieten</string>
 	<string name="About_Theo">Over Theo</string>
-	<string name="eBook_store">eBook winkel</string>
+    
+    <!-- Menu -->
+    <string name="search_title">Zoeken</string>
+    <string name="search_hint">Zoeken</string>
+	<string name="refresh">Vernieuwen</string>
+	<string name="share">Delen</string>
+	<string name="share_title">Delen met:</string>
+	
+	<!-- Post -->
+    <string name="author_name">door %1$s</string>
+    
+	<!-- Error messages -->
+    <string name="no_connection">Netwerk niet beschikbaar</string>
+    <string name="no_connection_dialog_title">Netwerk niet beschikbaar</string>
+    <string name="no_connection_dialog_message">Wilt u doorgaan?</string>
+    <string name="unsupported_version_dialog_message">Helaas maakt u gebruik van een verouderde versie van deze app. Update de app in de Play store aub.</string>
+    <string name="yes">Ja</string>
+    <string name="no">Nee</string>
+    <string name="ok">OK</string>
+    
+	<!-- Comments -->
+	<plurals name="nrOfComments">
+        <item quantity="one">%d reactie</item>
+        <item quantity="other">%d reacties</item>
+    </plurals>
+	<string name="leave_a_reply">Plaats een reactie</string>
+	<string name="submit_comment">Plaats reactie</string>
+	<string name="comment_name">Naam</string>
+	<string name="comment_email">Email</string>
+	<string name="comment_website">Website</string>
+	<string name="comment_comment">Reactie</string>
+
 
 </resources>

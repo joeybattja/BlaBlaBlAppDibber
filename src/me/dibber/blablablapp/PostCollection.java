@@ -75,6 +75,105 @@ public class PostCollection {
 		return list;
 	}
 	
+	public ArrayList<Integer> getItemComments(final int postId) {
+		ArrayList<Integer> comments = new ArrayList<Integer>();
+		if (posts.get(postId) == null) { 
+			return comments;
+		}
+		if (posts.get(postId).comments == null) {
+			return comments;
+		}
+		for (Post.Comment c : posts.get(postId).comments) {
+			if (c.id != 0) {
+				comments.add(c.id);
+			}
+		}
+		Collections.sort(comments, new Comparator<Integer>() {
+
+			@Override
+			public int compare(Integer lhs, Integer rhs) {
+				
+				return getCommentDate(postId, rhs).compareTo(getCommentDate(postId, lhs));
+			}
+		});
+
+		return comments;
+	}
+	
+	public String getCommentAuthor(int postId, int commentId) {
+		if (posts.get(postId) == null) {
+			return " ";
+		} 
+		if (posts.get(postId).comments == null) {
+			return null;
+		}
+		for (Post.Comment c : posts.get(postId).comments) {
+			if (c.id == commentId) {
+				if (c.author == null) { 
+					return " ";
+				} else {
+					return c.author;
+				}
+			} 
+		} 
+		return " ";
+	}
+	
+	public CharSequence getCommentContent(int postId, int commentId) {
+		if (posts.get(postId) == null) {
+			return " ";
+		} 
+		if (posts.get(postId).comments == null) {
+			return null;
+		}
+		for (Post.Comment c : posts.get(postId).comments) {
+			if (c.id == commentId) {
+				if (c.content == null) { 
+					return " ";
+				} else {
+					return Html.fromHtml(c.content.trim());
+				}
+			} 
+		} 
+		return " ";
+	}
+	
+	public String getCommentDateAsString(int postId, int commentId) {
+		if (posts.get(postId) == null) {
+			return " ";
+		} 
+		if (posts.get(postId).comments == null) {
+			return " ";
+		} 
+		Date d = null;
+		for (Post.Comment c : posts.get(postId).comments) {
+			if (c.id == commentId) {
+				d = c.date;
+			}
+		} 		
+		if (d != null) {
+			DateFormat df = SimpleDateFormat.getDateInstance();
+			return df.format(d);
+		} else {
+			return " ";
+		}
+	}
+	
+	public Date getCommentDate(int postId, int commentId) {
+		if (posts.get(postId) == null) {
+			return null;
+		} 
+		if (posts.get(postId).comments == null) {
+			return null;
+		} 
+		for (Post.Comment c : posts.get(postId).comments) {
+			if (c.id == commentId) {
+				return c.date;
+			}
+		} 
+		return null;
+	}
+	
 	public CharSequence getItemTitle(int postId) {
 		if (posts.get(postId) == null) {
 			return " ";
@@ -236,6 +335,17 @@ public class PostCollection {
 			}
 		}
 		return count;
+	}
+	
+	public int countComments(int postId) {
+		if (posts.get(postId) == null) {
+			return 0;
+		}
+		ArrayList<Post.Comment> comments = posts.get(postId).comments;
+		if (comments == null) {
+			return 0;
+		}
+		return comments.size();
 	}
 	
 	private ArrayList<Post.Attachment> getAttachments(int postId) {

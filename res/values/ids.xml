@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <item name="viewpager1" type="id"/>
+    <item name="viewpager1" type="id" />
+    <item name="viewdivider" type="id" />
 
 </resources>
