@@ -71,16 +71,7 @@ public class CommentsFragment extends Fragment {
 					args.putInt(CommentItemFragment.ARG_COMMENTID, commentIds.get(i));
 					commentItemFrag.setArguments(args);
 					getChildFragmentManager().beginTransaction().add(commentIds.get(i), commentItemFrag).commit();
-					
-					View view = new View(getActivity().getApplicationContext());
-					view.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT,1));
-					view.setBackgroundColor(getResources().getColor(R.color.darkgrey));
-					view.setId(R.id.viewdivider);
-					mCommentsFrame.addView(view);
 				}
-				
-				//mCommentsFrame.setVisibility(View.GONE);
-				// TODO : Make the comments frame... 
 			} 
 		}
 		if ( ((GlobalState)GlobalState.getContext()).optionWriteComments() ) {
@@ -110,7 +101,7 @@ public class CommentsFragment extends Fragment {
 		public final static String ARG_COMMENTID = "arg commentid";
 		
 		private View mIndentView;
-		private LinearLayout mCommentBody;
+		private View mLine;
 		private TextView mAuthorView;
 		private TextView mDateView;
 		private TextView mContentView;
@@ -118,6 +109,7 @@ public class CommentsFragment extends Fragment {
 		
 		private int pstId;
 		private int cmntId;
+		private int indent;
 		
 		public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 			View commentRootView = inflater.inflate(R.layout.item_comment, container, false);
@@ -127,8 +119,7 @@ public class CommentsFragment extends Fragment {
 			cmntId = getArguments().getInt(ARG_COMMENTID);
 			
 			mIndentView = commentRootView.findViewById(R.id.item_comment_indent);
-			mCommentBody = (LinearLayout) commentRootView.findViewById(R.id.item_comment_body);
-
+			mLine = commentRootView.findViewById(R.id.item_comment_bottomline);
 			mAuthorView = (TextView) commentRootView.findViewById(R.id.item_comment_author);
 			mDateView = (TextView) commentRootView.findViewById(R.id.item_comment_date);
 			mContentView = (TextView) commentRootView.findViewById(R.id.item_comment_content);
@@ -137,7 +128,28 @@ public class CommentsFragment extends Fragment {
 			mAuthorView.setText(psts.getCommentAuthor(pstId, cmntId));
 			mDateView.setTypeface(null,Typeface.ITALIC);
 			mDateView.setText(psts.getCommentDateAsString(pstId, cmntId));
+			
+			indent = 0;
+			int parent = psts.getCommentParent(pstId, cmntId);
+			while (parent != 0) {
+				indent++;
+				parent = psts.getCommentParent(pstId, parent);
+				if (indent == 10) {
+					break;
+				}
+			}
+			LinearLayout.LayoutParams indentParams = (LinearLayout.LayoutParams) mIndentView.getLayoutParams();
+			indentParams.width = 0;
+			indentParams.height = LinearLayout.LayoutParams.MATCH_PARENT;
+			indentParams.weight = indent;
+			mIndentView.setLayoutParams(indentParams);
+			
 			mContentView.setText(psts.getCommentContent(pstId, cmntId));
+
+			
+			if (psts.getItemComments(pstId).get(psts.getItemComments(pstId).size() -1) == cmntId) {
+				mLine.setVisibility(View.GONE);
+			}
 			
 			return commentRootView;
 		}

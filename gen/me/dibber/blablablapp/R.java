@@ -1689,10 +1689,10 @@ containing a value of this type.
         public static final int image=0x7f0a0025;
         public static final int imageViewLogo=0x7f0a0044;
         public static final int img_fullscreen=0x7f0a0045;
-        public static final int item_comment_author=0x7f0a005c;
-        public static final int item_comment_body=0x7f0a005b;
-        public static final int item_comment_content=0x7f0a005e;
-        public static final int item_comment_date=0x7f0a005d;
+        public static final int item_comment_author=0x7f0a005b;
+        public static final int item_comment_bottomline=0x7f0a005e;
+        public static final int item_comment_content=0x7f0a005d;
+        public static final int item_comment_date=0x7f0a005c;
         public static final int item_comment_indent=0x7f0a005a;
         public static final int left_drawer=0x7f0a0043;
         public static final int listMode=0x7f0a000c;

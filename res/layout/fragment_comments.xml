@@ -17,9 +17,7 @@
 	        android:id="@+id/comment_Commentsframe"
 	        android:layout_width="match_parent"
 	        android:layout_height="wrap_content"
-	        android:orientation="vertical"
-	        android:background="@drawable/item_curved_corners"
-	        android:padding="10dp" />
+	        android:orientation="vertical" />
 	    
 	    <TextView 
 	        android:id="@+id/comment_LeaveReplyText" 

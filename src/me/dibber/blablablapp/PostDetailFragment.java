@@ -236,7 +236,7 @@ public class PostDetailFragment extends Fragment {
 			}
 			
 			if (mCommentFrame != null) {
-				if ( ((GlobalState)GlobalState.getContext()).optionReadComments() ) {
+				if ( ((GlobalState)GlobalState.getContext()).optionReadComments() && posts.itemCommentsOpen(postId)) {
 					mCommentsFragment = new CommentsFragment();
 					Bundle args = new Bundle();
 					args.putInt(ARG_ID, postId);

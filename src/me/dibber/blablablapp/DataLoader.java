@@ -162,7 +162,7 @@ public class DataLoader {
 						Post p = pc.getPost(postId);
 						JSONObject postObj = new JSONObject();
 						
-						postObj.put("id", postId);
+						postObj.put("id", Integer.toString(postId));
 						postObj.put("title", p.title);
 						postObj.put("url", p.url);
 						postObj.put("content", p.content);
@@ -190,7 +190,8 @@ public class DataLoader {
 						JSONArray commArr = new JSONArray();
 						for (Comment cmnt : p.comments) {
 							JSONObject cmntObj = new JSONObject();
-							cmntObj.put("id", cmnt.id);
+							cmntObj.put("id", Integer.toString(cmnt.id));
+							cmntObj.put("parent", Integer.toString(cmnt.parent));
 							cmntObj.put("author", cmnt.author);
 							cmntObj.put("content", cmnt.content);
 							if (cmnt.date != null) {
@@ -311,6 +312,12 @@ public class DataLoader {
 					} catch (NumberFormatException e) {
 						c.id = 0;
 						Log.d("Error parsing id of a comment " + k + " of post " + p.id + " " + p.title, e.toString());
+					}
+					try {
+						c.parent = Integer.parseInt(getStringFromJSON(cmnts.getJSONObject(k),"parent"));
+					} catch (NumberFormatException e) {
+						c.parent = 0;
+						Log.d("Error parsing parent of a comment " + k + " of post " + p.id + " " + p.title + ", with comment id " + c.id, e.toString());
 					}
 					c.author = getStringFromJSON(cmnts.getJSONObject(k),"author");
 					c.content = getStringFromJSON(cmnts.getJSONObject(k),"content");

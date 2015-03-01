@@ -38,8 +38,9 @@ public class PostCollection {
 	private final static String MIMETYPE_YOUTUBE = "video/youtube";
 	private final static int THUMBNAIL_WIDTH = 240;
 	private final static int THUMBNAIL_HEIGHT = 180;
+	private static SparseArray<Handler> activeHandlers;
+	
 	private TreeMap<Integer,Post> posts;
-	public static SparseArray<Handler> activeHandlers;
 	
 	private PostCollection() {
 		posts = new TreeMap<Integer,Post>();
@@ -75,6 +76,13 @@ public class PostCollection {
 		return list;
 	}
 	
+	public boolean itemCommentsOpen(int postId) {
+		if (posts.get(postId) == null) {
+			return false;
+		}
+		return posts.get(postId).commentstatus;
+	}
+	
 	public ArrayList<Integer> getItemComments(final int postId) {
 		ArrayList<Integer> comments = new ArrayList<Integer>();
 		if (posts.get(postId) == null) { 
@@ -92,8 +100,48 @@ public class PostCollection {
 
 			@Override
 			public int compare(Integer lhs, Integer rhs) {
-				
-				return getCommentDate(postId, rhs).compareTo(getCommentDate(postId, lhs));
+				if (getCommentParent(postId, lhs) == 0 && getCommentParent(postId, rhs) == 0) {
+					return getCommentDate(postId, lhs).compareTo(getCommentDate(postId, rhs));
+				} else if (getCommentParent(postId, lhs) == 0) {
+					int rootParent = getCommentParent(postId, rhs);
+					while (rootParent != 0) {
+						rhs = rootParent;
+						rootParent = getCommentParent(postId, rhs);
+					}
+					return getCommentDate(postId, lhs).compareTo(getCommentDate(postId, rhs));					
+				} else if (getCommentParent(postId, rhs) == 0) {
+					int rootParent = getCommentParent(postId, lhs);
+					while (rootParent != 0) {
+						lhs = rootParent;
+						rootParent = getCommentParent(postId, lhs);
+					}
+					return getCommentDate(postId, lhs).compareTo(getCommentDate(postId, rhs));
+				} else {
+					int orlhs = lhs;
+					int orrhs = rhs;
+					int rootParentrhs = getCommentParent(postId, rhs);
+					int rootParentlhs = getCommentParent(postId, lhs);
+					int crossing = 0;
+					int endlessLoopCheck = 0;
+					do {
+						endlessLoopCheck++;
+						if (endlessLoopCheck > 10000) {
+							Log.e("POSTCOLLECTION ENDLESS LOOP!!", "breaking now...");
+							break;
+						}
+						lhs = orlhs;
+						rhs = orrhs;
+						while (rootParentrhs != crossing) {
+							rhs = rootParentrhs;
+							rootParentrhs = getCommentParent(postId, rhs);
+						}
+						while (rootParentlhs != crossing) {
+							lhs = rootParentlhs;
+							rootParentlhs = getCommentParent(postId, lhs);
+						}
+					} while (rhs == lhs); 
+					return getCommentDate(postId, lhs).compareTo(getCommentDate(postId, rhs));
+				}
 			}
 		});
 
@@ -131,7 +179,7 @@ public class PostCollection {
 				if (c.content == null) { 
 					return " ";
 				} else {
-					return Html.fromHtml(c.content.trim());
+					return trimTrailingWhitespace(Html.fromHtml(c.content.trim()));
 				}
 			} 
 		} 
@@ -152,7 +200,7 @@ public class PostCollection {
 			}
 		} 		
 		if (d != null) {
-			DateFormat df = SimpleDateFormat.getDateInstance();
+			DateFormat df = SimpleDateFormat.getDateTimeInstance();
 			return df.format(d);
 		} else {
 			return " ";
@@ -172,6 +220,21 @@ public class PostCollection {
 			}
 		} 
 		return null;
+	}
+	
+	public int getCommentParent(int postId, int commentId) {
+		if (posts.get(postId) == null) {
+			return 0;
+		} 
+		if (posts.get(postId).comments == null) {
+			return 0;
+		} 
+		for (Post.Comment c : posts.get(postId).comments) {
+			if (c.id == commentId) {
+				return c.parent;
+			}
+		} 
+		return 0;
 	}
 	
 	public CharSequence getItemTitle(int postId) {
@@ -243,7 +306,7 @@ public class PostCollection {
 		String c = posts.get(postId).content.trim();
 		if (c != null) {
 			CharSequence cs = Html.fromHtml(c.replaceAll("<img.+?>", ""));
-			return cs;
+			return trimTrailingWhitespace(cs);
 		} else {
 			return " ";
 		}
@@ -256,7 +319,7 @@ public class PostCollection {
 		String c = posts.get(postId).content.trim();
 		if (c != null) {
 			CharSequence cs = Html.fromHtml(c.replaceAll("<img.+?>", "").replaceAll("<br.+?>", " "));
-			return cs;
+			return trimTrailingWhitespace(cs);
 		} else {
 			return " ";
 		}
@@ -421,6 +484,16 @@ public class PostCollection {
 			}
 		}
 		return favoritesPostCollection;
+	}
+	
+	private static CharSequence trimTrailingWhitespace(CharSequence source) {
+	    if(source == null)
+	        return "";
+	    int i = source.length();
+	    // loop back to the first non-whitespace character
+	    while(--i >= 0 && Character.isWhitespace(source.charAt(i))) {
+	    }
+	    return source.subSequence(0, i+1);
 	}
 	
 	public enum DrawableType {LOGO_COLOR, LOGO_GREYSCALE, POST_IMAGE, LIST_IMAGE, FULLSCREEN_IMAGE};
@@ -764,14 +837,10 @@ public class PostCollection {
 	}
 	
 	public interface SetImageListener {
-		
 		void onImageSet();
 	}
 	
 	private interface ImagesRetrievalListener {
-		
 		void onImagesRetrieved();
-
 	}
-
 }

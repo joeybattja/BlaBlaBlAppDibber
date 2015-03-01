@@ -142,5 +142,15 @@ public class GlobalState extends Application {
 		}
 		return false;
 	}
+	
+	public boolean optionNotifications() {
+		for (String option : options) {
+			if (option.equals("NOTIFICATIONS")) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
 
 }

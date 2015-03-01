@@ -17,7 +17,7 @@ public class Post {
 	public int authorid;
 	public ArrayList<Attachment> attachments;
 	public ArrayList<Comment> comments; //not yet used in new_api
-	public boolean commentstatus; //not yet used in new_api
+	public boolean commentstatus; 
 	public char favorite; // 'Y' = favorite; 'N' = not favorite; 
 	// Why not use a boolean for favorite? Because I cannot make a difference between explicit false (turned off), and implicit false (never turned on)
 	public boolean inSynch;
