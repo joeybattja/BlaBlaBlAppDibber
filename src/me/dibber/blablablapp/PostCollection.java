@@ -100,48 +100,47 @@ public class PostCollection {
 
 			@Override
 			public int compare(Integer lhs, Integer rhs) {
-				if (getCommentParent(postId, lhs) == 0 && getCommentParent(postId, rhs) == 0) {
-					return getCommentDate(postId, lhs).compareTo(getCommentDate(postId, rhs));
-				} else if (getCommentParent(postId, lhs) == 0) {
-					int rootParent = getCommentParent(postId, rhs);
-					while (rootParent != 0) {
-						rhs = rootParent;
-						rootParent = getCommentParent(postId, rhs);
+				int templhs = lhs;
+				int temprhs = rhs;
+				int rhsParent,lhsParent,root = 0;
+				int endlessLoopCheck = 0;
+				while (true) {
+					endlessLoopCheck++;
+					if (endlessLoopCheck > 10000) {
+						Log.e("POSTCOLLECTION ENDLESS LOOP!!", "breaking now...");
+						break;
 					}
-					return getCommentDate(postId, lhs).compareTo(getCommentDate(postId, rhs));					
-				} else if (getCommentParent(postId, rhs) == 0) {
-					int rootParent = getCommentParent(postId, lhs);
-					while (rootParent != 0) {
-						lhs = rootParent;
-						rootParent = getCommentParent(postId, lhs);
+					templhs = lhs;
+					temprhs = rhs;
+					rhsParent = getCommentParent(postId, temprhs);
+					lhsParent = getCommentParent(postId, templhs);
+					while (rhsParent != root && temprhs != root && rhsParent != 0) {
+						if (rhsParent == (int) lhs) {
+							// If rhs is a child of lhs, lhs is earlier than rhs.  
+							return -1;
+						}
+						temprhs = rhsParent;
+						rhsParent = getCommentParent(postId, temprhs);
 					}
-					return getCommentDate(postId, lhs).compareTo(getCommentDate(postId, rhs));
-				} else {
-					int orlhs = lhs;
-					int orrhs = rhs;
-					int rootParentrhs = getCommentParent(postId, rhs);
-					int rootParentlhs = getCommentParent(postId, lhs);
-					int crossing = 0;
-					int endlessLoopCheck = 0;
-					do {
-						endlessLoopCheck++;
-						if (endlessLoopCheck > 10000) {
-							Log.e("POSTCOLLECTION ENDLESS LOOP!!", "breaking now...");
-							break;
+					while (lhsParent != root && templhs != root && lhsParent != 0) {
+						if (lhsParent == (int) rhs) {
+							// If lhs is a child of rhs, lhs is later than rhs.  
+							return 1;
 						}
-						lhs = orlhs;
-						rhs = orrhs;
-						while (rootParentrhs != crossing) {
-							rhs = rootParentrhs;
-							rootParentrhs = getCommentParent(postId, rhs);
-						}
-						while (rootParentlhs != crossing) {
-							lhs = rootParentlhs;
-							rootParentlhs = getCommentParent(postId, lhs);
-						}
-					} while (rhs == lhs); 
-					return getCommentDate(postId, lhs).compareTo(getCommentDate(postId, rhs));
-				}
+						templhs = lhsParent;
+						lhsParent = getCommentParent(postId, templhs);
+					}
+					if (temprhs == templhs) {
+						// both rhs and lhs are in the same trunk from the root, change the root and level lower:
+						root = temprhs;
+					} else {
+						// rhs and lhs are both in different trunks from the root. Compare both trunks. 
+						rhs = temprhs;
+						lhs = templhs;
+						break;
+					}
+				} 
+				return getCommentDate(postId, lhs).compareTo(getCommentDate(postId, rhs));
 			}
 		});
 
