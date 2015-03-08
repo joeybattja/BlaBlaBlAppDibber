@@ -119,14 +119,10 @@ public class PostDetailFragment extends Fragment {
 		}
 
 		@Override
-		public void onPageScrollStateChanged(int position) {
-			
-		}
+		public void onPageScrollStateChanged(int position) { }
 
 		@Override
-		public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
-			
-		}
+		public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) { }
 
 		@Override
 		public void onPageSelected(int position) {

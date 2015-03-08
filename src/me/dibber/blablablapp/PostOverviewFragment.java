@@ -40,6 +40,8 @@ public class PostOverviewFragment extends Fragment {
 	private GridView mGridView;
 	private PostOverviewAdapter mAdapter;
 	
+	private int posToSynch;
+	
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 		View rootView = inflater.inflate( R.layout.fragment_post_overview, container, false);
@@ -59,7 +61,7 @@ public class PostOverviewFragment extends Fragment {
 		}
 		
 		int lastSynchId = ((GlobalState)GlobalState.getContext()).getOldestSynchedPost();
-		final int posToSynch = postsIds.indexOf(lastSynchId);
+		posToSynch = postsIds.indexOf(lastSynchId);
 		
 		mGridView.setOnItemClickListener(new OnItemClickListener() {
 			@Override
@@ -97,11 +99,25 @@ public class PostOverviewFragment extends Fragment {
 		return rootView;
 	}
 	
+	public boolean invalidatePostOverview() {
+		if (postsIds == null || posts == null || mAdapter == null) {
+			return false;
+		}
+		postsIds = posts.getAllPosts();
+		int lastSynchId = ((GlobalState)GlobalState.getContext()).getOldestSynchedPost();
+		posToSynch = postsIds.indexOf(lastSynchId);
+
+		mAdapter.clear();
+		mAdapter.addAll(postsIds);
+		mAdapter.notifyDataSetChanged();
+		return true;
+	}
+	
 	public int getLastPosition() {
 		if (mGridView == null || postsIds == null) {
 			return 0;
-		}
-		int firstPos = mGridView.getFirstVisiblePosition();
+		}		
+		int firstPos = mGridView.getFirstVisiblePosition();		
 		if (firstPos > 0) {
 			return postsIds.get(mGridView.getFirstVisiblePosition());
 		} else { 

@@ -88,9 +88,7 @@ public class HomeActivity extends ActionBarActivity implements DataLoaderListene
 	        currentPost = savedInstanceState.getInt(CURRENT_POST);
 	    	currentPage = savedInstanceState.getInt(CURRENT_PAGE);
 	        currentType = (ContentFrameType) savedInstanceState.getSerializable(CURRENT_TYPE);
-        } else {
-        	currentType = ContentFrameType.PAGE;
-        }
+        } 
         invalidateContentFrame();
         if (((GlobalState)GlobalState.getContext()).getPosts().getAllPosts().size() == 0) {
         	refreshPosts();
@@ -316,6 +314,12 @@ public class HomeActivity extends ActionBarActivity implements DataLoaderListene
     	} else if (currentType == ContentFrameType.POST) {
     		replaceContentFrame(ContentFrameType.POST, currentPost);
         } else {
+        	Fragment frag = getSupportFragmentManager().findFragmentByTag(TAG_FRAGMENT_CONTENT);
+        	if (frag instanceof PostOverviewFragment && Pages.getPageType(currentPage) == PageType.POSTS) {
+        		if (((PostOverviewFragment)frag).invalidatePostOverview()) {
+        			return;
+        		};
+        	} 
         	replaceContentFrame(ContentFrameType.PAGE, currentPage);
         }
     }
@@ -337,11 +341,7 @@ public class HomeActivity extends ActionBarActivity implements DataLoaderListene
 				((GlobalState)GlobalState.getContext()).showOnlyFavorites(Pages.getPageType(currentPage) == Pages.PageType.FAVORITES);
 				fragment = new PostOverviewFragment();
 				Bundle argsO = new Bundle();
-				if (currentPost != 0) {
-					argsO.putInt(PostOverviewFragment.ARG_ID, currentPost);
-				} else {
-					argsO.putInt(PostOverviewFragment.ARG_ID, 0);
-				}
+				argsO.putInt(PostOverviewFragment.ARG_ID, currentPost);
 				fragment.setArguments(argsO);
 				break;
 			case WEBPAGE:
