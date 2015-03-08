@@ -28,6 +28,7 @@ import android.view.ViewGroup;
 import android.view.ViewTreeObserver.OnGlobalLayoutListener;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
@@ -153,6 +154,9 @@ public class PostDetailFragment extends Fragment {
 		private TextView mContentView;
 		private int postId;
 		
+		private int marginWidth;
+		private int marginHeight;
+		
 		
 		public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 			postId = getArguments().getInt(ARG_ID);
@@ -250,11 +254,9 @@ public class PostDetailFragment extends Fragment {
 		}
 		
 		public void updateTextMargins() {
-			if (!(GlobalState.getContext().getResources().getBoolean(R.bool.isLandscape))) {
-				return;
-			}
 			
 			if (mImageView != null) {
+				
 				mImageView.getViewTreeObserver().addOnGlobalLayoutListener(new OnGlobalLayoutListener() {
 					 @SuppressLint("NewApi")
 					 @SuppressWarnings("deprecation")
@@ -262,14 +264,26 @@ public class PostDetailFragment extends Fragment {
 					  public void onGlobalLayout() {
 						 int w = mImageView.getMeasuredWidth();
 						 int h = mImageView.getMeasuredHeight();
-						 
+						 if (posts.countImages(postId) > 1) {
+							 int maxRatio = posts.maxImageRatio(postId);
+							 h = w * maxRatio;
+						 }
+						 ViewGroup.LayoutParams params = mImageView.getLayoutParams();
+						 int width = params.width;
+						 						 
 						 if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.JELLY_BEAN) {
 							 mImageView.getViewTreeObserver().removeOnGlobalLayoutListener(this);							 
 						 } else {
 							 mImageView.getViewTreeObserver().removeGlobalOnLayoutListener(this);
 						 }
 						 
-						 onUpdateTextMarginsDone(w,h);
+						 if ((GlobalState.getContext().getResources().getBoolean(R.bool.isLandscape))) {
+							 mImageView.setLayoutParams(new RelativeLayout.LayoutParams(width, h));
+							 onUpdateTextMarginsDone(w,h);
+						 } else {
+							 mImageView.setLayoutParams(new LinearLayout.LayoutParams(width, h));
+
+						 }
 					 }
 				});
 			} 
@@ -277,7 +291,12 @@ public class PostDetailFragment extends Fragment {
 		
 		public void onUpdateTextMarginsDone(int imgWidth, int imgHeight) {
 			
-			
+			if (imgWidth == marginWidth && imgHeight == marginHeight) {
+				return;
+			}
+			marginWidth = imgWidth;
+			marginHeight = imgHeight;
+
 			DisplayMetrics metrics = getActivity().getResources().getDisplayMetrics();
 			float dp = 10f;
 			int marginPixels = (int) (metrics.density * dp + 0.5f);

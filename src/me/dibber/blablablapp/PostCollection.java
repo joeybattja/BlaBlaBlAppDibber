@@ -25,6 +25,7 @@ import android.graphics.BitmapFactory;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.Handler;
+import android.os.Looper;
 import android.text.Html;
 import android.util.Log;
 import android.util.SparseArray;
@@ -431,6 +432,26 @@ public class PostCollection {
 		return images;
 	}
 	
+	/**
+	 * Returns the maximum ratio as Height/Width of all images related to this post. 
+	 * If this is called before all images are retrieved it will return 0
+	 * @param postId
+	 * @return the maximum ratio h/w, or 0 if the images are not yet received.
+	 */
+	public int maxImageRatio(int postId) {
+		int maxRatio = 0;
+		for (Drawable d : getPostCollection().getImages(postId)) {
+			if (d == null) {
+				return 0;
+			}
+			int ratio = d.getIntrinsicHeight() / d.getIntrinsicWidth();
+			if (ratio > maxRatio) {
+				maxRatio = ratio;
+			}
+		}
+		return maxRatio;
+	}
+	
 	private Bitmap getThumbnail(int postId) {
 		if (posts.get(postId) == null) {
 			return null;
@@ -605,58 +626,56 @@ public class PostCollection {
 					if (a.mimeType.equals(MIMETYPE_JPEG) || a.mimeType.equals(MIMETYPE_PNG)) {
 						
 						try {
-						
-						boolean fileExists = true;
-						File file = c.getFileStreamPath("" + postId + a.id);
-						if (file == null || !file.exists())
-							fileExists = false;
-						if (fileExists) {
-							try {
-								if (fullsized) {
-									FileInputStream fis = c.openFileInput("" + postId + a.id);
-									a.image = Drawable.createFromStream(fis, "src");
-									fis.close();
-								} else {
-									a.thumbnail = decodeThumbnailFromFile(c, "" + postId + a.id);
+							boolean fileExists = true;
+							File file = c.getFileStreamPath("" + postId + a.id);
+							if (file == null || !file.exists())
+								fileExists = false;
+							if (fileExists) {
+								try {
+									if (fullsized) {
+										FileInputStream fis = c.openFileInput("" + postId + a.id);
+										a.image = Drawable.createFromStream(fis, "src");
+										fis.close();
+									} else {
+										a.thumbnail = decodeThumbnailFromFile(c, "" + postId + a.id);
+									}
+								} catch (IOException e1) {
+									Log.w("error retrieving file from internal storage", e1.toString());
 								}
-							} catch (IOException e1) {
-								Log.w("error retrieving file from internal storage", e1.toString());
-							}
-						} else {
-							try {
-								URL url = new URL(a.url); 
-								InputStream is = url.openStream();
-								Bitmap b = ((BitmapDrawable) Drawable.createFromStream(is, "src")).getBitmap();
-								ByteArrayOutputStream stream = new ByteArrayOutputStream();
-								if (a.mimeType.equals(MIMETYPE_JPEG)){
-									b.compress(Bitmap.CompressFormat.JPEG, 100, stream);
-								} else {
-									b.compress(Bitmap.CompressFormat.PNG, 100, stream);
+							} else {
+								try {
+									URL url = new URL(a.url); 
+									InputStream is = url.openStream();
+									Bitmap b = ((BitmapDrawable) Drawable.createFromStream(is, "src")).getBitmap();
+									ByteArrayOutputStream stream = new ByteArrayOutputStream();
+									if (a.mimeType.equals(MIMETYPE_JPEG)){
+										b.compress(Bitmap.CompressFormat.JPEG, 100, stream);
+									} else {
+										b.compress(Bitmap.CompressFormat.PNG, 100, stream);
+									}
+									FileOutputStream fos = c.openFileOutput("" + postId + a.id, Context.MODE_PRIVATE);
+									fos.write(stream.toByteArray());
+									fos.close();
+									
+								} catch (IOException e2) {
+									Log.w("error retrieving image from web or saving image in internal storage", e2.toString());
 								}
-								FileOutputStream fos = c.openFileOutput("" + postId + a.id, Context.MODE_PRIVATE);
-								fos.write(stream.toByteArray());
-								fos.close();
-								
-							} catch (IOException e2) {
-								Log.w("error retrieving image from web or saving image in internal storage", e2.toString());
-							}
-							try {
-								if (fullsized) {
-									FileInputStream fis = c.openFileInput("" + postId + a.id);
-									a.image = Drawable.createFromStream(fis, "src");
-									fis.close();
-								} else {
-									a.thumbnail = decodeThumbnailFromFile(c, "" + postId + a.id);
+								try {
+									if (fullsized) {
+										FileInputStream fis = c.openFileInput("" + postId + a.id);
+										a.image = Drawable.createFromStream(fis, "src");
+										fis.close();
+									} else {
+										a.thumbnail = decodeThumbnailFromFile(c, "" + postId + a.id);
+									}
+								} catch (IOException e3) {
+									Log.w("error retrieving image from internal storage", e3.toString());
 								}
-							} catch (IOException e3) {
-								Log.w("error retrieving image from internal storage", e3.toString());
-							}
-						} 
-					} catch (Exception e) {
-						Log.e("Unexpected error for post " + postId + "/" + a.id + " titled: " + pc.getItemTitle(postId), e.toString());
-					}
-				} 
-					
+							} 
+						} catch (Exception e) {
+							Log.e("Unexpected error for post " + postId + "/" + a.id + " titled: " + pc.getItemTitle(postId), e.toString());
+						}
+					} 
 				}
 				listener.onImagesRetrieved();
 			}
@@ -685,6 +704,7 @@ public class PostCollection {
 								
 				v.setAdjustViewBounds(true);
 				v.setImageDrawable(d);
+				
 				if (listener != null) {
 					listener.onImageSet();
 				}
@@ -714,15 +734,11 @@ public class PostCollection {
 				
 				v.setAdjustViewBounds(true);
 				v.setImageBitmap(b);
-				if (listener != null) {
-					listener.onImageSet();
-				}
 			}
 		});
 	}
 
 	private static void setMultipleImages(final ImageView v, final ArrayList<Drawable> images, final int postId, final SetImageListener listener) {
-		
 		if (activeHandlers == null) {
 			activeHandlers = new SparseArray<Handler>();
 		}
@@ -736,8 +752,9 @@ public class PostCollection {
 		if (activeHandlers.get(uniqueId) != null) {
 			activeHandlers.get(uniqueId).removeCallbacksAndMessages(null);
 		}
-		final Handler handler = new Handler(); 
+		final Handler handler = new Handler(Looper.getMainLooper()); 
 		activeHandlers.put(uniqueId, handler);
+		
 		Runnable runnable = new Runnable() {
 			int j = 0;
 			@Override
