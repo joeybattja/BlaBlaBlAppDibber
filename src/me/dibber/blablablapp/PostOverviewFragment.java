@@ -5,7 +5,6 @@ import java.util.List;
 
 import me.dibber.blablablapp.HomeActivity.ContentFrameType;
 import me.dibber.blablablapp.PostCollection.DrawableType;
-import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.graphics.Typeface;
 import android.os.Bundle;
@@ -13,9 +12,8 @@ import android.support.v4.app.Fragment;
 import android.text.TextUtils.TruncateAt;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.view.ViewGroup;
 import android.view.View.OnClickListener;
-import android.view.ViewTreeObserver.OnGlobalLayoutListener;
+import android.view.ViewGroup;
 import android.widget.AbsListView;
 import android.widget.AbsListView.OnScrollListener;
 import android.widget.AdapterView;
@@ -23,10 +21,13 @@ import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ArrayAdapter;
 import android.widget.GridView;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.google.android.youtube.player.YouTubeInitializationResult;
 import com.google.android.youtube.player.YouTubeThumbnailLoader;
+import com.google.android.youtube.player.YouTubeThumbnailLoader.ErrorReason;
+import com.google.android.youtube.player.YouTubeThumbnailLoader.OnThumbnailLoadedListener;
 import com.google.android.youtube.player.YouTubeThumbnailView;
 import com.google.android.youtube.player.YouTubeThumbnailView.OnInitializedListener;
 
@@ -37,7 +38,7 @@ public class PostOverviewFragment extends Fragment {
 	private PostCollection posts;
 	private List<Integer> postsIds;
 	private GridView mGridView;
-	private PostOverviewAdapter adapter;
+	private PostOverviewAdapter mAdapter;
 	
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -46,9 +47,9 @@ public class PostOverviewFragment extends Fragment {
 		postsIds = posts.getAllPosts();
 		
 		mGridView = (GridView)rootView.findViewById(R.id.gridview_post_overview);
-		adapter = new PostOverviewAdapter(getActivity(), R.layout.item_post_overview, postsIds);
+		mAdapter = new PostOverviewAdapter(getActivity(), R.layout.item_post_overview, postsIds);
 		
-		mGridView.setAdapter(adapter);
+		mGridView.setAdapter(mAdapter);
 		int lastId = getArguments().getInt(ARG_ID);
 		if (lastId != 0) {
 			int p = postsIds.indexOf(lastId);
@@ -112,7 +113,7 @@ public class PostOverviewFragment extends Fragment {
 		
 		private Activity activity;
 		private final static String YOUTUBE_API_KEY = "AIzaSyD7xWiQl4I8KW987uZyns8qma0eWfCY_8c";
-		HashMap<View,YouTubeThumbnailLoader> loaders;
+		private HashMap<View,YouTubeThumbnailLoader> loaders;
 
 		private PostOverviewAdapter(Activity context, int resourceId, List<Integer> list) {
 			super(context, resourceId, list);
@@ -226,30 +227,24 @@ public class PostOverviewFragment extends Fragment {
 				mContEllipsView.setText(posts.getItemContentReplaceBreaks(postId));	
 				mContEllipsView.setTypeface(null, Typeface.NORMAL);
 			}
-			if (videoID == null) {
-				if (mImageView != null) {
-					PostCollection.setImage(mImageView, DrawableType.LIST_IMAGE, postId);
-				}
-				if (mYouTubeView != null) {
-					mYouTubeView.setVisibility(View.GONE);
-				}
-			} else {
-				if (mImageView != null) {
-					mImageView.setVisibility(View.GONE); 
-				}
+			if (mImageView != null) {
+				PostCollection.setImage(mImageView, DrawableType.LIST_IMAGE, postId);
+			}
+			if (mYouTubeView != null) {
+				mYouTubeView.setVisibility(View.GONE);
+			}
+			
+			if (videoID != null) {
 				if (mYouTubeView != null) {
 					YouTubeThumbnailLoader loader = loaders.get(mYouTubeView);
 					if (loader == null && mYouTubeView.getTag() == null) {
-						mYouTubeView.setTag(videoID);
+						mYouTubeView.setTag(vh);
 						mYouTubeView.initialize(YOUTUBE_API_KEY, this);
 					} else if (loader != null) {
 						loader.setVideo(videoID);
-						updateLayoutYouTubeThumbnail(mYouTubeView);
 					}
 				}
 			}
-			
-			
 			return listItem;
 		}
 		
@@ -267,42 +262,32 @@ public class PostOverviewFragment extends Fragment {
 
 		@Override
 		public void onInitializationFailure(YouTubeThumbnailView thumbnailView,
-				YouTubeInitializationResult error) {
-		}
+				YouTubeInitializationResult error) {}
 
 		@Override
 		public void onInitializationSuccess(YouTubeThumbnailView thumbnailView,
 				YouTubeThumbnailLoader thumbnailLoader) {
-			String id = (String) thumbnailView.getTag();
+			ViewHolder vh = (ViewHolder) thumbnailView.getTag();
+			thumbnailLoader.setOnThumbnailLoadedListener(new OnThumbnailLoadedListener() {
+				
+				@Override
+				public void onThumbnailLoaded(YouTubeThumbnailView thumbnail, String videoId) {
+					ViewHolder vh = (ViewHolder) thumbnail.getTag();
+					int desiredWidth = vh.mImageView.getMeasuredWidth();
+					int desiredHeight = vh.mImageView.getMeasuredHeight();
+					vh.mImageView.setVisibility(View.GONE);
+					
+					LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(desiredWidth, desiredHeight);
+					thumbnail.setLayoutParams(params);
+					thumbnail.setVisibility(View.VISIBLE);
+				}
+				
+				@Override
+				public void onThumbnailError(YouTubeThumbnailView a, ErrorReason reason) {}
+			});
+			
 			loaders.put(thumbnailView, thumbnailLoader);
-			thumbnailLoader.setVideo(id);
-			updateLayoutYouTubeThumbnail(thumbnailView);
+			thumbnailLoader.setVideo(vh.videoID);
 		}
-	}
-	
-	
-	// Method to make sure the YouTubeThumbnailView is adjusted to a 4*3 aspect ratio.
-	// Should be called every time a YouTubeThumbnailView is created. Else it won't fit nicely in the overview screen.
-	static void updateLayoutYouTubeThumbnail(final YouTubeThumbnailView youTubeView) {
-		if (youTubeView == null) {
-			return;
-		}
-		youTubeView.getViewTreeObserver().addOnGlobalLayoutListener(new OnGlobalLayoutListener() {
-			 @SuppressLint("NewApi")
-			 @SuppressWarnings("deprecation")
-			 @Override
-			  public void onGlobalLayout() {
-				 int w = youTubeView.getMeasuredWidth();
-				 int h = (int) (w * 0.75);
-				 
-				 youTubeView.setMinimumHeight(h);
-				 
-				 if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.JELLY_BEAN) {
-					 youTubeView.getViewTreeObserver().removeOnGlobalLayoutListener(this);							 
-				 } else {
-					 youTubeView.getViewTreeObserver().removeGlobalOnLayoutListener(this);
-				 }
-			 }
-		});
 	}
 }
