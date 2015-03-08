@@ -261,8 +261,10 @@ public class PostDetailFragment extends Fragment {
 						 int w = mImageView.getMeasuredWidth();
 						 int h = mImageView.getMeasuredHeight();
 						 if (posts.countImages(postId) > 1) {
-							 int maxRatio = posts.maxImageRatio(postId);
-							 h = w * maxRatio;
+							 double maxRatio = posts.maxImageRatio(postId);
+							 if (maxRatio != 0) {
+								 h = (int) (w * maxRatio);
+							 }
 						 }
 						 ViewGroup.LayoutParams params = mImageView.getLayoutParams();
 						 int width = params.width;

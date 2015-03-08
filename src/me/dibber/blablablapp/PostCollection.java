@@ -433,18 +433,18 @@ public class PostCollection {
 	}
 	
 	/**
-	 * Returns the maximum ratio as Height/Width of all images related to this post. 
+	 * Returns the maximum ratio as a double height/width of all images related to this post. 
 	 * If this is called before all images are retrieved it will return 0
 	 * @param postId
-	 * @return the maximum ratio h/w, or 0 if the images are not yet received.
+	 * @return the maximum ratio h/w as a double, or 0 if the images are not yet received.
 	 */
-	public int maxImageRatio(int postId) {
-		int maxRatio = 0;
+	public double maxImageRatio(int postId) {
+		double maxRatio = 0;
 		for (Drawable d : getPostCollection().getImages(postId)) {
 			if (d == null) {
 				return 0;
 			}
-			int ratio = d.getIntrinsicHeight() / d.getIntrinsicWidth();
+			double ratio = (double) d.getIntrinsicHeight() / d.getIntrinsicWidth();
 			if (ratio > maxRatio) {
 				maxRatio = ratio;
 			}
