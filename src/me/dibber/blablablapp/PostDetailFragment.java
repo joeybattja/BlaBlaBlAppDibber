@@ -1,6 +1,7 @@
 package me.dibber.blablablapp;
 
 import java.util.List;
+import java.util.Properties;
 
 import me.dibber.blablablapp.PostCollection.DrawableType;
 import android.annotation.SuppressLint;
@@ -378,7 +379,7 @@ public class PostDetailFragment extends Fragment {
 	
 	public static class PostYouTubeFragment extends YouTubePlayerSupportFragment {
 		
-		private final static String YOUTUBE_API_KEY = "AIzaSyD7xWiQl4I8KW987uZyns8qma0eWfCY_8c";
+		private static String youTubeApiKey;
 		public static String VIDEO_ID = "YouTube ID";
 	    public YouTubePlayer youTubePlayer;
 	    public boolean isFullscreen;
@@ -392,6 +393,10 @@ public class PostDetailFragment extends Fragment {
 	        bundle.putString(VIDEO_ID, videoID);
 	        youTubeFragment.setArguments(bundle);
 	        youTubeVideo = videoID;
+	        
+	        Properties p = AssetsPropertyReader.getProperties(GlobalState.getContext());
+	        youTubeApiKey = p.getProperty("YOUTUBE_API_KEY");
+	        
 	        youTubeFragment.init();
 	        
 	        return youTubeFragment;
@@ -399,7 +404,7 @@ public class PostDetailFragment extends Fragment {
 
 	    private void init() {
 
-	        initialize(YOUTUBE_API_KEY, new YouTubePlayer.OnInitializedListener() {
+	        initialize(youTubeApiKey, new YouTubePlayer.OnInitializedListener() {
 
 	            @Override
 	            public void onInitializationFailure(Provider provider, YouTubeInitializationResult error) { }

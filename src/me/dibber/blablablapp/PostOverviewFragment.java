@@ -2,6 +2,7 @@ package me.dibber.blablablapp;
 
 import java.util.HashMap;
 import java.util.List;
+import java.util.Properties;
 
 import me.dibber.blablablapp.HomeActivity.ContentFrameType;
 import me.dibber.blablablapp.PostCollection.DrawableType;
@@ -128,13 +129,15 @@ public class PostOverviewFragment extends Fragment {
 	private class PostOverviewAdapter extends ArrayAdapter<Integer> implements OnInitializedListener {
 		
 		private Activity activity;
-		private final static String YOUTUBE_API_KEY = "AIzaSyD7xWiQl4I8KW987uZyns8qma0eWfCY_8c";
+		private String youTubeApiKey;
 		private HashMap<View,YouTubeThumbnailLoader> loaders;
 
 		private PostOverviewAdapter(Activity context, int resourceId, List<Integer> list) {
 			super(context, resourceId, list);
 			activity = context;
 			loaders = ((GlobalState)GlobalState.getContext()).getYouTubeThumbnailLoaderList();
+			Properties p = AssetsPropertyReader.getProperties(GlobalState.getContext());
+	        youTubeApiKey = p.getProperty("YOUTUBE_API_KEY");
 		}
 		
 		@Override
@@ -255,7 +258,7 @@ public class PostOverviewFragment extends Fragment {
 					YouTubeThumbnailLoader loader = loaders.get(mYouTubeView);
 					if (loader == null && mYouTubeView.getTag() == null) {
 						mYouTubeView.setTag(vh);
-						mYouTubeView.initialize(YOUTUBE_API_KEY, this);
+						mYouTubeView.initialize(youTubeApiKey, this);
 					} else if (loader != null) {
 						loader.setVideo(videoID);
 					}

@@ -2,12 +2,9 @@ package me.dibber.blablablapp;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.Properties;
@@ -23,16 +20,25 @@ import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager.NameNotFoundException;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.FragmentActivity;
 import android.util.Log;
 import android.widget.ImageView;
 
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.GooglePlayServicesUtil;
+import com.google.android.gms.gcm.GoogleCloudMessaging;
+
 public class StartActivity extends FragmentActivity  {
 	
-	private static String VERSION_NUMBER = "Version number";
+	public static final String PREF_GCM_REG_ID = "registration_id";
+	public static final String PREF_APP_VERSION = "version_code";
+	public static final int PLAY_SERVICES_ERROR_DIALOG = 9000;
+	
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -48,6 +54,7 @@ public class StartActivity extends FragmentActivity  {
 			public void run() {
 				checkVersionLocal();
 				checkVersionOnline();
+				checkGCMRegistrationId();
 			}
 		});
 		t.start();
@@ -78,52 +85,40 @@ public class StartActivity extends FragmentActivity  {
 	* store files in a different place in the internal storage. This method prevents the old data which might never be used anymore to stay behind in the internal storage.
 	*/
 	private void checkVersionLocal() {
-		int versionNumber = 0;
 		Context c = GlobalState.getContext();
-		File f = c.getFileStreamPath(VERSION_NUMBER);
-		boolean fileExists = true;
-		if (f == null || !f.exists())
-			fileExists = false;
-		if (!fileExists) {
-			clearApplicationData();
-		} else {
-			try {
-				BufferedReader  in = new BufferedReader(new InputStreamReader(new FileInputStream(f)));
-				String version = in.readLine();
-				in.close();
-				try {
-					versionNumber = Integer.parseInt(version);
-				} catch (NumberFormatException e2) {
-					Log.w("Incorrect version number", e2.toString());
-				}
-			} catch (FileNotFoundException e) {
-				Log.w("Cannot open internal storage to check version number", e.toString());
-			} catch (IOException e1) {
-				Log.w("Error reading version number", e1.toString());
-			}
-			Properties p = AssetsPropertyReader.getProperties(this);
-			String OldestSupportedVersionCode = p.getProperty("OLDEST_SUPPORTED_VERSION");
-			int oldversionCode = 0;
-			try {
-				oldversionCode = Integer.parseInt(OldestSupportedVersionCode);
-			} catch (NumberFormatException e) {
-				Log.e("Error in property OLDEST_SUPPORTED_VERSION: invalid number", e.toString());
-			}
-			if (versionNumber < oldversionCode) {
-				clearApplicationData();
-			}
-		}
+		SharedPreferences prefs = getPreferences(Context.MODE_PRIVATE);
+		int registeredVersion = prefs.getInt(PREF_APP_VERSION, 0);
+		int currentVersion = 0;
 		try {
-			versionNumber = c.getPackageManager().getPackageInfo(c.getPackageName(), 0).versionCode;
+			currentVersion = c.getPackageManager().getPackageInfo(c.getPackageName(), 0).versionCode;
+		    SharedPreferences.Editor editor = prefs.edit();
+		    editor.putInt(PREF_APP_VERSION, currentVersion);
+		    editor.commit();
 		} catch (NameNotFoundException e) {
+			// should never happen...
 			Log.w("Error reading version code from package manager", e.toString());
 		}
+		if (registeredVersion == currentVersion) {
+			// no update since last use. Check is done! 
+			return;
+		}
+		
+		// Clear the registration id for Google Cloud Messaging
+	    SharedPreferences.Editor editor = prefs.edit();
+	    editor.putString(PREF_GCM_REG_ID, "");
+	    editor.commit();
+	    
+	    // in case the registered version is older than the OLDEST_SUPPORTED_VERSION, all data should be cleared. 
+	    // this is done in those cases that an update is done in the local data structure and prevents unused cache on the device. 
+	    Properties p = AssetsPropertyReader.getProperties(this);
+		int oldestVersion = 0;
 		try {
-			OutputStreamWriter out = new OutputStreamWriter(c.openFileOutput(VERSION_NUMBER, Context.MODE_PRIVATE));
-			out.write(versionNumber + "");
-			out.close();
-		} catch (IOException e) {
-			Log.w("Error writing file version number", e.toString());
+			oldestVersion = Integer.parseInt(p.getProperty("OLDEST_SUPPORTED_VERSION"));
+		} catch (NumberFormatException e) {
+			Log.e("Error in property OLDEST_SUPPORTED_VERSION: invalid number", e.toString());
+		}
+		if (registeredVersion < oldestVersion) {
+			clearApplicationData();
 		}
 	}
 	
@@ -207,6 +202,53 @@ public class StartActivity extends FragmentActivity  {
         }
         return dir.delete();
     }
+	
+	private void checkGCMRegistrationId() {
+		if (!((GlobalState)GlobalState.getContext()).optionNotifications()) {
+			return;
+		}
+		SharedPreferences prefs = getPreferences(Context.MODE_PRIVATE);
+		String regId = prefs.getString(PREF_GCM_REG_ID, "");
+		if (regId.isEmpty()) {
+			registerGCMInBackGround();
+		}
+	}
+	
+	private void registerGCMInBackGround() {
+		int resultCode = GooglePlayServicesUtil.isGooglePlayServicesAvailable(this);
+		if (resultCode == ConnectionResult.SUCCESS) {
+			if (GooglePlayServicesUtil.isUserRecoverableError(resultCode)) {
+				GooglePlayServicesUtil.getErrorDialog(resultCode, this, PLAY_SERVICES_ERROR_DIALOG);
+				return;
+			}
+		} 
+		new AsyncTask<Void, Void, String>() {
+
+			@Override
+			protected String doInBackground(Void... params) {
+				try {
+					Context c = GlobalState.getContext();
+					GoogleCloudMessaging gcm = GoogleCloudMessaging.getInstance(c);
+					Properties p = AssetsPropertyReader.getProperties(c);
+					String regId = gcm.register(p.getProperty("GOOGLE_CLOUD_MESSAGING_SENDER_ID"));
+					
+					SharedPreferences prefs = getPreferences(Context.MODE_PRIVATE);
+					SharedPreferences.Editor editor = prefs.edit();
+					editor.putString(PREF_GCM_REG_ID, regId);
+					editor.commit();
+					sendGCMRegistrationIdToServer(regId);
+				} catch (IOException e) {
+					Log.w("Error trying to register on Google Cloud Messaging", e.toString());
+				}
+				return null;
+			}
+		}.execute(null,null,null);
+	}
+	
+	private void sendGCMRegistrationIdToServer(String regId) {
+		Log.e("Registration done", "REG ID = " + regId);
+		// TODO have an actual server call here... 
+	}
 	
 	private class noNetworkDialogFragment extends DialogFragment {
 		
