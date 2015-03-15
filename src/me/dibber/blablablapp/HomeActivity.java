@@ -3,8 +3,8 @@ package me.dibber.blablablapp;
 import java.net.MalformedURLException;
 import java.util.HashMap;
 import java.util.Map.Entry;
-import java.util.Properties;
 
+import me.dibber.blablablapp.AppConfig.Function;
 import me.dibber.blablablapp.DataLoader.DataLoaderListener;
 import me.dibber.blablablapp.Pages.PageType;
 import me.dibber.blablablapp.PostDetailFragment.PostFragment;
@@ -419,9 +419,7 @@ public class HomeActivity extends ActionBarActivity implements DataLoaderListene
 		dl.setDataLoaderListener(this);
 		dl.isInSynchWithExistingPosts(true);
 		try {
-			Properties p = AssetsPropertyReader.getProperties(this);
-			String URL = p.getProperty("URL") + p.getProperty("APIPHP") + p.getProperty("GET_RECENT_POSTS") + "&count=" + p.getProperty("NUMBER_OF_POSTS_PER_REQUEST");
-			dl.setDataSource(URL);
+			dl.setDataSource(AppConfig.getURLPath(Function.GET_RECENT_POSTS));
 		} catch (MalformedURLException e) {
 			Log.d("Path incorrect", e.toString());
 		}
@@ -466,10 +464,7 @@ public class HomeActivity extends ActionBarActivity implements DataLoaderListene
 		dl.setDataLoaderListener(this);
 		dl.isInSynchWithExistingPosts(true);
 		try {
-			Properties p = AssetsPropertyReader.getProperties(this);
-			String URL = p.getProperty("URL") + p.getProperty("APIPHP") + p.getProperty("GET_RECENT_POSTS") + "&count=" + p.getProperty("NUMBER_OF_POSTS_PER_REQUEST","20") 
-					+ "&afterPostId=" + lastPostId;
-			dl.setDataSource(URL);
+ 			dl.setDataSource(AppConfig.getURLPath(Function.GET_POSTS_AFTER, Integer.toString(lastPostId)));
 		} catch (MalformedURLException e) {
 			Log.d("Path incorrect", e.toString());
 		}

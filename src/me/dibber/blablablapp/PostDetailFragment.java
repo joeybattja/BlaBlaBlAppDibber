@@ -1,7 +1,6 @@
 package me.dibber.blablablapp;
 
 import java.util.List;
-import java.util.Properties;
 
 import me.dibber.blablablapp.PostCollection.DrawableType;
 import android.annotation.SuppressLint;
@@ -393,9 +392,8 @@ public class PostDetailFragment extends Fragment {
 	        bundle.putString(VIDEO_ID, videoID);
 	        youTubeFragment.setArguments(bundle);
 	        youTubeVideo = videoID;
-	        
-	        Properties p = AssetsPropertyReader.getProperties(GlobalState.getContext());
-	        youTubeApiKey = p.getProperty("YOUTUBE_API_KEY");
+	        	        
+	        youTubeApiKey = AppConfig.getYouTubeAPIKey();
 	        
 	        youTubeFragment.init();
 	        

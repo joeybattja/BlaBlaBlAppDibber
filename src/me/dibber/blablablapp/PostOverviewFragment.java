@@ -2,7 +2,6 @@ package me.dibber.blablablapp;
 
 import java.util.HashMap;
 import java.util.List;
-import java.util.Properties;
 
 import me.dibber.blablablapp.HomeActivity.ContentFrameType;
 import me.dibber.blablablapp.PostCollection.DrawableType;
@@ -143,8 +142,7 @@ public class PostOverviewFragment extends Fragment {
 			super(context, resourceId, list);
 			activity = context;
 			loaders = ((GlobalState)GlobalState.getContext()).getYouTubeThumbnailLoaderList();
-			Properties p = AssetsPropertyReader.getProperties(GlobalState.getContext());
-	        youTubeApiKey = p.getProperty("YOUTUBE_API_KEY");
+	        youTubeApiKey = AppConfig.getYouTubeAPIKey();
 		}
 		
 		@Override

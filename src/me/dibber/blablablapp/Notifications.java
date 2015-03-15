@@ -1,12 +1,9 @@
 package me.dibber.blablablapp;
 
 import java.net.MalformedURLException;
-import java.util.Properties;
 
+import me.dibber.blablablapp.AppConfig.Function;
 import me.dibber.blablablapp.DataLoader.DataLoaderListener;
-
-import com.google.android.gms.gcm.GoogleCloudMessaging;
-
 import android.app.Activity;
 import android.app.IntentService;
 import android.app.Notification;
@@ -21,6 +18,8 @@ import android.preference.PreferenceManager;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.content.WakefulBroadcastReceiver;
 import android.util.Log;
+
+import com.google.android.gms.gcm.GoogleCloudMessaging;
 
 public class Notifications {
 	
@@ -157,9 +156,7 @@ public class Notifications {
 			});
 			dl.isInSynchWithExistingPosts(true);
 			try {
-				Properties p = AssetsPropertyReader.getProperties(this);
-				String URL = p.getProperty("URL") + p.getProperty("APIPHP") + p.getProperty("GET_RECENT_POSTS") + "&count=" + p.getProperty("NUMBER_OF_POSTS_PER_REQUEST");
-				dl.setDataSource(URL);
+				dl.setDataSource(AppConfig.getURLPath(Function.GET_RECENT_POSTS));
 			} catch (MalformedURLException e) {
 				Log.d("Path incorrect", e.toString());
 			}

@@ -7,8 +7,8 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.util.Properties;
 
+import me.dibber.blablablapp.AppConfig.Function;
 import me.dibber.blablablapp.PostCollection.DrawableType;
 
 import org.json.JSONArray;
@@ -109,16 +109,9 @@ public class StartActivity extends FragmentActivity  {
 	    editor.putString(PREF_GCM_REG_ID, "");
 	    editor.commit();
 	    
-	    // in case the registered version is older than the OLDEST_SUPPORTED_VERSION, all data should be cleared. 
+	    // in case the registered version is older than the oldestVersionWithSameDataStructure, all data files should be cleared. 
 	    // this is done in those cases that an update is done in the local data structure and prevents unused files on the device. 
-	    Properties p = AssetsPropertyReader.getProperties(this);
-		int oldestVersion = 0;
-		try {
-			oldestVersion = Integer.parseInt(p.getProperty("OLDEST_SUPPORTED_VERSION"));
-		} catch (NumberFormatException e) {
-			Log.e("Error in property OLDEST_SUPPORTED_VERSION: invalid number", e.toString());
-		}
-		if (registeredVersion < oldestVersion) {
+		if (registeredVersion < AppConfig.oldestVersionWithSameDataStructure()) {
 			clearApplicationFiles();
 		}
 	}
@@ -132,8 +125,7 @@ public class StartActivity extends FragmentActivity  {
 	 */
 	private void checkVersionOnline() {
 		try {
-			Properties p = AssetsPropertyReader.getProperties(this);
-			URL checkVersionURL = new URL(p.getProperty("URL") + p.getProperty("APIPHP") + p.getProperty("GET_SUPPORTED_VERSIONS"));
+			URL checkVersionURL = new URL(AppConfig.getURLPath(Function.GET_SUPPORTED_VERSIONS));
 			HttpURLConnection connection = (HttpURLConnection) checkVersionURL.openConnection();
 			InputStream in = connection.getInputStream();
 			BufferedReader r = new BufferedReader(new InputStreamReader(in));
@@ -233,8 +225,7 @@ public class StartActivity extends FragmentActivity  {
 				try {
 					Context c = GlobalState.getContext();
 					GoogleCloudMessaging gcm = GoogleCloudMessaging.getInstance(c);
-					Properties p = AssetsPropertyReader.getProperties(c);
-					String regId = gcm.register(p.getProperty("GOOGLE_CLOUD_MESSAGING_SENDER_ID"));
+					String regId = gcm.register(AppConfig.getGCMSenderId());
 					
 					SharedPreferences prefs = getPreferences(Context.MODE_PRIVATE);
 					SharedPreferences.Editor editor = prefs.edit();
@@ -250,15 +241,33 @@ public class StartActivity extends FragmentActivity  {
 	}
 	
 	private void sendGCMRegistrationIdToServer(String regId) {
-		Properties p = AssetsPropertyReader.getProperties(this);
-		String sUrl = p.getProperty("URL") + p.getProperty("APIPHP") + p.getProperty("POST_REG_ID") + regId;
 		try {
-			URL url = new URL(sUrl);
-			url.openConnection();
-		} catch (IOException e) {
-			Log.w("Exception while register regid on server", e.toString());
+			URL url = new URL(AppConfig.getURLPath(Function.ADD_DEVICE,regId));
+			HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+			InputStream in = connection.getInputStream();
+			BufferedReader r = new BufferedReader(new InputStreamReader(in));
+			StringBuilder data = new StringBuilder();
+			String line;
+			while ( (line = r.readLine()) != null) {
+				data.append(line);
+			}
+			r.close();
+			JSONObject obj = new JSONObject(data.toString());
+			if ("OK".equals(obj.get("status"))) {
+				Log.i("Registration done successfully", "REG ID = " + regId);
+			} else if ("DUP".equals(obj.get("status"))) {
+				Log.i("Registration not needed, duplicate already existed on server", "REG ID = " + regId);
+			} else {
+				Log.w("Error while registering following device to server: " + regId, obj.toString());
+				SharedPreferences prefs = getPreferences(Context.MODE_PRIVATE);
+				prefs.edit().putString(PREF_GCM_REG_ID, "").commit();
+
+			}
+		} catch (IOException | JSONException e) {
+			Log.w("Exception while registering following device to server: " + regId, e.toString());
+			SharedPreferences prefs = getPreferences(Context.MODE_PRIVATE);
+			prefs.edit().putString(PREF_GCM_REG_ID, "").commit();
 		}
-		Log.e("Registration done", "REG ID = " + regId);
 	}
 	
 	private class noNetworkDialogFragment extends DialogFragment {
