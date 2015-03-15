@@ -45,9 +45,10 @@ public class StartActivity extends FragmentActivity  {
 		super.onCreate(savedInstanceState);
 		
 		setContentView(R.layout.activity_start);
-		ImageView v = (ImageView)findViewById(R.id.imageViewLogo);
+		ImageView v = (ImageView)findViewById(R.id.imageViewLogo); 
 		PostCollection.setImage(v, DrawableType.LOGO_COLOR, 0);
-		
+		Notifications.removeAllNotifications(this);
+
 		Thread t = new Thread(new Runnable() {
 			
 			@Override
@@ -109,7 +110,7 @@ public class StartActivity extends FragmentActivity  {
 	    editor.commit();
 	    
 	    // in case the registered version is older than the OLDEST_SUPPORTED_VERSION, all data should be cleared. 
-	    // this is done in those cases that an update is done in the local data structure and prevents unused cache on the device. 
+	    // this is done in those cases that an update is done in the local data structure and prevents unused files on the device. 
 	    Properties p = AssetsPropertyReader.getProperties(this);
 		int oldestVersion = 0;
 		try {
@@ -118,7 +119,7 @@ public class StartActivity extends FragmentActivity  {
 			Log.e("Error in property OLDEST_SUPPORTED_VERSION: invalid number", e.toString());
 		}
 		if (registeredVersion < oldestVersion) {
-			clearApplicationData();
+			clearApplicationFiles();
 		}
 	}
 	
@@ -177,14 +178,17 @@ public class StartActivity extends FragmentActivity  {
 		}
 	}
 	
-	private void clearApplicationData() {
-        File cache = getCacheDir();
-        File appDir = new File(cache.getParent());
-        if (appDir.exists()) {
-            String[] children = appDir.list();
+	/**
+	 * Deletes all files, except for the file used by the dataLoader class.
+	 * Generally this deletes all stored images. 
+	 */
+	private void clearApplicationFiles() {
+        File filesDir = getFilesDir();
+        if (filesDir.exists()) {
+            String[] children = filesDir.list();
             for (String s : children) {
-                if (!s.equals("lib")) {
-                    deleteDir(new File(appDir, s));
+                if (!DataLoader.FILE_LOCATION.equals(s)) {
+                    deleteDir(new File(filesDir, s));
                 }
             }
         }
@@ -246,8 +250,15 @@ public class StartActivity extends FragmentActivity  {
 	}
 	
 	private void sendGCMRegistrationIdToServer(String regId) {
+		Properties p = AssetsPropertyReader.getProperties(this);
+		String sUrl = p.getProperty("URL") + p.getProperty("APIPHP") + p.getProperty("POST_REG_ID") + regId;
+		try {
+			URL url = new URL(sUrl);
+			url.openConnection();
+		} catch (IOException e) {
+			Log.w("Exception while register regid on server", e.toString());
+		}
 		Log.e("Registration done", "REG ID = " + regId);
-		// TODO have an actual server call here... 
 	}
 	
 	private class noNetworkDialogFragment extends DialogFragment {

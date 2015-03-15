@@ -302,6 +302,9 @@ public class HomeActivity extends ActionBarActivity implements DataLoaderListene
         case R.id.share:
         	sharePost();
         	return true;
+        case R.id.settings:
+    		startActivity(new Intent(this, SettingsActivity.class));
+        	return true;
         default:
             return super.onOptionsItemSelected(item);
         }
@@ -313,7 +316,7 @@ public class HomeActivity extends ActionBarActivity implements DataLoaderListene
         	replaceContentFrame(ContentFrameType.PAGE, currentPage);
     	} else if (currentType == ContentFrameType.POST) {
     		replaceContentFrame(ContentFrameType.POST, currentPost);
-        } else {
+        } else if (currentType == ContentFrameType.PAGE){
         	Fragment frag = getSupportFragmentManager().findFragmentByTag(TAG_FRAGMENT_CONTENT);
         	if (frag instanceof PostOverviewFragment && Pages.getPageType(currentPage) == PageType.POSTS) {
         		if (((PostOverviewFragment)frag).invalidatePostOverview()) {
@@ -362,6 +365,8 @@ public class HomeActivity extends ActionBarActivity implements DataLoaderListene
 			argsD.putInt(PostDetailFragment.ARG_ID, currentPost);
 			fragment.setArguments(argsD);
 			setTitle(PostCollection.getPostCollection().getItemTitle(currentPost));
+			break;
+		default:
 			break;
 		}
 		if (fragment != null) {
@@ -532,8 +537,7 @@ public class HomeActivity extends ActionBarActivity implements DataLoaderListene
 	    startActivity(intent);
 	    
 	    // clean up the post collection (incl disk) to contain no more than the set max. 
-	    Properties p = AssetsPropertyReader.getProperties(this);
-	    int max = Integer.parseInt(p.getProperty("MAX_NUMBER_OF_POSTS"));
+	    int max = SettingsActivity.getMaxPostStored();
 	    PostCollection.cleanUpPostCollection(max);
 	    ((GlobalState)GlobalState.getContext()).setOldestSynchedPost(0);
 	    

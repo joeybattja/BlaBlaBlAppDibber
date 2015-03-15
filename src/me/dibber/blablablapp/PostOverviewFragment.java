@@ -7,6 +7,8 @@ import java.util.Properties;
 import me.dibber.blablablapp.HomeActivity.ContentFrameType;
 import me.dibber.blablablapp.PostCollection.DrawableType;
 import android.app.Activity;
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.graphics.Typeface;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -35,6 +37,8 @@ import com.google.android.youtube.player.YouTubeThumbnailView.OnInitializedListe
 public class PostOverviewFragment extends Fragment {
 	
 	public static final String ARG_ID = "last_id";
+	public static final String PREF_POSTDATA = "Postdata"; 
+	public static final String PREF_MOST_RECENT_POST = "most recent post";
 	
 	private PostCollection posts;
 	private List<Integer> postsIds;
@@ -48,7 +52,10 @@ public class PostOverviewFragment extends Fragment {
 		View rootView = inflater.inflate( R.layout.fragment_post_overview, container, false);
 		posts = ((GlobalState) GlobalState.getContext() ).getPosts();
 		postsIds = posts.getAllPosts();
-		
+		if (postsIds.size() > 0) {
+			SharedPreferences prefs = getActivity().getSharedPreferences(PREF_POSTDATA,Context.MODE_PRIVATE);
+			prefs.edit().putInt(PREF_MOST_RECENT_POST, postsIds.get(0)).commit();
+		}
 		mGridView = (GridView)rootView.findViewById(R.id.gridview_post_overview);
 		mAdapter = new PostOverviewAdapter(getActivity(), R.layout.item_post_overview, postsIds);
 		

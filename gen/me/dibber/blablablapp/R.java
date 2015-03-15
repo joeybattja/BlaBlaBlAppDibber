@@ -2165,6 +2165,7 @@ containing a value of this type.
         public static final int newComment_website=0x7f0d0060;
         public static final int none=0x7f0d000d;
         public static final int normal=0x7f0d000f;
+        public static final int number_picker=0x7f0d007a;
         public static final int page_progressbar=0x7f0d0064;
         public static final int page_webView=0x7f0d0063;
         public static final int postCommentFrame=0x7f0d006b;
@@ -2179,10 +2180,10 @@ containing a value of this type.
         public static final int progress_circular=0x7f0d0007;
         public static final int progress_horizontal=0x7f0d0008;
         public static final int radio=0x7f0d0041;
-        public static final int refresh=0x7f0d007b;
+        public static final int refresh=0x7f0d007c;
         public static final int sandbox=0x7f0d0015;
         public static final int satellite=0x7f0d0010;
-        public static final int search=0x7f0d007a;
+        public static final int search=0x7f0d007b;
         public static final int search_badge=0x7f0d004b;
         public static final int search_bar=0x7f0d004a;
         public static final int search_button=0x7f0d004c;
@@ -2194,7 +2195,8 @@ containing a value of this type.
         public static final int search_src_text=0x7f0d0050;
         public static final int search_voice_btn=0x7f0d0054;
         public static final int selectionDetails=0x7f0d0018;
-        public static final int share=0x7f0d007c;
+        public static final int settings=0x7f0d007e;
+        public static final int share=0x7f0d007d;
         public static final int shortcut=0x7f0d0040;
         public static final int showCustom=0x7f0d0026;
         public static final int showHome=0x7f0d0027;
@@ -2274,7 +2276,8 @@ containing a value of this type.
         public static final int fragment_post_pager=0x7f030020;
         public static final int item_comment=0x7f030021;
         public static final int item_post_overview=0x7f030022;
-        public static final int support_simple_spinner_dropdown_item=0x7f030023;
+        public static final int number_picker_dialog=0x7f030023;
+        public static final int support_simple_spinner_dropdown_item=0x7f030024;
     }
     public static final class menu {
         public static final int options_menu=0x7f0f0000;
@@ -2364,11 +2367,11 @@ containing a value of this type.
  Post 
  Post 
          */
-        public static final int author_name=0x7f080040;
-        public static final int comment_comment=0x7f08004d;
-        public static final int comment_email=0x7f08004b;
-        public static final int comment_name=0x7f08004a;
-        public static final int comment_website=0x7f08004c;
+        public static final int author_name=0x7f080041;
+        public static final int comment_comment=0x7f08004e;
+        public static final int comment_email=0x7f08004c;
+        public static final int comment_name=0x7f08004b;
+        public static final int comment_website=0x7f08004d;
         /**   Text for notification shown when the Android Wear apps needs to be updated. Only shown on the wearable. [CHAR LIMIT=NONE] 
          */
         public static final int common_android_wear_notification_needs_update_text=0x7f080009;
@@ -2473,17 +2476,35 @@ containing a value of this type.
         public static final int decline=0x7f080003;
         public static final int drawer_close=0x7f080035;
         public static final int drawer_open=0x7f080034;
-        public static final int leave_a_reply=0x7f080048;
+        public static final int leave_a_reply=0x7f080049;
         public static final int logo=0x7f080036;
-        public static final int no=0x7f080046;
+        public static final int no=0x7f080047;
         /**  Error messages 
  Error messages 
  Error messages 
          */
-        public static final int no_connection=0x7f080041;
-        public static final int no_connection_dialog_message=0x7f080043;
-        public static final int no_connection_dialog_title=0x7f080042;
-        public static final int ok=0x7f080047;
+        public static final int no_connection=0x7f080042;
+        public static final int no_connection_dialog_message=0x7f080044;
+        public static final int no_connection_dialog_title=0x7f080043;
+        /**  Notifications 
+ Notifications 
+ Notifications 
+         */
+        public static final int notify_new_posts=0x7f08004f;
+        public static final int ok=0x7f080048;
+        /**  Settings 
+ Settings 
+ Settings 
+         */
+        public static final int pref_notifications=0x7f080050;
+        public static final int pref_storage=0x7f080054;
+        public static final int pref_sum_max_post_stored=0x7f080058;
+        public static final int pref_sum_notify_messages=0x7f080053;
+        public static final int pref_sum_use_storage=0x7f080056;
+        public static final int pref_title_max_post_stored=0x7f080057;
+        public static final int pref_title_notify_messages=0x7f080052;
+        public static final int pref_title_notify_new_posts=0x7f080051;
+        public static final int pref_title_use_storage=0x7f080055;
         public static final int refresh=0x7f08003d;
         public static final int search_hint=0x7f08003c;
         /**  Menu 
@@ -2491,17 +2512,18 @@ containing a value of this type.
  Menu 
          */
         public static final int search_title=0x7f08003b;
+        public static final int settings=0x7f080040;
         public static final int share=0x7f08003e;
         public static final int share_title=0x7f08003f;
         public static final int store_picture_message=0x7f080001;
         public static final int store_picture_title=0x7f080000;
-        public static final int submit_comment=0x7f080049;
-        public static final int unsupported_version_dialog_message=0x7f080044;
+        public static final int submit_comment=0x7f08004a;
+        public static final int unsupported_version_dialog_message=0x7f080045;
         /**  Text on a placeholder buy button when Google Play services is not
          available or up-to-date 
          */
         public static final int wallet_buy_button_place_holder=0x7f080022;
-        public static final int yes=0x7f080045;
+        public static final int yes=0x7f080046;
     }
     public static final class style {
         /** 
@@ -2851,6 +2873,7 @@ containing a value of this type.
     }
     public static final class xml {
         public static final int searchable=0x7f050000;
+        public static final int settings=0x7f050001;
     }
     public static final class styleable {
         /**  ============================================ 

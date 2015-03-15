@@ -73,7 +73,7 @@ public class DataLoader {
 	private DataLoaderListener dll;
 	private boolean isInSynchWithExistingPosts;
 	
-	private static String FILE_LOCATION = "Postdata";
+	public static String FILE_LOCATION = "Postdata";
 	
 	State state;
 	private enum State {

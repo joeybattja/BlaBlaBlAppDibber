@@ -19,6 +19,7 @@
 	<string name="refresh">Vernieuwen</string>
 	<string name="share">Delen</string>
 	<string name="share_title">Delen met:</string>
+	<string name="settings">Instellingen</string>
 	
 	<!-- Post -->
     <string name="author_name">door %1$s</string>
@@ -43,6 +44,20 @@
 	<string name="comment_email">Email</string>
 	<string name="comment_website">Website</string>
 	<string name="comment_comment">Reactie</string>
-
+	
+	<!-- Notifications -->
+	<string name="notify_new_posts">Er zijn %d nieuwe posts</string>
+	
+	<!-- Settings -->
+	<string name="pref_notifications">Notificaties</string>
+	<string name="pref_title_notify_new_posts">Bij nieuwe blog posts</string>
+	<string name="pref_title_notify_messages">Bij andere berichten</string>
+	<string name="pref_sum_notify_messages">zoals bv nieuwsberichten</string>
+	
+	<string name="pref_storage">Geheugen</string>
+	<string name="pref_title_use_storage">Blogs en afbeeldingen opslaan</string>
+	<string name="pref_sum_use_storage">Is benodigd voor offline modus</string>
+	<string name="pref_title_max_post_stored">Maximaal aantal opgeslagen blogs</string>
+	<string name="pref_sum_max_post_stored">Exclusief favorieten</string>
 
 </resources>

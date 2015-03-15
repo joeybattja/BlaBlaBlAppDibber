@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+    <PreferenceCategory 
+        android:title="@string/pref_notifications" >
+        
+        <CheckBoxPreference
+            android:key="pref_notifications_new_posts"
+            android:title="@string/pref_title_notify_new_posts"
+            android:defaultValue="true" />
+        
+        <CheckBoxPreference
+            android:key="pref_notifications_messages"
+            android:title="@string/pref_title_notify_messages"
+            android:summary="@string/pref_sum_notify_messages"
+            android:defaultValue="true" />
+        
+    </PreferenceCategory>
+    
+    <PreferenceCategory 
+        android:title="@string/pref_storage" >
+        
+        <CheckBoxPreference
+            android:key="pref_use_storage"
+            android:title="@string/pref_title_use_storage"
+            android:summary="@string/pref_sum_use_storage"
+            android:defaultValue="true" />
+        
+	    <me.dibber.blablablapp.NumberPickerPreference
+	        android:dependency="pref_use_storage"
+	        android:key="pref_max_post_stored"
+	        android:title="@string/pref_title_max_post_stored"
+	        android:summary="@string/pref_sum_max_post_stored"
+	        android:defaultValue="100" />
+        
+    </PreferenceCategory>
+    
+    
+
+</PreferenceScreen>
