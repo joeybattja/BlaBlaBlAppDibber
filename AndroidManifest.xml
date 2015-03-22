@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="me.dibber.blablablapp"
-    android:versionCode="9"
-    android:versionName="1.8" >
+    android:versionCode="10"
+    android:versionName="1.9" >
 
     <uses-sdk
         android:minSdkVersion="14"
@@ -14,6 +14,7 @@
     <permission android:name="me.dibber.blablablapp.permission.C2D_MESSAGE"
         android:protectionLevel="signature" />
     <uses-permission android:name="me.dibber.blablablapp.permission.C2D_MESSAGE" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
 
     <application
         android:name="me.dibber.blablablapp.GlobalState"
