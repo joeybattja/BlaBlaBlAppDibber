@@ -45,6 +45,7 @@ public class PostDetailFragment extends Fragment {
 	private ViewPager mViewPager;
 	private PostPagerAdapter mPagerAdapter;
 	private static PostCollection posts;
+	private int posToSynch;
 	
 	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 		View rootView = inflater.inflate( R.layout.fragment_post_pager, container, false);
@@ -59,6 +60,10 @@ public class PostDetailFragment extends Fragment {
 		if (postIds.indexOf(currentId) > 0) {
 			mViewPager.setCurrentItem(postIds.indexOf(currentId));
 		}
+		
+		int lastSynchId = ((GlobalState)GlobalState.getContext()).getOldestSynchedPost();
+		posToSynch = postIds.indexOf(lastSynchId);
+		
 		return rootView;
 	}
 	
@@ -81,6 +86,9 @@ public class PostDetailFragment extends Fragment {
 		
 		@Override
 		public Fragment getItem(int position) {
+			if (position > posToSynch - 2) {
+				((HomeActivity) getActivity()).getMorePosts(postIds.get(posToSynch));
+			}
 			PostFragment f = new PostFragment();
 			Bundle args = new Bundle();
 			args.putInt(ARG_ID, postIds.get(position));
@@ -158,6 +166,8 @@ public class PostDetailFragment extends Fragment {
 			postId = getArguments().getInt(ARG_ID);
 			posts = ((GlobalState) GlobalState.getContext() ).getPosts();
 			videoId = posts.getItemYouTubeVideoID(postId);
+			
+			marginWidth = marginHeight = 0;
 			
 			View rootView = inflater.inflate(R.layout.fragment_post_details, container, false);
 			
