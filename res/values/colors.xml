@@ -1,14 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <!-- regular background color and text color -->
+    <!-- regular background color and text (foreground) color, 
+    	 for disabled text foreground_off is used 
+    	 foreground_secondary are e.g. summary lines below the title in the settings menu -->
     <color name="regular_background">@color/white</color>
     <color name="regular_foreground_on">@color/black</color>
     <color name="regular_foreground_off">@color/lightgrey</color>
     <color name="regular_foreground_secondary_on">@color/darkgrey</color>
     <color name="regular_foreground_secondary_off">@color/lightgrey</color>
     
-    <!-- primary colors used by the action bar -->
+    <!-- primary colors used by the action bar
+     	 foreground is text and icon color
+     	 secondary is used for e.g. hint in the searchview -->
     <color name="actionbar_background">@color/white</color>
     <color name="actionbar_foreground">@color/black</color>
     <color name="actionbar_foreground_secondary">@color/grey</color>
@@ -17,7 +21,7 @@
     <!-- color used for some accents, like enabled checkboxes -->
     <color name="color_accent">@color/blue</color>
     
-    <!-- color used for selected items in a list -->
+    <!-- color used for selected items in a list, for instance in the drawer -->
     <color name="selected_background">@color/blue</color>
     <color name="selected_foreground">@color/white</color>
     
