@@ -1,7 +1,10 @@
-package me.dibber.blablablapp;
+package me.dibber.blablablapp.activities;
 
 import java.util.ArrayList;
 
+import me.dibber.blablablapp.R;
+import me.dibber.blablablapp.core.GlobalState;
+import me.dibber.blablablapp.core.PostCollection;
 import android.graphics.Typeface;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;

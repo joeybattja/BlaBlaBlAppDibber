@@ -1,4 +1,4 @@
-package me.dibber.blablablapp;
+package me.dibber.blablablapp.core;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -16,8 +16,8 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Locale;
 
-import me.dibber.blablablapp.Post.Attachment;
-import me.dibber.blablablapp.Post.Comment;
+import me.dibber.blablablapp.core.Post.Attachment;
+import me.dibber.blablablapp.core.Post.Comment;
 
 import org.json.JSONArray;
 import org.json.JSONException;

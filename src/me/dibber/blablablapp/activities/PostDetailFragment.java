@@ -1,8 +1,12 @@
-package me.dibber.blablablapp;
+package me.dibber.blablablapp.activities;
 
 import java.util.List;
 
-import me.dibber.blablablapp.PostCollection.DrawableType;
+import me.dibber.blablablapp.core.AppConfig;
+import me.dibber.blablablapp.core.GlobalState;
+import me.dibber.blablablapp.core.PostCollection;
+import me.dibber.blablablapp.core.PostCollection.DrawableType;
+import me.dibber.blablablapp.R;
 import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.graphics.Canvas;

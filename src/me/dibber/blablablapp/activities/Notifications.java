@@ -1,9 +1,14 @@
-package me.dibber.blablablapp;
+package me.dibber.blablablapp.activities;
 
 import java.net.MalformedURLException;
 
-import me.dibber.blablablapp.AppConfig.Function;
-import me.dibber.blablablapp.DataLoader.DataLoaderListener;
+import me.dibber.blablablapp.R;
+import me.dibber.blablablapp.core.AppConfig;
+import me.dibber.blablablapp.core.DataLoader;
+import me.dibber.blablablapp.core.GlobalState;
+import me.dibber.blablablapp.core.PostCollection;
+import me.dibber.blablablapp.core.AppConfig.Function;
+import me.dibber.blablablapp.core.DataLoader.DataLoaderListener;
 import android.app.Activity;
 import android.app.IntentService;
 import android.app.Notification;

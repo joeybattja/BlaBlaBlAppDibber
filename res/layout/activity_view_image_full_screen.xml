@@ -6,7 +6,7 @@
     android:background="@color/black"
     tools:context="${packageName}.${activityClass}" >
 
-    <me.dibber.blablablapp.TouchImageView
+    <me.dibber.blablablapp.ext.TouchImageView
         android:id="@+id/img_fullscreen"
         android:layout_width="match_parent"
         android:layout_height="match_parent"

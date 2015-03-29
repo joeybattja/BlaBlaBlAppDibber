@@ -1,4 +1,4 @@
-package me.dibber.blablablapp;
+package me.dibber.blablablapp.core;
 
 import java.util.ArrayList;
 import java.util.Date;

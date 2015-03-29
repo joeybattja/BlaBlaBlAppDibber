@@ -1,4 +1,6 @@
-package me.dibber.blablablapp;
+package me.dibber.blablablapp.core;
+
+import me.dibber.blablablapp.R;
 
 public class Pages {
 	

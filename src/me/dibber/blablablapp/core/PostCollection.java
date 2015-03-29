@@ -1,4 +1,4 @@
-package me.dibber.blablablapp;
+package me.dibber.blablablapp.core;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -16,7 +16,9 @@ import java.util.Date;
 import java.util.List;
 import java.util.TreeMap;
 
-import me.dibber.blablablapp.Post.Attachment;
+import me.dibber.blablablapp.R;
+import me.dibber.blablablapp.activities.HomeActivity;
+import me.dibber.blablablapp.core.Post.Attachment;
 import android.app.Activity;
 import android.content.Context;
 import android.content.res.Resources;

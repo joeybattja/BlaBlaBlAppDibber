@@ -25,7 +25,7 @@
             android:summary="@string/pref_sum_use_storage"
             android:defaultValue="true" />
         
-	    <me.dibber.blablablapp.NumberPickerPreference
+	    <me.dibber.blablablapp.ext.NumberPickerPreference
 	        android:dependency="pref_use_storage"
 	        android:key="pref_max_post_stored"
 	        android:title="@string/pref_title_max_post_stored"

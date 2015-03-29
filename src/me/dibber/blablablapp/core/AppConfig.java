@@ -1,5 +1,11 @@
-package me.dibber.blablablapp;
+package me.dibber.blablablapp.core;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Properties;
+
+import android.content.Context;
+import android.content.res.AssetManager;
 import android.util.Log;
 
 public class AppConfig {
@@ -19,7 +25,10 @@ public class AppConfig {
 
 	// oldest app version with same data structure (if update is done on older version, all files will be deleted after startup 
 	private static final int OLDEST_SUPPORTED_VERSION = 3;
-
+	
+	
+	// name of properties file
+    private static String PROPERTY_FILENAME = "blog.properties";
 	
 	public enum Function {GET_RECENT_POSTS,GET_POSTS_AFTER,GET_SUPPORTED_VERSIONS,ADD_DEVICE};
 	
@@ -35,7 +44,7 @@ public class AppConfig {
 			break;
 		case GET_POSTS_AFTER:
 		case GET_RECENT_POSTS:
-			String nr = AssetsPropertyReader.getProperties(GlobalState.getContext()).getProperty("NUMBER_OF_POSTS_PER_REQUEST","20");
+			String nr = getProperties(GlobalState.getContext()).getProperty("NUMBER_OF_POSTS_PER_REQUEST","20");
 			try {
 				count = Integer.parseInt(nr);
 			} catch (NumberFormatException e) {
@@ -85,5 +94,18 @@ public class AppConfig {
 	public static int oldestVersionWithSameDataStructure() {
 		return OLDEST_SUPPORTED_VERSION;
 	}
+	
+    public static Properties getProperties(Context context) {
+    	Properties properties = new Properties();
+    	try {
+    		AssetManager assetManager = context.getAssets();
+    		InputStream inputStream = assetManager.open(PROPERTY_FILENAME);
+    		properties.load(inputStream);
+    	} catch (IOException e) {
+            Log.e("AssetsPropertyReader",e.toString());
+    	}
+    	return properties;
+    }
+
 	
 }

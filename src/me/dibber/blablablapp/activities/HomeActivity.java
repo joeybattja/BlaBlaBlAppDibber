@@ -1,13 +1,19 @@
-package me.dibber.blablablapp;
+package me.dibber.blablablapp.activities;
 
 import java.net.MalformedURLException;
 import java.util.HashMap;
 import java.util.Map.Entry;
 
-import me.dibber.blablablapp.AppConfig.Function;
-import me.dibber.blablablapp.DataLoader.DataLoaderListener;
-import me.dibber.blablablapp.Pages.PageType;
-import me.dibber.blablablapp.PostDetailFragment.PostFragment;
+import me.dibber.blablablapp.activities.PostDetailFragment.PostFragment;
+import me.dibber.blablablapp.core.AppConfig;
+import me.dibber.blablablapp.core.DataLoader;
+import me.dibber.blablablapp.core.GlobalState;
+import me.dibber.blablablapp.core.Pages;
+import me.dibber.blablablapp.core.PostCollection;
+import me.dibber.blablablapp.core.AppConfig.Function;
+import me.dibber.blablablapp.core.DataLoader.DataLoaderListener;
+import me.dibber.blablablapp.core.Pages.PageType;
+import me.dibber.blablablapp.R;
 import android.app.SearchManager;
 import android.content.Context;
 import android.content.Intent;

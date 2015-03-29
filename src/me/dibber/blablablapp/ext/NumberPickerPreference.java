@@ -1,5 +1,6 @@
-package me.dibber.blablablapp;
+package me.dibber.blablablapp.ext;
 
+import me.dibber.blablablapp.R;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.preference.DialogPreference;

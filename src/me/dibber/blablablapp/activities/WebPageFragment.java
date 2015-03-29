@@ -1,5 +1,6 @@
-package me.dibber.blablablapp;
+package me.dibber.blablablapp.activities;
 
+import me.dibber.blablablapp.R;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;

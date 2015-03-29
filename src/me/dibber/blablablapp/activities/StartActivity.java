@@ -1,4 +1,4 @@
-package me.dibber.blablablapp;
+package me.dibber.blablablapp.activities;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -8,8 +8,13 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 
-import me.dibber.blablablapp.AppConfig.Function;
-import me.dibber.blablablapp.PostCollection.DrawableType;
+import me.dibber.blablablapp.core.AppConfig;
+import me.dibber.blablablapp.core.DataLoader;
+import me.dibber.blablablapp.core.GlobalState;
+import me.dibber.blablablapp.core.PostCollection;
+import me.dibber.blablablapp.core.AppConfig.Function;
+import me.dibber.blablablapp.core.PostCollection.DrawableType;
+import me.dibber.blablablapp.R;
 
 import org.json.JSONArray;
 import org.json.JSONException;

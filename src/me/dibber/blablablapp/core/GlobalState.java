@@ -1,8 +1,9 @@
-package me.dibber.blablablapp;
+package me.dibber.blablablapp.core;
 
 import java.util.HashMap;
 import java.util.Properties;
 
+import me.dibber.blablablapp.activities.HomeActivity;
 import android.app.Application;
 import android.content.Context;
 import android.view.View;
@@ -25,7 +26,7 @@ public class GlobalState extends Application {
 		super.onCreate();
 		context = getApplicationContext();
 		refreshing = false;
-		Properties p = AssetsPropertyReader.getProperties(getContext());
+		Properties p = AppConfig.getProperties(getContext());
 		options = p.getProperty("ADDITIONAL_OPTIONS").split(";");
 	}
 	

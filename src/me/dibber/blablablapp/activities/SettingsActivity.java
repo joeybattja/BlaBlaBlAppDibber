@@ -1,7 +1,10 @@
-package me.dibber.blablablapp;
+package me.dibber.blablablapp.activities;
 
 import java.util.Properties;
 
+import me.dibber.blablablapp.R;
+import me.dibber.blablablapp.core.AppConfig;
+import me.dibber.blablablapp.core.GlobalState;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.Preference;
@@ -23,7 +26,7 @@ public class SettingsActivity extends PreferenceActivity {
 	public static int getMaxPostStored() {
 		SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(GlobalState.getContext());
 		if ( prefs.getBoolean("pref_use_storage", true) ) {
-	        Properties p = AssetsPropertyReader.getProperties(GlobalState.getContext());
+	        Properties p = AppConfig.getProperties(GlobalState.getContext());
 	        int defaultMax = Integer.parseInt(p.getProperty("MAX_NUMBER_OF_POSTS","100"));
 			return prefs.getInt("pref_max_post_stored", defaultMax);
 		} else {

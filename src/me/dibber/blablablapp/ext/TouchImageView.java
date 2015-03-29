@@ -11,7 +11,7 @@
  * Extends Android ImageView to include pinch zooming, panning, fling and double tap zoom.
  */
 
-package me.dibber.blablablapp;
+package me.dibber.blablablapp.ext;
 
 import android.annotation.SuppressLint;
 import android.annotation.TargetApi;

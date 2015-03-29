@@ -1,10 +1,14 @@
-package me.dibber.blablablapp;
+package me.dibber.blablablapp.activities;
 
 import java.util.HashMap;
 import java.util.List;
 
-import me.dibber.blablablapp.HomeActivity.ContentFrameType;
-import me.dibber.blablablapp.PostCollection.DrawableType;
+import me.dibber.blablablapp.R;
+import me.dibber.blablablapp.activities.HomeActivity.ContentFrameType;
+import me.dibber.blablablapp.core.AppConfig;
+import me.dibber.blablablapp.core.GlobalState;
+import me.dibber.blablablapp.core.PostCollection;
+import me.dibber.blablablapp.core.PostCollection.DrawableType;
 import android.app.Activity;
 import android.content.Context;
 import android.content.SharedPreferences;

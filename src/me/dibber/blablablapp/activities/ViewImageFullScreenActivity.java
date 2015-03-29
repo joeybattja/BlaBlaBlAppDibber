@@ -1,6 +1,10 @@
-package me.dibber.blablablapp;
+package me.dibber.blablablapp.activities;
 
-import me.dibber.blablablapp.PostCollection.DrawableType;
+import me.dibber.blablablapp.core.GlobalState;
+import me.dibber.blablablapp.core.PostCollection;
+import me.dibber.blablablapp.core.PostCollection.DrawableType;
+import me.dibber.blablablapp.ext.TouchImageView;
+import me.dibber.blablablapp.R;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
