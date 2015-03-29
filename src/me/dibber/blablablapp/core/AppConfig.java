@@ -5,7 +5,9 @@ import java.io.InputStream;
 import java.util.Properties;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.content.res.AssetManager;
+import android.preference.PreferenceManager;
 import android.util.Log;
 
 public class AppConfig {
@@ -93,6 +95,18 @@ public class AppConfig {
 	
 	public static int oldestVersionWithSameDataStructure() {
 		return OLDEST_SUPPORTED_VERSION;
+	}
+	
+	
+	public static int getMaxPostStored() {
+		SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(GlobalState.getContext());
+		if ( prefs.getBoolean("pref_use_storage", true) ) {
+	        Properties p = AppConfig.getProperties(GlobalState.getContext());
+	        int defaultMax = Integer.parseInt(p.getProperty("MAX_NUMBER_OF_POSTS","100"));
+			return prefs.getInt("pref_max_post_stored", defaultMax);
+		} else {
+			return 0;
+		}
 	}
 	
     public static Properties getProperties(Context context) {

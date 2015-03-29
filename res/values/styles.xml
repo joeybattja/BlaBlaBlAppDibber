@@ -3,7 +3,15 @@
     <!-- Application theme. -->
     <style name="CustomTheme" parent="Theme.AppCompat.Light">
         <item name="searchViewStyle">@style/SearchViewWidget</item>
-        <item name="colorPrimary">@color/plain_background</item>
+        <item name="colorPrimary">@color/actionbar_background</item>
+        <item name="colorPrimaryDark">@color/actionbar_dark</item>
+        <item name="colorAccent">@color/color_accent</item>
+        <item name="android:windowBackground">@color/regular_background</item>
+        <item name="android:textColor">@color/regular_foreground</item>
+        <item name="android:textColorSecondary">@color/regular_foreground_secondary</item>
+        <item name="android:textColorPrimary">@color/actionbar_foreground</item>
+        <item name="android:textColorHint">@color/actionbar_foreground_secondary</item>
+        
     </style>
 
     <style name="SearchViewWidget" parent="Widget.AppCompat.Light.SearchView">

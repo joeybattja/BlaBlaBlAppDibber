@@ -17,6 +17,7 @@ import me.dibber.blablablapp.R;
 import android.app.SearchManager;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.PorterDuff;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
@@ -259,6 +260,10 @@ public class HomeActivity extends ActionBarActivity implements DataLoaderListene
         if (currentType == ContentFrameType.POST) {
         	simpleOptionsMenu(true);
         }
+        
+        refresh.getIcon().setColorFilter(getResources().getColor(R.color.actionbar_foreground), PorterDuff.Mode.SRC_ATOP);
+        share.getIcon().setColorFilter(getResources().getColor(R.color.actionbar_foreground), PorterDuff.Mode.SRC_ATOP);
+        searchItem.getIcon().setColorFilter(getResources().getColor(R.color.actionbar_foreground), PorterDuff.Mode.SRC_ATOP);
 
         return true;
     }
@@ -538,7 +543,7 @@ public class HomeActivity extends ActionBarActivity implements DataLoaderListene
 	    startActivity(intent);
 	    
 	    // clean up the post collection (incl disk) to contain no more than the set max. 
-	    int max = SettingsActivity.getMaxPostStored();
+	    int max = AppConfig.getMaxPostStored();
 	    PostCollection.cleanUpPostCollection(max);
 	    ((GlobalState)GlobalState.getContext()).setOldestSynchedPost(0);
 	    

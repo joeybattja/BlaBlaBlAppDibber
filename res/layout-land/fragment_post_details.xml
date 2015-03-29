@@ -4,8 +4,7 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:background="@drawable/image_background"
-    android:padding="10dp"
-    android:textColor="@color/primary_text" >
+    android:padding="10dp" >
     
     <LinearLayout 
         android:layout_width="match_parent"
@@ -35,7 +34,6 @@
 			            android:layout_width="wrap_content"
 			            android:layout_height="wrap_content"
 			            android:layout_gravity="start"
-			            android:textColor="@color/primary_text"
 			            android:textSize="22sp" />
 			
 			        <TextView
@@ -43,7 +41,6 @@
 			            android:layout_width="wrap_content"
 			            android:layout_height="wrap_content"
 			            android:layout_gravity="start"
-			            android:textColor="@color/primary_text"
 			            android:textSize="17sp" />
 			        
 		        </LinearLayout>
@@ -78,7 +75,6 @@
 	                android:id="@+id/postContent"
 	                android:layout_width="wrap_content"
 	                android:layout_height="wrap_content"
-	                android:textColor="@color/primary_text"
 	                android:textSize="17sp" />
 	        </RelativeLayout>
 	        

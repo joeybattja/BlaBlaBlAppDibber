@@ -4,8 +4,7 @@
     android:layout_height="wrap_content"
     android:background="@drawable/item_curved_corners"
     android:descendantFocusability="blocksDescendants"
-    android:orientation="vertical"
-    android:textColor="@color/primary_text" >
+    android:orientation="vertical" >
     
     <com.google.android.youtube.player.YouTubeThumbnailView
         android:id="@+id/list_youtube"
@@ -42,14 +41,12 @@
 		            android:id="@+id/list_title"
 		            android:layout_width="wrap_content"
 		            android:layout_height="wrap_content"
-		            android:textColor="@color/primary_text"
 		            android:textSize="18sp" />
 		        
 		        <TextView
 		            android:id="@+id/list_meta"
 		            android:layout_width="wrap_content"
-		            android:layout_height="wrap_content"
-		            android:textColor="@color/primary_text" />
+		            android:layout_height="wrap_content" />
 		        
 	        </LinearLayout>
 	        
@@ -65,8 +62,7 @@
         <TextView
             android:id="@+id/list_short_content"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textColor="@color/primary_text" />
+            android:layout_height="wrap_content" />
     </LinearLayout>
 
 </LinearLayout>
