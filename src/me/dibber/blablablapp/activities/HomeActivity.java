@@ -380,9 +380,9 @@ public class HomeActivity extends ActionBarActivity implements DataLoaderListene
 		default:
 			break;
 		}
-		if (fragment != null) {
+		if (fragment != null && this.equals(((GlobalState)GlobalState.getContext()).getCurrentHomeActivity())) {
 			FragmentManager fragmentManager = getSupportFragmentManager();
-		    fragmentManager.beginTransaction()
+			fragmentManager.beginTransaction()
 		                   .replace(R.id.content_frame, fragment, TAG_FRAGMENT_CONTENT)
 		                   .addToBackStack(null)
 		                   .commit();

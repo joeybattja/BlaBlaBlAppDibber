@@ -1763,7 +1763,9 @@ containing a value of this type.
         public static final int abc_secondary_text_material_light=0x7f09006e;
         public static final int accent_material_dark=0x7f090026;
         public static final int accent_material_light=0x7f090025;
-        /**  primary colors used by the action bar 
+        /**  primary colors used by the action bar
+     	 foreground is text and icon color
+     	 secondary is used for e.g. hint in the searchview 
          */
         public static final int actionbar_background=0x7f09004d;
         public static final int actionbar_dark=0x7f090050;
@@ -1788,7 +1790,7 @@ containing a value of this type.
         public static final int bright_foreground_material_light=0x7f09002c;
         public static final int button_material_dark=0x7f090027;
         public static final int button_material_light=0x7f090028;
-        /**  color used for some accents, like checked checkboxes 
+        /**  color used for some accents, like enabled checkboxes 
          */
         public static final int color_accent=0x7f090051;
         public static final int common_action_bar_splitter=0x7f090009;
@@ -1852,7 +1854,9 @@ containing a value of this type.
         public static final int primary_text_disabled_material_light=0x7f09003f;
         public static final int purple=0x7f090062;
         public static final int red=0x7f09005c;
-        /**  regular background color and text color 
+        /**  regular background color and text (foreground) color, 
+    	 for disabled text foreground_off is used 
+    	 foreground_secondary are e.g. summary lines below the title in the settings menu 
          */
         public static final int regular_background=0x7f090048;
         public static final int regular_foreground=0x7f090073;
@@ -1867,7 +1871,7 @@ containing a value of this type.
         public static final int secondary_text_default_material_light=0x7f09003c;
         public static final int secondary_text_disabled_material_dark=0x7f090042;
         public static final int secondary_text_disabled_material_light=0x7f090040;
-        /**  color used for selected items in a list 
+        /**  color used for selected items in a list, for instance in the drawer 
          */
         public static final int selected_background=0x7f090052;
         public static final int selected_foreground=0x7f090053;

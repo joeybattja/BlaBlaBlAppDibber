@@ -19,6 +19,7 @@ import android.text.TextUtils.TruncateAt;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.view.View.OnLayoutChangeListener;
 import android.view.ViewGroup;
 import android.widget.AbsListView;
 import android.widget.AbsListView.OnScrollListener;
@@ -254,6 +255,24 @@ public class PostOverviewFragment extends Fragment {
 				mContEllipsView.setEllipsize(TruncateAt.END);
 				mContEllipsView.setText(posts.getItemContentReplaceBreaks(postId));	
 				mContEllipsView.setTypeface(null, Typeface.NORMAL);
+				if (getResources().getBoolean(R.bool.isLandscape)) {
+					final TextView tempContentView = mContEllipsView;
+					final int tempPostId = postId;
+					
+					mContEllipsView.addOnLayoutChangeListener(new OnLayoutChangeListener() {
+						
+						@Override
+						public void onLayoutChange(View v, int left, int top, int right,
+								int bottom, int oldLeft, int oldTop, int oldRight, int oldBottom) {
+							int maxLines = (int) (tempContentView.getHeight() / tempContentView.getLineHeight()) ;
+							tempContentView.setMaxLines(maxLines);
+							tempContentView.setEllipsize(TruncateAt.END);
+							tempContentView.setText(posts.getItemContentReplaceBreaks(tempPostId));	
+							tempContentView.setTypeface(null, Typeface.NORMAL);
+							tempContentView.removeOnLayoutChangeListener(this);
+						}
+					});
+				}
 			}
 			if (mImageView != null) {
 				PostCollection.setImage(mImageView, DrawableType.LIST_IMAGE, postId);
