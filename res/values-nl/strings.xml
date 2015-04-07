@@ -21,6 +21,16 @@
 	<string name="share_title">Delen met:</string>
 	<string name="settings">Instellingen</string>
 	
+	<!--  Profile -->
+	<string name="profile">Profiel</string>
+	<string name="signin">Log in</string>
+	<string name="signout">Uitloggen</string>
+	<string name="login_dialog">Log in met</string>
+	<string name="login_username">Naam</string>
+	<string name="login_email">Emailadres</string>
+	<string name="login_signinManually">of geef je naam en emailadres handmatig in:</string>
+	<string name="manuallyCreated_extraText">Wijzig je profielnaam, emailadres en profielfoto. Of log uit.</string>
+			
 	<!-- Post -->
     <string name="author_name">door %1$s</string>
     

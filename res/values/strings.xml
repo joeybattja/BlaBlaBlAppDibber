@@ -21,6 +21,16 @@
 	<string name="share_title">Share with:</string>
 	<string name="settings">Settings</string>
 	
+	<!--  Profile -->
+	<string name="profile">Profile</string>
+	<string name="signin">Sign in</string>
+	<string name="signout">Sign out</string>
+	<string name="login_dialog">Sign in using</string>
+	<string name="login_username">Name</string>
+	<string name="login_email">Email address</string>
+	<string name="login_signinManually">or enter your name and email address manually:</string>
+	<string name="manuallyCreated_extraText">Change your profile name, email or picture. Or logout.</string>
+			
 	<!-- Post -->
     <string name="author_name">by %1$s</string>
 
@@ -32,6 +42,7 @@
     <string name="yes">Yes</string>
     <string name="no">No</string>
     <string name="ok">OK</string>
+    <string name="cancel">Cancel</string>
     
 	<!-- Comments -->
 	<plurals name="nrOfComments">

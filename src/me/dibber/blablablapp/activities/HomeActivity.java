@@ -4,20 +4,22 @@ import java.net.MalformedURLException;
 import java.util.HashMap;
 import java.util.Map.Entry;
 
+import me.dibber.blablablapp.R;
 import me.dibber.blablablapp.activities.PostDetailFragment.PostFragment;
 import me.dibber.blablablapp.core.AppConfig;
+import me.dibber.blablablapp.core.AppConfig.Function;
 import me.dibber.blablablapp.core.DataLoader;
+import me.dibber.blablablapp.core.DataLoader.DataLoaderListener;
 import me.dibber.blablablapp.core.GlobalState;
 import me.dibber.blablablapp.core.Pages;
-import me.dibber.blablablapp.core.PostCollection;
-import me.dibber.blablablapp.core.AppConfig.Function;
-import me.dibber.blablablapp.core.DataLoader.DataLoaderListener;
 import me.dibber.blablablapp.core.Pages.PageType;
-import me.dibber.blablablapp.R;
+import me.dibber.blablablapp.core.PostCollection;
+import me.dibber.blablablapp.core.Profile;
 import android.app.SearchManager;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.PorterDuff;
+import android.graphics.Typeface;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
@@ -32,10 +34,14 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.View.OnClickListener;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ArrayAdapter;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.ListView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.youtube.player.YouTubeThumbnailLoader;
@@ -58,6 +64,9 @@ public class HomeActivity extends ActionBarActivity implements DataLoaderListene
 	private DrawerLayout mDrawerLayout;
 	private ActionBarDrawerToggle mDrawerToggle;
     private ListView mDrawerList;
+    private LinearLayout mDrawerView;
+    private LinearLayout mDrawerProfile;
+    private Profile mProfile;
     public enum ContentFrameType {PAGE,POST}
 
 	@Override
@@ -81,7 +90,8 @@ public class HomeActivity extends ActionBarActivity implements DataLoaderListene
             }
 		};
 		mDrawerLayout.setDrawerListener(mDrawerToggle);
-        mDrawerList = (ListView) findViewById(R.id.left_drawer);
+		mDrawerView = (LinearLayout) findViewById(R.id.drawer_view);
+        mDrawerList = (ListView) findViewById(R.id.drawer_list);
         mDrawerList.setAdapter(new ArrayAdapter<>(this, R.layout.drawer_list_item, Pages.getPageTitles() ));
         mDrawerList.setOnItemClickListener(new OnItemClickListener() {
 			@Override
@@ -89,6 +99,18 @@ public class HomeActivity extends ActionBarActivity implements DataLoaderListene
 					int position, long id) {
 				currentPage = position;
 				replaceContentFrame(ContentFrameType.PAGE, position);
+			}
+		});
+        invalidateProfile();
+        mDrawerProfile = (LinearLayout) findViewById(R.id.drawer_profile);
+        mDrawerProfile.setOnClickListener(new OnClickListener() {
+			
+			@Override
+			public void onClick(View v) {
+				if (mProfile == null) {
+					invalidateProfile();
+				}
+				mProfile.openDialog(getSupportFragmentManager());
 			}
 		});
         if (savedInstanceState != null) {
@@ -152,8 +174,8 @@ public class HomeActivity extends ActionBarActivity implements DataLoaderListene
 		// First, save the current state, since that's probably interesting for the next frame
 		saveLastPosition();
 		// Close the drawer if open, else...
-		if (mDrawerLayout.isDrawerOpen(mDrawerList)) {
-			mDrawerLayout.closeDrawer(mDrawerList);
+		if (mDrawerLayout.isDrawerOpen(mDrawerView)) {
+			mDrawerLayout.closeDrawer(mDrawerView);
 			return;
 		}
 		// If currently the details of a post are being shown...
@@ -387,7 +409,7 @@ public class HomeActivity extends ActionBarActivity implements DataLoaderListene
 		                   .addToBackStack(null)
 		                   .commit();
 		}
-	    mDrawerLayout.closeDrawer(mDrawerList);
+	    mDrawerLayout.closeDrawer(mDrawerView);
 	}
 	
 	public Fragment getCurrentFragment() {
@@ -534,6 +556,32 @@ public class HomeActivity extends ActionBarActivity implements DataLoaderListene
 				invalidateContentFrame();
 			}
 		});
+	}
+	
+	private void invalidateProfile() {
+		if (mProfile == null) {
+			mProfile = Profile.getDefaultProfile();
+			mProfile.setOnProfileChangedListener(new Profile.OnProfileChangedListener() {
+				@Override
+				public void onProfileChanged() {
+					invalidateProfile();
+				}
+			});
+		}
+		ImageView mProfileImage = (ImageView) findViewById(R.id.drawer_profile_picture);
+		mProfileImage.setImageDrawable( mProfile.getIcon());
+		TextView mProfileName = (TextView) findViewById(R.id.drawer_profile_name);
+		mProfileName.setTypeface(null, Typeface.BOLD);
+		TextView mProfileEmail = (TextView) findViewById(R.id.drawer_profile_email);
+		mProfileEmail.setTypeface(null, Typeface.ITALIC);
+
+		if (mProfile.isLoggedIn()) {
+			mProfileName.setText(mProfile.getName());
+			mProfileEmail.setText(mProfile.getEmail());
+		} else {
+			mProfileName.setText(R.string.signin);
+			mProfileEmail.setText("");
+		}
 	}
 	
 	private void exitApplication() {

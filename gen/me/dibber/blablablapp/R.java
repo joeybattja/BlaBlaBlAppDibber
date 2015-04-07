@@ -2106,22 +2106,27 @@ containing a value of this type.
         public static final int common_signin_btn_text_normal_light=0x7f02004b;
         public static final int common_signin_btn_text_pressed_dark=0x7f02004c;
         public static final int common_signin_btn_text_pressed_light=0x7f02004d;
-        public static final int ic_action_favo=0x7f02004e;
-        public static final int ic_action_no_favo=0x7f02004f;
-        public static final int ic_action_refresh=0x7f020050;
-        public static final int ic_action_search=0x7f020051;
-        public static final int ic_action_share=0x7f020052;
-        public static final int ic_launcher=0x7f020053;
-        public static final int ic_plusone_medium_off_client=0x7f020054;
-        public static final int ic_plusone_small_off_client=0x7f020055;
-        public static final int ic_plusone_standard_off_client=0x7f020056;
-        public static final int ic_plusone_tall_off_client=0x7f020057;
-        public static final int image_background=0x7f020058;
-        public static final int item_curved_corners=0x7f020059;
-        public static final int logo_color=0x7f02005a;
-        public static final int logo_grey=0x7f02005b;
-        public static final int powered_by_google_dark=0x7f02005c;
-        public static final int powered_by_google_light=0x7f02005d;
+        public static final int facebook_icon_125x125=0x7f02004e;
+        public static final int googleplus_icon_125x125=0x7f02004f;
+        public static final int ic_action_favo=0x7f020050;
+        public static final int ic_action_no_favo=0x7f020051;
+        public static final int ic_action_person=0x7f020052;
+        public static final int ic_action_refresh=0x7f020053;
+        public static final int ic_action_search=0x7f020054;
+        public static final int ic_action_share=0x7f020055;
+        public static final int ic_launcher=0x7f020056;
+        public static final int ic_plusone_medium_off_client=0x7f020057;
+        public static final int ic_plusone_small_off_client=0x7f020058;
+        public static final int ic_plusone_standard_off_client=0x7f020059;
+        public static final int ic_plusone_tall_off_client=0x7f02005a;
+        public static final int image_background=0x7f02005b;
+        public static final int item_curved_corners=0x7f02005c;
+        public static final int linkedin_icon_125x125=0x7f02005d;
+        public static final int logo_color=0x7f02005e;
+        public static final int logo_grey=0x7f02005f;
+        public static final int powered_by_google_dark=0x7f020060;
+        public static final int powered_by_google_light=0x7f020061;
+        public static final int twitter_icon_125x125=0x7f020062;
     }
     public static final class id {
         public static final int action_bar=0x7f0d0047;
@@ -2149,9 +2154,9 @@ containing a value of this type.
         public static final int checkbox=0x7f0d003f;
         public static final int classic=0x7f0d001f;
         public static final int collapseActionView=0x7f0d002b;
-        public static final int comment_Commentsframe=0x7f0d005b;
-        public static final int comment_CountText=0x7f0d005a;
-        public static final int comment_LeaveReplyText=0x7f0d005c;
+        public static final int comment_Commentsframe=0x7f0d006b;
+        public static final int comment_CountText=0x7f0d006a;
+        public static final int comment_LeaveReplyText=0x7f0d006c;
         public static final int content_frame=0x7f0d0056;
         public static final int decor_content_parent=0x7f0d0045;
         public static final int default_activity_button=0x7f0d003a;
@@ -2159,13 +2164,19 @@ containing a value of this type.
         public static final int disableHome=0x7f0d0024;
         public static final int donate_with_google=0x7f0d001e;
         public static final int drawer_layout=0x7f0d0055;
+        public static final int drawer_list=0x7f0d005c;
+        public static final int drawer_profile=0x7f0d0058;
+        public static final int drawer_profile_email=0x7f0d005b;
+        public static final int drawer_profile_name=0x7f0d005a;
+        public static final int drawer_profile_picture=0x7f0d0059;
+        public static final int drawer_view=0x7f0d0057;
         public static final int dropdown=0x7f0d0030;
         public static final int edit_query=0x7f0d0049;
         public static final int end=0x7f0d0032;
         public static final int expand_activities_button=0x7f0d0038;
         public static final int expanded_menu=0x7f0d003e;
         public static final int grayscale=0x7f0d0020;
-        public static final int gridview_post_overview=0x7f0d006c;
+        public static final int gridview_post_overview=0x7f0d007c;
         public static final int holo_dark=0x7f0d0012;
         public static final int holo_light=0x7f0d0013;
         public static final int home=0x7f0d0000;
@@ -2174,54 +2185,64 @@ containing a value of this type.
         public static final int icon=0x7f0d003c;
         public static final int ifRoom=0x7f0d002c;
         public static final int image=0x7f0d0039;
-        public static final int imageViewLogo=0x7f0d0058;
-        public static final int img_fullscreen=0x7f0d0059;
-        public static final int item_comment_author=0x7f0d006f;
-        public static final int item_comment_bottomline=0x7f0d0072;
-        public static final int item_comment_content=0x7f0d0071;
-        public static final int item_comment_date=0x7f0d0070;
-        public static final int item_comment_indent=0x7f0d006e;
-        public static final int left_drawer=0x7f0d0057;
+        public static final int imageViewLogo=0x7f0d005d;
+        public static final int img_fullscreen=0x7f0d005e;
+        public static final int item_comment_author=0x7f0d007f;
+        public static final int item_comment_bottomline=0x7f0d0082;
+        public static final int item_comment_content=0x7f0d0081;
+        public static final int item_comment_date=0x7f0d0080;
+        public static final int item_comment_indent=0x7f0d007e;
         public static final int listMode=0x7f0d0022;
-        public static final int list_favoIcon=0x7f0d0078;
-        public static final int list_image=0x7f0d0074;
+        public static final int list_favoIcon=0x7f0d0088;
+        public static final int list_image=0x7f0d0084;
         public static final int list_item=0x7f0d003b;
-        public static final int list_meta=0x7f0d0077;
-        public static final int list_short_content=0x7f0d0079;
-        public static final int list_text=0x7f0d0075;
-        public static final int list_title=0x7f0d0076;
-        public static final int list_youtube=0x7f0d0073;
+        public static final int list_meta=0x7f0d0087;
+        public static final int list_short_content=0x7f0d0089;
+        public static final int list_text=0x7f0d0085;
+        public static final int list_title=0x7f0d0086;
+        public static final int list_youtube=0x7f0d0083;
+        public static final int login_email=0x7f0d0065;
+        public static final int login_facebook=0x7f0d005f;
+        public static final int login_googleplus=0x7f0d0060;
+        public static final int login_linkedin=0x7f0d0062;
+        public static final int login_signinManually=0x7f0d0063;
+        public static final int login_twitter=0x7f0d0061;
+        public static final int login_username=0x7f0d0064;
+        public static final int manuallyCreated_email=0x7f0d0069;
+        public static final int manuallyCreated_extraText=0x7f0d0066;
+        public static final int manuallyCreated_profilePic=0x7f0d0067;
+        public static final int manuallyCreated_username=0x7f0d0068;
         public static final int match_parent=0x7f0d0019;
         public static final int middle=0x7f0d0033;
         public static final int monochrome=0x7f0d0021;
         public static final int never=0x7f0d002d;
-        public static final int newComment_comment=0x7f0d0061;
-        public static final int newComment_email=0x7f0d005f;
-        public static final int newComment_form=0x7f0d005d;
-        public static final int newComment_name=0x7f0d005e;
-        public static final int newComment_submitButton=0x7f0d0062;
-        public static final int newComment_website=0x7f0d0060;
+        public static final int newComment_comment=0x7f0d0071;
+        public static final int newComment_email=0x7f0d006f;
+        public static final int newComment_form=0x7f0d006d;
+        public static final int newComment_name=0x7f0d006e;
+        public static final int newComment_submitButton=0x7f0d0072;
+        public static final int newComment_website=0x7f0d0070;
         public static final int none=0x7f0d000d;
         public static final int normal=0x7f0d000f;
-        public static final int number_picker=0x7f0d007a;
-        public static final int page_progressbar=0x7f0d0064;
-        public static final int page_webView=0x7f0d0063;
-        public static final int postCommentFrame=0x7f0d006b;
-        public static final int postContent=0x7f0d006a;
-        public static final int postFavoIcon=0x7f0d0067;
-        public static final int postImageView=0x7f0d0069;
-        public static final int postMeta=0x7f0d0066;
-        public static final int postTitle=0x7f0d0065;
-        public static final int postYouTubeFrame=0x7f0d0068;
-        public static final int post_pager=0x7f0d006d;
+        public static final int number_picker=0x7f0d008a;
+        public static final int page_progressbar=0x7f0d0074;
+        public static final int page_webView=0x7f0d0073;
+        public static final int postCommentFrame=0x7f0d007b;
+        public static final int postContent=0x7f0d007a;
+        public static final int postFavoIcon=0x7f0d0077;
+        public static final int postImageView=0x7f0d0079;
+        public static final int postMeta=0x7f0d0076;
+        public static final int postTitle=0x7f0d0075;
+        public static final int postYouTubeFrame=0x7f0d0078;
+        public static final int post_pager=0x7f0d007d;
         public static final int production=0x7f0d0014;
         public static final int progress_circular=0x7f0d0007;
         public static final int progress_horizontal=0x7f0d0008;
         public static final int radio=0x7f0d0041;
-        public static final int refresh=0x7f0d007c;
+        public static final int refresh=0x7f0d008c;
         public static final int sandbox=0x7f0d0015;
         public static final int satellite=0x7f0d0010;
-        public static final int search=0x7f0d007b;
+        public static final int search=0x7f0d008b;
         public static final int search_badge=0x7f0d004b;
         public static final int search_bar=0x7f0d004a;
         public static final int search_button=0x7f0d004c;
@@ -2233,8 +2254,8 @@ containing a value of this type.
         public static final int search_src_text=0x7f0d0050;
         public static final int search_voice_btn=0x7f0d0054;
         public static final int selectionDetails=0x7f0d0018;
-        public static final int settings=0x7f0d007e;
-        public static final int share=0x7f0d007d;
+        public static final int settings=0x7f0d008e;
+        public static final int share=0x7f0d008d;
         public static final int shortcut=0x7f0d0040;
         public static final int showCustom=0x7f0d0026;
         public static final int showHome=0x7f0d0027;
@@ -2306,16 +2327,18 @@ containing a value of this type.
         public static final int activity_home=0x7f030018;
         public static final int activity_start=0x7f030019;
         public static final int activity_view_image_full_screen=0x7f03001a;
-        public static final int drawer_list_item=0x7f03001b;
-        public static final int fragment_comments=0x7f03001c;
-        public static final int fragment_page=0x7f03001d;
-        public static final int fragment_post_details=0x7f03001e;
-        public static final int fragment_post_overview=0x7f03001f;
-        public static final int fragment_post_pager=0x7f030020;
-        public static final int item_comment=0x7f030021;
-        public static final int item_post_overview=0x7f030022;
-        public static final int number_picker_dialog=0x7f030023;
-        public static final int support_simple_spinner_dropdown_item=0x7f030024;
+        public static final int dialog_profile_login=0x7f03001b;
+        public static final int dialog_profile_manually_created=0x7f03001c;
+        public static final int drawer_list_item=0x7f03001d;
+        public static final int fragment_comments=0x7f03001e;
+        public static final int fragment_page=0x7f03001f;
+        public static final int fragment_post_details=0x7f030020;
+        public static final int fragment_post_overview=0x7f030021;
+        public static final int fragment_post_pager=0x7f030022;
+        public static final int item_comment=0x7f030023;
+        public static final int item_post_overview=0x7f030024;
+        public static final int number_picker_dialog=0x7f030025;
+        public static final int support_simple_spinner_dropdown_item=0x7f030026;
     }
     public static final class menu {
         public static final int options_menu=0x7f0f0000;
@@ -2405,11 +2428,12 @@ containing a value of this type.
  Post 
  Post 
          */
-        public static final int author_name=0x7f080041;
-        public static final int comment_comment=0x7f08004e;
-        public static final int comment_email=0x7f08004c;
-        public static final int comment_name=0x7f08004b;
-        public static final int comment_website=0x7f08004d;
+        public static final int author_name=0x7f080049;
+        public static final int cancel=0x7f080051;
+        public static final int comment_comment=0x7f080057;
+        public static final int comment_email=0x7f080055;
+        public static final int comment_name=0x7f080054;
+        public static final int comment_website=0x7f080056;
         /**   Text for notification shown when the Android Wear apps needs to be updated. Only shown on the wearable. [CHAR LIMIT=NONE] 
          */
         public static final int common_android_wear_notification_needs_update_text=0x7f080009;
@@ -2514,35 +2538,45 @@ containing a value of this type.
         public static final int decline=0x7f080003;
         public static final int drawer_close=0x7f080035;
         public static final int drawer_open=0x7f080034;
-        public static final int leave_a_reply=0x7f080049;
+        public static final int leave_a_reply=0x7f080052;
+        public static final int login_dialog=0x7f080044;
+        public static final int login_email=0x7f080046;
+        public static final int login_signinManually=0x7f080047;
+        public static final int login_username=0x7f080045;
         public static final int logo=0x7f080036;
-        public static final int no=0x7f080047;
+        public static final int manuallyCreated_extraText=0x7f080048;
+        public static final int no=0x7f08004f;
         /**  Error messages 
  Error messages 
  Error messages 
          */
-        public static final int no_connection=0x7f080042;
-        public static final int no_connection_dialog_message=0x7f080044;
-        public static final int no_connection_dialog_title=0x7f080043;
+        public static final int no_connection=0x7f08004a;
+        public static final int no_connection_dialog_message=0x7f08004c;
+        public static final int no_connection_dialog_title=0x7f08004b;
         /**  Notifications 
  Notifications 
  Notifications 
          */
-        public static final int notify_new_posts=0x7f08004f;
-        public static final int ok=0x7f080048;
+        public static final int notify_new_posts=0x7f080058;
+        public static final int ok=0x7f080050;
         /**  Settings 
  Settings 
  Settings 
          */
-        public static final int pref_notifications=0x7f080050;
-        public static final int pref_storage=0x7f080054;
-        public static final int pref_sum_max_post_stored=0x7f080058;
-        public static final int pref_sum_notify_messages=0x7f080053;
-        public static final int pref_sum_use_storage=0x7f080056;
-        public static final int pref_title_max_post_stored=0x7f080057;
-        public static final int pref_title_notify_messages=0x7f080052;
-        public static final int pref_title_notify_new_posts=0x7f080051;
-        public static final int pref_title_use_storage=0x7f080055;
+        public static final int pref_notifications=0x7f080059;
+        public static final int pref_storage=0x7f08005d;
+        public static final int pref_sum_max_post_stored=0x7f080061;
+        public static final int pref_sum_notify_messages=0x7f08005c;
+        public static final int pref_sum_use_storage=0x7f08005f;
+        public static final int pref_title_max_post_stored=0x7f080060;
+        public static final int pref_title_notify_messages=0x7f08005b;
+        public static final int pref_title_notify_new_posts=0x7f08005a;
+        public static final int pref_title_use_storage=0x7f08005e;
+        /**   Profile 
+  Profile 
+  Profile 
+         */
+        public static final int profile=0x7f080041;
         public static final int refresh=0x7f08003d;
         public static final int search_hint=0x7f08003c;
         /**  Menu 
@@ -2553,15 +2587,17 @@ containing a value of this type.
         public static final int settings=0x7f080040;
         public static final int share=0x7f08003e;
         public static final int share_title=0x7f08003f;
+        public static final int signin=0x7f080042;
+        public static final int signout=0x7f080043;
         public static final int store_picture_message=0x7f080001;
         public static final int store_picture_title=0x7f080000;
-        public static final int submit_comment=0x7f08004a;
-        public static final int unsupported_version_dialog_message=0x7f080045;
+        public static final int submit_comment=0x7f080053;
+        public static final int unsupported_version_dialog_message=0x7f08004d;
         /**  Text on a placeholder buy button when Google Play services is not
          available or up-to-date 
          */
         public static final int wallet_buy_button_place_holder=0x7f080022;
-        public static final int yes=0x7f080046;
+        public static final int yes=0x7f08004e;
     }
     public static final class style {
         /** 

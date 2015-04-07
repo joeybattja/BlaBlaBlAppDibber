@@ -16,6 +16,7 @@ public class SettingsActivity extends ActionBarActivity {
 	
 	private final static int FRAME_ID = 9135;
 	
+	@Override
 	public void onCreate(Bundle savedInstanceState) {
 	    super.onCreate(savedInstanceState);
 	    getSupportActionBar().setTitle(R.string.settings);
