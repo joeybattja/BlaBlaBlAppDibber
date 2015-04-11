@@ -113,6 +113,7 @@ public class HomeActivity extends ActionBarActivity implements DataLoaderListene
 				mProfile.openDialog(getSupportFragmentManager());
 			}
 		});
+        setThisAsCurrentHomeActivity();
         if (savedInstanceState != null) {
 	        currentPost = savedInstanceState.getInt(CURRENT_POST);
 	    	currentPage = savedInstanceState.getInt(CURRENT_PAGE);
@@ -127,7 +128,7 @@ public class HomeActivity extends ActionBarActivity implements DataLoaderListene
 	@Override
 	protected void onResume() {
 		super.onResume();
-		((GlobalState)GlobalState.getContext()).setCurrentHomeActivity(this);
+		setThisAsCurrentHomeActivity();
 		if (!((GlobalState)GlobalState.getContext()).isRefreshing() && refresh != null && refresh.getActionView() != null) {
 			refresh.setActionView(null);
 		}
@@ -144,13 +145,6 @@ public class HomeActivity extends ActionBarActivity implements DataLoaderListene
 		clearHomeActivityReference();
 		releaseYoutubeLoaders();
 		super.onDestroy();
-	}
-	
-	private void clearHomeActivityReference() {
-		HomeActivity ha = ((GlobalState)GlobalState.getContext()).getCurrentHomeActivity();
-		if (ha != null && ha.equals(this)) {
-			((GlobalState)GlobalState.getContext()).setCurrentHomeActivity(null);
-		}
 	}
 	
 	private void releaseYoutubeLoaders() {
@@ -402,6 +396,11 @@ public class HomeActivity extends ActionBarActivity implements DataLoaderListene
 		default:
 			break;
 		}
+		replaceFragment(fragment);
+	    mDrawerLayout.closeDrawer(mDrawerView);
+	}
+	
+	private synchronized void replaceFragment(Fragment fragment) {
 		if (fragment != null && this.equals(((GlobalState)GlobalState.getContext()).getCurrentHomeActivity())) {
 			FragmentManager fragmentManager = getSupportFragmentManager();
 			fragmentManager.beginTransaction()
@@ -409,7 +408,17 @@ public class HomeActivity extends ActionBarActivity implements DataLoaderListene
 		                   .addToBackStack(null)
 		                   .commit();
 		}
-	    mDrawerLayout.closeDrawer(mDrawerView);
+	}
+	
+	private synchronized void setThisAsCurrentHomeActivity() {
+        ((GlobalState)GlobalState.getContext()).setCurrentHomeActivity(this);
+	}
+	
+	private synchronized void clearHomeActivityReference() {
+		HomeActivity ha = ((GlobalState)GlobalState.getContext()).getCurrentHomeActivity();
+		if (ha != null && ha.equals(this)) {
+			((GlobalState)GlobalState.getContext()).setCurrentHomeActivity(null);
+		}
 	}
 	
 	public Fragment getCurrentFragment() {
