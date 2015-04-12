@@ -5,6 +5,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 
 import me.dibber.blablablapp.R;
 import android.annotation.SuppressLint;
@@ -28,6 +29,7 @@ import android.provider.MediaStore;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.FragmentManager;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
@@ -156,7 +158,7 @@ public class Profile {
 	private void logout() {
 		mName = "";
 		mEmail = "";
-		mIcon = null;
+		setIcon(null);
 		mProfileType = ProfileType.NOT_LOGGED_IN;
 		commitProfileChange();
 	}
@@ -249,11 +251,14 @@ public class Profile {
 							boolean inputError = false;
 							
 							if (TextUtils.isEmpty(userName.getText().toString()) ) {
-								userName.setError("this cannot be empty");
+								userName.setError(getResources().getString(R.string.is_required));
 								inputError = true;
 							}
 							if (TextUtils.isEmpty(email.getText().toString()) ) {
-								email.setError("this cannot be empty");
+								email.setError(getResources().getString(R.string.is_required));
+								inputError = true;
+							} else if (!android.util.Patterns.EMAIL_ADDRESS.matcher(email.getText()).matches()) {
+								email.setError(getResources().getString(R.string.invalid_email));
 								inputError = true;
 							}
 							if (!inputError) {
@@ -333,11 +338,14 @@ public class Profile {
 							boolean inputError = false;
 							
 							if (TextUtils.isEmpty(userName.getText().toString()) ) {
-								userName.setError("this cannot be empty");
+								userName.setError(getResources().getString(R.string.is_required));
 								inputError = true;
 							}
 							if (TextUtils.isEmpty(email.getText().toString()) ) {
-								email.setError("this cannot be empty");
+								email.setError(getResources().getString(R.string.is_required));
+								inputError = true;
+							} else if (!android.util.Patterns.EMAIL_ADDRESS.matcher(email.getText()).matches()) {
+								email.setError(getResources().getString(R.string.invalid_email));
 								inputError = true;
 							}
 							if (!inputError) {
@@ -375,23 +383,23 @@ public class Profile {
 			this.tag = tag;
 		}
 		
-		private static final int REQ_CODE_PICK_IMAGE = 11;
+		private static final int REQ_CODE_SELECT_CROPPED_IMAGE = 11;
 		private static final String TEMP_PHOTO_FILE = "temp_profile_icon.jpg";  
 		
 		private void selectImage() {
-		    Intent photoPickerIntent = new Intent(Intent.ACTION_GET_CONTENT);
+		    Intent photoPickerIntent = new Intent(Intent.ACTION_PICK, android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
 		    photoPickerIntent.setType("image/*");
 		    photoPickerIntent.putExtra("crop", "true");
-		    photoPickerIntent.putExtra("aspectX", 1);  
-		    photoPickerIntent.putExtra("aspectY", 1);  
-		    photoPickerIntent.putExtra("outputX", 96);  
-			photoPickerIntent.putExtra("outputY", 96);  
+		    photoPickerIntent.putExtra("aspectX", 1);
+		    photoPickerIntent.putExtra("aspectY", 1);
+		    photoPickerIntent.putExtra("outputX", 200);
+			photoPickerIntent.putExtra("outputY", 200);
 			photoPickerIntent.putExtra("noFaceDetection", true);
 			photoPickerIntent.putExtra("scale", true);
-			photoPickerIntent.putExtra("return-data", true);                                  
+			photoPickerIntent.putExtra("return-data", false);
 		    photoPickerIntent.putExtra(MediaStore.EXTRA_OUTPUT, getTempUri());
 		    photoPickerIntent.putExtra("outputFormat", Bitmap.CompressFormat.JPEG.toString());
-		    startActivityForResult(photoPickerIntent, REQ_CODE_PICK_IMAGE);
+		    startActivityForResult(photoPickerIntent, REQ_CODE_SELECT_CROPPED_IMAGE);
 		}
 		
 		
@@ -400,11 +408,13 @@ public class Profile {
 		}
 		
 		private File getTempFile() {
+			
 		    if (Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)) {
 		    	File f = new File(Environment.getExternalStorageDirectory(),TEMP_PHOTO_FILE);
 		    	try {
 		    		f.createNewFile();
 		    	} catch (IOException e) {
+		    		Log.e("IOException on getTempFile", e.toString());
 		    	}
 		    	return f;
 		    } else {
@@ -416,20 +426,43 @@ public class Profile {
 		public void onActivityResult(int requestCode, int resultCode, Intent data) {
 			switch (requestCode) {
 			
-			case REQ_CODE_PICK_IMAGE:
+			case REQ_CODE_SELECT_CROPPED_IMAGE:
 				if (resultCode == Activity.RESULT_OK) {
 					if (data!=null) {
 						File tempFile = getTempFile();
+						Drawable d = null;
 						try {
-							FileInputStream in = new FileInputStream(tempFile);
-							Drawable d = Drawable.createFromStream(in, "src");
-							profilePic.setImageDrawable(d);
-							in.close();
+							FileInputStream filein = new FileInputStream(tempFile);
+							if (filein.available() > 0) {
+								d = Drawable.createFromStream(filein, "src");
+							} else {
+								Uri selectedImageURI = data.getData();
+								if (selectedImageURI != null) {
+									InputStream in = getActivity().getContentResolver().openInputStream(selectedImageURI);
+									d = Drawable.createFromStream(in, "src");
+									in.close();
+								} else {
+									Log.w("error while trying to select a cropped image:", "cannot retrieve image");
+								}
+							}
+							filein.close();
+							
+							
 						} catch (FileNotFoundException e) {
-						} catch (IOException e) {
+							Log.e("FileNotFoundException on cropping image", e.toString());
+						} catch (IOException e1) {
+							Log.e("IOException on cropping image", e1.toString());
 						} finally {
 							tempFile.delete();
 						}
+						if (d != null) {
+							if (d.getIntrinsicHeight() != d.getIntrinsicWidth()) {
+								Bitmap bitmap = ((BitmapDrawable) d).getBitmap();
+								d = new BitmapDrawable(getResources(),Bitmap.createScaledBitmap(bitmap, 200, 200, true));
+							}
+							profilePic.setImageDrawable(d);
+						}
+						
 					}
 				}
 				break;

@@ -28,6 +28,8 @@
 	<string name="login_dialog">Log in met</string>
 	<string name="login_username">Naam</string>
 	<string name="login_email">Emailadres</string>
+	<string name="is_required">Verplicht veld</string>
+	<string name="invalid_email">Ongeldig emailadres</string>
 	<string name="login_signinManually">of geef je naam en emailadres handmatig in:</string>
 	<string name="manuallyCreated_extraText">Wijzig je profielnaam, emailadres en profielfoto. Of log uit.</string>
 			
@@ -42,6 +44,7 @@
     <string name="yes">Ja</string>
     <string name="no">Nee</string>
     <string name="ok">OK</string>
+    <string name="cancel">Annuleren</string>
     
 	<!-- Comments -->
 	<plurals name="nrOfComments">

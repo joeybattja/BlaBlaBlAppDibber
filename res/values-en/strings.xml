@@ -28,6 +28,8 @@
 	<string name="login_dialog">Sign in using</string>
 	<string name="login_username">Name</string>
 	<string name="login_email">Email address</string>
+	<string name="is_required">Cannot be left empty</string>
+	<string name="invalid_email">Please enter a valid email address</string>
 	<string name="login_signinManually">or enter your name and email address manually:</string>
 	<string name="manuallyCreated_extraText">Change your profile name, email or picture. Or logout.</string>
 			
@@ -42,6 +44,7 @@
     <string name="yes">Yes</string>
     <string name="no">No</string>
     <string name="ok">OK</string>
+    <string name="cancel">Cancel</string>
     
 	<!-- Comments -->
 	<plurals name="nrOfComments">

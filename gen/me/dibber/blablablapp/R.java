@@ -2428,12 +2428,12 @@ containing a value of this type.
  Post 
  Post 
          */
-        public static final int author_name=0x7f080049;
-        public static final int cancel=0x7f080051;
-        public static final int comment_comment=0x7f080057;
-        public static final int comment_email=0x7f080055;
-        public static final int comment_name=0x7f080054;
-        public static final int comment_website=0x7f080056;
+        public static final int author_name=0x7f08004b;
+        public static final int cancel=0x7f080053;
+        public static final int comment_comment=0x7f080059;
+        public static final int comment_email=0x7f080057;
+        public static final int comment_name=0x7f080056;
+        public static final int comment_website=0x7f080058;
         /**   Text for notification shown when the Android Wear apps needs to be updated. Only shown on the wearable. [CHAR LIMIT=NONE] 
          */
         public static final int common_android_wear_notification_needs_update_text=0x7f080009;
@@ -2538,40 +2538,42 @@ containing a value of this type.
         public static final int decline=0x7f080003;
         public static final int drawer_close=0x7f080035;
         public static final int drawer_open=0x7f080034;
-        public static final int leave_a_reply=0x7f080052;
+        public static final int invalid_email=0x7f080048;
+        public static final int is_required=0x7f080047;
+        public static final int leave_a_reply=0x7f080054;
         public static final int login_dialog=0x7f080044;
         public static final int login_email=0x7f080046;
-        public static final int login_signinManually=0x7f080047;
+        public static final int login_signinManually=0x7f080049;
         public static final int login_username=0x7f080045;
         public static final int logo=0x7f080036;
-        public static final int manuallyCreated_extraText=0x7f080048;
-        public static final int no=0x7f08004f;
+        public static final int manuallyCreated_extraText=0x7f08004a;
+        public static final int no=0x7f080051;
         /**  Error messages 
  Error messages 
  Error messages 
          */
-        public static final int no_connection=0x7f08004a;
-        public static final int no_connection_dialog_message=0x7f08004c;
-        public static final int no_connection_dialog_title=0x7f08004b;
+        public static final int no_connection=0x7f08004c;
+        public static final int no_connection_dialog_message=0x7f08004e;
+        public static final int no_connection_dialog_title=0x7f08004d;
         /**  Notifications 
  Notifications 
  Notifications 
          */
-        public static final int notify_new_posts=0x7f080058;
-        public static final int ok=0x7f080050;
+        public static final int notify_new_posts=0x7f08005a;
+        public static final int ok=0x7f080052;
         /**  Settings 
  Settings 
  Settings 
          */
-        public static final int pref_notifications=0x7f080059;
-        public static final int pref_storage=0x7f08005d;
-        public static final int pref_sum_max_post_stored=0x7f080061;
-        public static final int pref_sum_notify_messages=0x7f08005c;
-        public static final int pref_sum_use_storage=0x7f08005f;
-        public static final int pref_title_max_post_stored=0x7f080060;
-        public static final int pref_title_notify_messages=0x7f08005b;
-        public static final int pref_title_notify_new_posts=0x7f08005a;
-        public static final int pref_title_use_storage=0x7f08005e;
+        public static final int pref_notifications=0x7f08005b;
+        public static final int pref_storage=0x7f08005f;
+        public static final int pref_sum_max_post_stored=0x7f080063;
+        public static final int pref_sum_notify_messages=0x7f08005e;
+        public static final int pref_sum_use_storage=0x7f080061;
+        public static final int pref_title_max_post_stored=0x7f080062;
+        public static final int pref_title_notify_messages=0x7f08005d;
+        public static final int pref_title_notify_new_posts=0x7f08005c;
+        public static final int pref_title_use_storage=0x7f080060;
         /**   Profile 
   Profile 
   Profile 
@@ -2591,13 +2593,13 @@ containing a value of this type.
         public static final int signout=0x7f080043;
         public static final int store_picture_message=0x7f080001;
         public static final int store_picture_title=0x7f080000;
-        public static final int submit_comment=0x7f080053;
-        public static final int unsupported_version_dialog_message=0x7f08004d;
+        public static final int submit_comment=0x7f080055;
+        public static final int unsupported_version_dialog_message=0x7f08004f;
         /**  Text on a placeholder buy button when Google Play services is not
          available or up-to-date 
          */
         public static final int wallet_buy_button_place_holder=0x7f080022;
-        public static final int yes=0x7f08004e;
+        public static final int yes=0x7f080050;
     }
     public static final class style {
         /** 
