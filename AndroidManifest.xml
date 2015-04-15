@@ -44,7 +44,6 @@
         </activity>
         <activity android:name="me.dibber.blablablapp.activities.ViewImageFullScreenActivity" />
         <activity android:name="me.dibber.blablablapp.activities.SettingsActivity" />
-        <activity android:name="me.dibber.blablablapp.activities.ProfileActivity" />
         
         <meta-data android:name="com.google.android.gms.version" 
             android:value="@integer/google_play_services_version" />
