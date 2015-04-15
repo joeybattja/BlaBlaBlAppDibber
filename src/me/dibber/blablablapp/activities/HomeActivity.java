@@ -44,6 +44,13 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.facebook.CallbackManager;
+import com.facebook.FacebookCallback;
+import com.facebook.FacebookException;
+import com.facebook.FacebookSdk;
+import com.facebook.ProfileTracker;
+import com.facebook.login.LoginManager;
+import com.facebook.login.LoginResult;
 import com.google.android.youtube.player.YouTubeThumbnailLoader;
 
 public class HomeActivity extends ActionBarActivity implements DataLoaderListener {
@@ -68,6 +75,9 @@ public class HomeActivity extends ActionBarActivity implements DataLoaderListene
     private LinearLayout mDrawerProfile;
     private Profile mProfile;
     public enum ContentFrameType {PAGE,POST}
+    
+    private CallbackManager mCallbackMan;
+    private ProfileTracker mProfileTracker;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -110,9 +120,49 @@ public class HomeActivity extends ActionBarActivity implements DataLoaderListene
 				if (mProfile == null) {
 					invalidateProfile();
 				}
-				mProfile.openDialog(getSupportFragmentManager());
+				mProfile.openDialog();
 			}
 		});
+        FacebookSdk.sdkInitialize(GlobalState.getContext());
+		mProfileTracker = new ProfileTracker() {
+
+			@Override
+			protected void onCurrentProfileChanged(com.facebook.Profile oldProfile,	com.facebook.Profile currentProfile) {
+				if (mProfile == null) {
+					invalidateProfile();
+				}
+				com.facebook.Profile profile = com.facebook.Profile.getCurrentProfile();
+				if (profile != null) {
+					mProfile.loginFaceBook(profile);
+				}
+			}
+        };
+        mProfileTracker.startTracking();
+
+        mCallbackMan = CallbackManager.Factory.create();
+        LoginManager.getInstance().registerCallback(mCallbackMan, new FacebookCallback<LoginResult>() {
+			
+			@Override
+			public void onSuccess(LoginResult result) {
+				if (mProfile == null) {
+					invalidateProfile();
+				}
+				com.facebook.Profile profile = com.facebook.Profile.getCurrentProfile();
+				if (profile != null) {
+					mProfile.loginFaceBook(profile);
+				}
+			}
+			
+			@Override
+			public void onError(FacebookException error) {
+
+				Log.e("FacebookException: ", error.toString());
+			}
+			
+			@Override
+			public void onCancel() {
+			}
+		});;
         setThisAsCurrentHomeActivity();
         if (savedInstanceState != null) {
 	        currentPost = savedInstanceState.getInt(CURRENT_POST);
@@ -125,6 +175,18 @@ public class HomeActivity extends ActionBarActivity implements DataLoaderListene
         }
 	}
 	
+	
+	
+	@Override
+	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+		super.onActivityResult(requestCode, resultCode, data);
+		if (mCallbackMan != null) {
+			mCallbackMan.onActivityResult(requestCode, resultCode, data);
+		}
+	}
+
+
+
 	@Override
 	protected void onResume() {
 		super.onResume();
@@ -144,6 +206,7 @@ public class HomeActivity extends ActionBarActivity implements DataLoaderListene
 	protected void onDestroy() {
 		clearHomeActivityReference();
 		releaseYoutubeLoaders();
+		mProfileTracker.stopTracking();
 		super.onDestroy();
 	}
 	

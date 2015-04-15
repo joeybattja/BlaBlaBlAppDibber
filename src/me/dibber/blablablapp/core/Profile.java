@@ -6,6 +6,11 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URL;
+import java.util.Arrays;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import me.dibber.blablablapp.R;
 import android.annotation.SuppressLint;
@@ -27,7 +32,6 @@ import android.os.Environment;
 import android.preference.PreferenceManager;
 import android.provider.MediaStore;
 import android.support.v4.app.DialogFragment;
-import android.support.v4.app.FragmentManager;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -37,6 +41,12 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.facebook.AccessToken;
+import com.facebook.GraphRequest;
+import com.facebook.GraphRequest.GraphJSONObjectCallback;
+import com.facebook.GraphResponse;
+import com.facebook.login.LoginManager;
+
 public class Profile {
 	
 	public enum ProfileType {NOT_LOGGED_IN,MANUALLY_CREATED,FACEBOOK,TWITTER,GOOGLEPLUS};
@@ -44,7 +54,10 @@ public class Profile {
 	private static final String PREFERENCE_PROFILETYPE = "pref_profile_type";
 	private static final String PREFERENCE_PROFILE_NAME = "pref_profile_name";
 	private static final String PREFERENCE_PROFILE_EMAIL = "pref_profile_email";
-		private static final String PROFILE_ICON_FILE = "profile_icon.jpg";
+	private static final String PROFILE_ICON_FILE = "profile_icon.jpg";
+	
+	private static final String FACEBOOK_PERMISSIONS = "email";
+
 	
 	private static Profile defaultProfile;
 	
@@ -54,7 +67,7 @@ public class Profile {
 	private String mName;
 	private String mEmail;
 	private ProfileType mProfileType;
-	private OnProfileChangedListener listener;
+	private OnProfileChangedListener listener;	
 	
 	private Profile() { }
 	
@@ -170,6 +183,55 @@ public class Profile {
 		commitProfileChange();
 	}
 	
+	public void loginFaceBook(com.facebook.Profile profile) {
+		mName = profile.getName();
+		mProfileType = ProfileType.FACEBOOK;
+		final Uri profileImage = profile.getProfilePictureUri(200, 200);
+		
+		GraphRequest request = GraphRequest.newMeRequest(AccessToken.getCurrentAccessToken(), new GraphJSONObjectCallback() {
+			
+			@Override
+			public void onCompleted(JSONObject object, GraphResponse response) {
+				if (response.getError() == null) {
+					try {
+						mEmail = object.getString("email");
+						commitProfileChange();
+					} catch (JSONException e) {
+						Log.w("JSONException while trying to retrieve facebook email address: ", e.toString());
+					}
+				} else {
+					Log.w("FacebookRequestError while trying to retrieve email address: ", response.getError().toString());
+				}
+			}
+		});
+		Bundle params = request.getParameters();
+		params.putString("fields", "email");
+		request.setParameters(params);
+		request.executeAsync();
+		
+		Thread t = new Thread(new Runnable() {
+			
+			@Override
+			public void run() {
+				try {
+					URL url = new URL(profileImage.toString());
+					InputStream in = url.openStream();
+					setIcon(Drawable.createFromStream(in, "src"));
+					in.close();
+				} catch (FileNotFoundException e) {
+					Log.e("FileNotFoundException on getting Facebook profile image", e.toString());
+				} catch (IOException e1) {
+					Log.e("IOException on getting Facebook profile image", e1.toString());
+				}
+				commitProfileChange();
+			}
+		});
+		t.start();
+		
+		
+		commitProfileChange();
+	}
+	
 	private void commitProfileChange() {
 		SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(GlobalState.getContext());
 		SharedPreferences.Editor editor = prefs.edit();
@@ -178,23 +240,33 @@ public class Profile {
 		editor.putString(prefix + PREFERENCE_PROFILETYPE,mProfileType.toString());
 		editor.commit();
 		if (listener != null) {
-			listener.onProfileChanged();
+			((GlobalState)GlobalState.getContext()).getCurrentHomeActivity().runOnUiThread(new Runnable() {
+				
+				@Override
+				public void run() {
+					listener.onProfileChanged();
+				}
+			});
 		}
 	}
 	
-	public void openDialog(FragmentManager fragmentmanager) {
+	public void openDialog() {
+		GlobalState globalState = (GlobalState) GlobalState.getContext();
+		
 		switch (mProfileType) {
 		case FACEBOOK:
+			FacebookDialog dialogFaceBook = new FacebookDialog();
+			dialogFaceBook.show(globalState.getCurrentHomeActivity().getSupportFragmentManager(), "facebookDialog");
 			break;
 		case GOOGLEPLUS:
 			break;
 		case MANUALLY_CREATED:
 			ManuallyCreatedProfileDialog dialogManual = new ManuallyCreatedProfileDialog();
-			dialogManual.show(fragmentmanager, "loginDialog");
+			dialogManual.show(globalState.getCurrentHomeActivity().getSupportFragmentManager(), "manuallyCreatedProfileDialog");
 			break;
 		case NOT_LOGGED_IN:
 			LoginDialog dialogLogin = new LoginDialog();
-			dialogLogin.show(fragmentmanager, "loginDialog");
+			dialogLogin.show(globalState.getCurrentHomeActivity().getSupportFragmentManager(), "loginDialog");
 			break;
 		case TWITTER:
 			break;
@@ -219,6 +291,8 @@ public class Profile {
 		TextView extraText;
 		String tag;
 		
+		ImageView faceBookLogin;
+		
 		@Override
 		public Dialog onCreateDialog(Bundle savedInstanceState) {
 			AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
@@ -236,6 +310,18 @@ public class Profile {
 			email.setText(getProfile().getEmail());
 			extraText.setTypeface(null, Typeface.ITALIC);
 			extraText.setText(R.string.login_signinManually);
+			
+			faceBookLogin = (ImageView) view.findViewById(R.id.login_facebook);
+			faceBookLogin.setOnClickListener(new View.OnClickListener() {
+				
+				@Override
+				public void onClick(View v) {
+					LoginManager loginMan = LoginManager.getInstance();
+					loginMan.logInWithReadPermissions(getActivity(), Arrays.asList(FACEBOOK_PERMISSIONS));
+					d.dismiss();
+				}
+			});
+			
 			
 			
 			d.setOnShowListener(new DialogInterface.OnShowListener() {
@@ -265,6 +351,68 @@ public class Profile {
 								getProfile().loginManual(userName.getText().toString(), email.getText().toString());
 								d.dismiss();
 							}
+						}
+					});
+					
+				}
+			});
+			return d;
+		}
+		
+		private Profile getProfile() {
+			if (tag == null) {
+				return getDefaultProfile();
+			} else {
+				return getProfileByTag(tag);
+			}
+		}
+		
+		public void setTag(String tag) {
+			this.tag = tag;
+		}
+	}
+	
+	@SuppressLint("InflateParams")
+	public static class FacebookDialog extends DialogFragment {
+		
+		TextView userName;
+		TextView email;
+		ImageView profilePic;
+		String tag;
+		
+		@Override
+		public Dialog onCreateDialog(Bundle savedInstanceState) {
+			AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+			LayoutInflater inflater = getActivity().getLayoutInflater();
+			View view = inflater.inflate(R.layout.dialog_profile_facebook, null);
+			userName = (TextView) view.findViewById(R.id.facebook_username);
+			email = (TextView) view.findViewById(R.id.facebook_email);
+			profilePic = (ImageView) view.findViewById(R.id.facebook_profilePic);
+			final AlertDialog d = builder.setView(view)
+				   .setTitle(R.string.facebook_profile)
+				   .setPositiveButton(R.string.signout, null)
+				   .setNegativeButton(R.string.cancel, null)
+				   .create();
+			userName.setTypeface(null, Typeface.BOLD);
+			userName.setText(getProfile().getName());
+			email.setText(getProfile().getEmail());
+			profilePic.setAdjustViewBounds(true);
+			profilePic.setImageDrawable(getProfile().getIcon());
+			
+			d.setOnShowListener(new DialogInterface.OnShowListener() {
+				
+				@Override
+				public void onShow(DialogInterface dialog) {
+					
+					Button signoutButton = d.getButton(AlertDialog.BUTTON_POSITIVE);
+					signoutButton.setOnClickListener(new View.OnClickListener() {
+						
+						@Override
+						public void onClick(View v) {
+							LoginManager loginMan = LoginManager.getInstance();
+							loginMan.logOut();
+							getProfile().logout();
+							d.dismiss();
 						}
 					});
 					
