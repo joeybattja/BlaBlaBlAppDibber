@@ -11,6 +11,7 @@ import java.net.URL;
 import me.dibber.blablablapp.core.AppConfig;
 import me.dibber.blablablapp.core.DataLoader;
 import me.dibber.blablablapp.core.GlobalState;
+import me.dibber.blablablapp.core.Notifications;
 import me.dibber.blablablapp.core.PostCollection;
 import me.dibber.blablablapp.core.AppConfig.Function;
 import me.dibber.blablablapp.core.PostCollection.DrawableType;

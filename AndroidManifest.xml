@@ -50,14 +50,14 @@
             android:value="@integer/google_play_services_version" />
         
         <receiver
-            android:name=".Notifications$NotificationBroadcastReceiver"
+            android:name="me.dibber.blablablapp.core.Notifications$NotificationBroadcastReceiver"
             android:permission="com.google.android.c2dm.permission.SEND" >
             <intent-filter>
                 <action android:name="com.google.android.c2dm.intent.RECEIVE" />
                 <category android:name="me.dibber.blablablapp" />
             </intent-filter>
         </receiver>
-        <service android:name=".Notifications$NotificationIntentService" />
+        <service android:name="me.dibber.blablablapp.core.Notifications$NotificationIntentService" />
         
     </application>
 

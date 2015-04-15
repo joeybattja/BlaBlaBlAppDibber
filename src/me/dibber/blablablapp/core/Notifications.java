@@ -1,12 +1,10 @@
-package me.dibber.blablablapp.activities;
+package me.dibber.blablablapp.core;
 
 import java.net.MalformedURLException;
 
 import me.dibber.blablablapp.R;
-import me.dibber.blablablapp.core.AppConfig;
-import me.dibber.blablablapp.core.DataLoader;
-import me.dibber.blablablapp.core.GlobalState;
-import me.dibber.blablablapp.core.PostCollection;
+import me.dibber.blablablapp.activities.PostOverviewFragment;
+import me.dibber.blablablapp.activities.StartActivity;
 import me.dibber.blablablapp.core.AppConfig.Function;
 import me.dibber.blablablapp.core.DataLoader.DataLoaderListener;
 import android.app.Activity;
@@ -62,7 +60,9 @@ public class Notifications {
 
 		@Override
 		protected void onHandleIntent(Intent intent) {
+			Log.i("Notification", "Notification received");
 			if (!((GlobalState)GlobalState.getContext()).optionNotifications()) {
+				Log.i("Notification", "notification option deactivated");
 				notifyDone(intent);
 				return;
 			}
@@ -84,6 +84,7 @@ public class Notifications {
 		}
 		
 		private void postMessage(String title, String content) {
+			Log.i("Notification", "new message: " + title);
 			if (PreferenceManager.getDefaultSharedPreferences(this).getBoolean("pref_notifications_messages", true)) {
 				PendingIntent notifyIntent =  PendingIntent.getActivity(this, 0, new Intent(this, StartActivity.class), 0);
 	
@@ -98,6 +99,8 @@ public class Notifications {
 				
 				NotificationManager mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
 				mNotificationManager.notify(NOTIFICATION_ID_MESSAGES, mNotifBuilder.build());
+			} else {
+				Log.i("Notification", "Receive news messages option deactivated");
 			}
 		}
 		
@@ -108,9 +111,11 @@ public class Notifications {
 				return;
 			}
 			if (!PreferenceManager.getDefaultSharedPreferences(this).getBoolean("pref_notifications_new_posts", true) ){
+				Log.i("Notification", "Receive new posts messages option deactivated");
 				notifyDone(intent);
 				return;
 			}
+			Log.i("Notification", "Checking for new posts...");
 			SharedPreferences prefs = ((GlobalState)GlobalState.getContext()).getSharedPreferences(PostOverviewFragment.PREF_POSTDATA,Context.MODE_PRIVATE);
 			mostRecentPost = prefs.getInt(PostOverviewFragment.PREF_MOST_RECENT_POST, 0);
 			
@@ -129,8 +134,10 @@ public class Notifications {
 					}
 					int index = newPc.getAllPosts().indexOf(mostRecentPost);
 					if (index < 1) {
+						Log.i("Notification", "No new posts");
 						return;
 					}
+					Log.i("Notification", index + " new posts");
 					PendingIntent notifyIntent;
 					String title;
 					String content;
