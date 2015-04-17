@@ -42,10 +42,16 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.facebook.AccessToken;
+import com.facebook.CallbackManager;
+import com.facebook.FacebookCallback;
+import com.facebook.FacebookException;
+import com.facebook.FacebookSdk;
 import com.facebook.GraphRequest;
+import com.facebook.ProfileTracker;
 import com.facebook.GraphRequest.GraphJSONObjectCallback;
 import com.facebook.GraphResponse;
 import com.facebook.login.LoginManager;
+import com.facebook.login.LoginResult;
 
 public class Profile {
 	
@@ -56,8 +62,10 @@ public class Profile {
 	private static final String PREFERENCE_PROFILE_EMAIL = "pref_profile_email";
 	private static final String PROFILE_ICON_FILE = "profile_icon.jpg";
 	
+    // Facebook
 	private static final String FACEBOOK_PERMISSIONS = "email";
-
+    private CallbackManager mCallbackMan;
+    private ProfileTracker mProfileTracker;
 	
 	private static Profile defaultProfile;
 	
@@ -94,6 +102,10 @@ public class Profile {
 				} catch (IOException e) {
 				}
 			}
+			if (defaultProfile.mProfileType == ProfileType.FACEBOOK) {
+				defaultProfile.initFaceBook();
+			}
+			
 		}
 		return defaultProfile;
 	}
@@ -164,6 +176,10 @@ public class Profile {
 		return !(getProfileType() == ProfileType.NOT_LOGGED_IN);
 	}
 	
+	public void close() {
+		mProfileTracker.stopTracking();
+	}
+	
 	private ProfileType getProfileType() {
 		return mProfileType;
 	}
@@ -183,7 +199,42 @@ public class Profile {
 		commitProfileChange();
 	}
 	
-	public void loginFaceBook(com.facebook.Profile profile) {
+	private void initFaceBook() {
+		FacebookSdk.sdkInitialize(GlobalState.getContext());
+		mProfileTracker = new ProfileTracker() {
+
+			@Override
+			protected void onCurrentProfileChanged(com.facebook.Profile oldProfile,	com.facebook.Profile currentProfile) {
+				com.facebook.Profile profile = com.facebook.Profile.getCurrentProfile();
+				if (profile != null) {
+					loginFaceBook(profile);
+				}
+			}
+        };
+        mProfileTracker.startTracking();
+
+        mCallbackMan = CallbackManager.Factory.create();
+        LoginManager.getInstance().registerCallback(mCallbackMan, new FacebookCallback<LoginResult>() {
+			
+			@Override
+			public void onSuccess(LoginResult result) {
+				com.facebook.Profile profile = com.facebook.Profile.getCurrentProfile();
+				if (profile != null) {
+					loginFaceBook(profile);
+				}
+			}
+			
+			@Override
+			public void onError(FacebookException error) {
+				Log.e("FacebookException: ", error.toString());
+			}
+			
+			@Override
+			public void onCancel() { }
+		});
+	}
+	
+	private void loginFaceBook(com.facebook.Profile profile) {
 		mName = profile.getName();
 		mProfileType = ProfileType.FACEBOOK;
 		final Uri profileImage = profile.getProfilePictureUri(200, 200);
@@ -286,6 +337,8 @@ public class Profile {
 	@SuppressLint("InflateParams")
 	public static class LoginDialog extends DialogFragment {
 		
+		AlertDialog d;
+		
 		EditText userName;
 		EditText email;
 		TextView extraText;
@@ -301,7 +354,7 @@ public class Profile {
 			userName = (EditText) view.findViewById(R.id.login_username);
 			email = (EditText) view.findViewById(R.id.login_email);
 			extraText = (TextView) view.findViewById(R.id.login_signinManually);
-			final AlertDialog d = builder.setView(view)
+			d = builder.setView(view)
 				   .setTitle(R.string.login_dialog)
 				   .setPositiveButton(R.string.signin, null)
 				   .setNegativeButton(R.string.cancel, null)
@@ -316,13 +369,11 @@ public class Profile {
 				
 				@Override
 				public void onClick(View v) {
+					getProfile().initFaceBook();
 					LoginManager loginMan = LoginManager.getInstance();
-					loginMan.logInWithReadPermissions(getActivity(), Arrays.asList(FACEBOOK_PERMISSIONS));
-					d.dismiss();
+					loginMan.logInWithReadPermissions(LoginDialog.this, Arrays.asList(FACEBOOK_PERMISSIONS));
 				}
 			});
-			
-			
 			
 			d.setOnShowListener(new DialogInterface.OnShowListener() {
 				
@@ -353,7 +404,6 @@ public class Profile {
 							}
 						}
 					});
-					
 				}
 			});
 			return d;
@@ -370,6 +420,16 @@ public class Profile {
 		public void setTag(String tag) {
 			this.tag = tag;
 		}
+		
+		@Override
+		public void onActivityResult(int requestCode, int resultCode, Intent data) {
+			super.onActivityResult(requestCode, resultCode, data);
+			if (getProfile().mCallbackMan != null) {
+				getProfile().mCallbackMan.onActivityResult(requestCode, resultCode, data);
+			}
+			d.dismiss();
+		}
+		
 	}
 	
 	@SuppressLint("InflateParams")
