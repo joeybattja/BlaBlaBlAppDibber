@@ -2368,9 +2368,6 @@ containing a value of this type.
         public static final int end=0x7f0b001e;
         public static final int expand_activities_button=0x7f0b0049;
         public static final int expanded_menu=0x7f0b004f;
-        public static final int facebook_email=0x7f0b0078;
-        public static final int facebook_profilePic=0x7f0b0079;
-        public static final int facebook_username=0x7f0b0077;
         public static final int grayscale=0x7f0b0043;
         public static final int gridview_post_overview=0x7f0b0097;
         public static final int holo_dark=0x7f0b0036;
@@ -2400,17 +2397,17 @@ containing a value of this type.
         public static final int list_text=0x7f0b00a0;
         public static final int list_title=0x7f0b00a1;
         public static final int list_youtube=0x7f0b009e;
-        public static final int login_email=0x7f0b0080;
-        public static final int login_facebook=0x7f0b007a;
-        public static final int login_googleplus=0x7f0b007b;
-        public static final int login_linkedin=0x7f0b007d;
-        public static final int login_signinManually=0x7f0b007e;
-        public static final int login_twitter=0x7f0b007c;
-        public static final int login_username=0x7f0b007f;
-        public static final int manuallyCreated_email=0x7f0b0084;
-        public static final int manuallyCreated_extraText=0x7f0b0081;
-        public static final int manuallyCreated_profilePic=0x7f0b0082;
-        public static final int manuallyCreated_username=0x7f0b0083;
+        public static final int login_email=0x7f0b007d;
+        public static final int login_facebook=0x7f0b0077;
+        public static final int login_googleplus=0x7f0b0078;
+        public static final int login_linkedin=0x7f0b007a;
+        public static final int login_signinManually=0x7f0b007b;
+        public static final int login_twitter=0x7f0b0079;
+        public static final int login_username=0x7f0b007c;
+        public static final int manuallyCreated_email=0x7f0b0081;
+        public static final int manuallyCreated_extraText=0x7f0b007e;
+        public static final int manuallyCreated_profilePic=0x7f0b007f;
+        public static final int manuallyCreated_username=0x7f0b0080;
         public static final int match_parent=0x7f0b003d;
         public static final int messenger_send_button=0x7f0b00a5;
         public static final int middle=0x7f0b001f;
@@ -2439,6 +2436,9 @@ containing a value of this type.
         public static final int postYouTubeFrame=0x7f0b0093;
         public static final int post_pager=0x7f0b0098;
         public static final int production=0x7f0b0038;
+        public static final int profile_profile_email=0x7f0b0083;
+        public static final int profile_profile_profilePic=0x7f0b0084;
+        public static final int profile_profile_username=0x7f0b0082;
         public static final int progress_circular=0x7f0b0007;
         public static final int progress_horizontal=0x7f0b0008;
         public static final int radio=0x7f0b0052;
@@ -2538,9 +2538,9 @@ containing a value of this type.
         public static final int com_facebook_activity_layout=0x7f03001b;
         public static final int com_facebook_login_fragment=0x7f03001c;
         public static final int com_facebook_tooltip_bubble=0x7f03001d;
-        public static final int dialog_profile_facebook=0x7f03001e;
-        public static final int dialog_profile_login=0x7f03001f;
-        public static final int dialog_profile_manually_created=0x7f030020;
+        public static final int dialog_profile_login=0x7f03001e;
+        public static final int dialog_profile_manually_created=0x7f03001f;
+        public static final int dialog_profile_profile=0x7f030020;
         public static final int drawer_list_item=0x7f030021;
         public static final int fragment_comments=0x7f030022;
         public static final int fragment_page=0x7f030023;
@@ -2646,8 +2646,8 @@ containing a value of this type.
  Post 
  Post 
          */
-        public static final int author_name=0x7f0c005e;
-        public static final int cancel=0x7f0c0066;
+        public static final int author_name=0x7f0c005d;
+        public static final int cancel=0x7f0c0065;
         public static final int com_facebook_image_download_unknown_error=0x7f0c001e;
         public static final int com_facebook_internet_permission_error_message=0x7f0c001c;
         public static final int com_facebook_internet_permission_error_title=0x7f0c001b;
@@ -2664,10 +2664,10 @@ containing a value of this type.
         public static final int com_facebook_send_button_text=0x7f0c0020;
         public static final int com_facebook_share_button_text=0x7f0c001f;
         public static final int com_facebook_tooltip_default=0x7f0c001d;
-        public static final int comment_comment=0x7f0c006c;
-        public static final int comment_email=0x7f0c006a;
-        public static final int comment_name=0x7f0c0069;
-        public static final int comment_website=0x7f0c006b;
+        public static final int comment_comment=0x7f0c006b;
+        public static final int comment_email=0x7f0c0069;
+        public static final int comment_name=0x7f0c0068;
+        public static final int comment_website=0x7f0c006a;
         /**   Text for notification shown when the Android Wear apps needs to be updated. Only shown on the wearable. [CHAR LIMIT=NONE] 
          */
         public static final int common_android_wear_notification_needs_update_text=0x7f0c002a;
@@ -2773,10 +2773,9 @@ containing a value of this type.
         public static final int drawer_close=0x7f0c0046;
         public static final int drawer_open=0x7f0c0045;
         public static final int facebook_app_id=0x7f0c0049;
-        public static final int facebook_profile=0x7f0c005d;
         public static final int invalid_email=0x7f0c005a;
         public static final int is_required=0x7f0c0059;
-        public static final int leave_a_reply=0x7f0c0067;
+        public static final int leave_a_reply=0x7f0c0066;
         public static final int login_dialog=0x7f0c0056;
         public static final int login_email=0x7f0c0058;
         public static final int login_signinManually=0x7f0c005b;
@@ -2784,33 +2783,33 @@ containing a value of this type.
         public static final int logo=0x7f0c0047;
         public static final int manuallyCreated_extraText=0x7f0c005c;
         public static final int messenger_send_button_text=0x7f0c0010;
-        public static final int no=0x7f0c0064;
+        public static final int no=0x7f0c0063;
         /**  Error messages 
  Error messages 
  Error messages 
          */
-        public static final int no_connection=0x7f0c005f;
-        public static final int no_connection_dialog_message=0x7f0c0061;
-        public static final int no_connection_dialog_title=0x7f0c0060;
+        public static final int no_connection=0x7f0c005e;
+        public static final int no_connection_dialog_message=0x7f0c0060;
+        public static final int no_connection_dialog_title=0x7f0c005f;
         /**  Notifications 
  Notifications 
  Notifications 
          */
-        public static final int notify_new_posts=0x7f0c006d;
-        public static final int ok=0x7f0c0065;
+        public static final int notify_new_posts=0x7f0c006c;
+        public static final int ok=0x7f0c0064;
         /**  Settings 
  Settings 
  Settings 
          */
-        public static final int pref_notifications=0x7f0c006e;
-        public static final int pref_storage=0x7f0c0072;
-        public static final int pref_sum_max_post_stored=0x7f0c0076;
-        public static final int pref_sum_notify_messages=0x7f0c0071;
-        public static final int pref_sum_use_storage=0x7f0c0074;
-        public static final int pref_title_max_post_stored=0x7f0c0075;
-        public static final int pref_title_notify_messages=0x7f0c0070;
-        public static final int pref_title_notify_new_posts=0x7f0c006f;
-        public static final int pref_title_use_storage=0x7f0c0073;
+        public static final int pref_notifications=0x7f0c006d;
+        public static final int pref_storage=0x7f0c0071;
+        public static final int pref_sum_max_post_stored=0x7f0c0075;
+        public static final int pref_sum_notify_messages=0x7f0c0070;
+        public static final int pref_sum_use_storage=0x7f0c0073;
+        public static final int pref_title_max_post_stored=0x7f0c0074;
+        public static final int pref_title_notify_messages=0x7f0c006f;
+        public static final int pref_title_notify_new_posts=0x7f0c006e;
+        public static final int pref_title_use_storage=0x7f0c0072;
         /**   Profile 
   Profile 
   Profile 
@@ -2830,13 +2829,13 @@ containing a value of this type.
         public static final int signout=0x7f0c0055;
         public static final int store_picture_message=0x7f0c0022;
         public static final int store_picture_title=0x7f0c0021;
-        public static final int submit_comment=0x7f0c0068;
-        public static final int unsupported_version_dialog_message=0x7f0c0062;
+        public static final int submit_comment=0x7f0c0067;
+        public static final int unsupported_version_dialog_message=0x7f0c0061;
         /**  Text on a placeholder buy button when Google Play services is not
          available or up-to-date 
          */
         public static final int wallet_buy_button_place_holder=0x7f0c0043;
-        public static final int yes=0x7f0c0063;
+        public static final int yes=0x7f0c0062;
     }
     public static final class style {
         /** 

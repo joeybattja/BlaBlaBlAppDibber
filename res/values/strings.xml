@@ -34,7 +34,6 @@
 	<string name="invalid_email">Please enter a valid email address</string>
 	<string name="login_signinManually">or enter your name and email address manually:</string>
 	<string name="manuallyCreated_extraText">Change your profile name, email or picture. Or logout.</string>
-	<string name="facebook_profile">Facebook profile</string>
 			
 	<!-- Post -->
     <string name="author_name">by %1$s</string>

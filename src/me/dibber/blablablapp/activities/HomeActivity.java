@@ -151,6 +151,18 @@ public class HomeActivity extends ActionBarActivity implements DataLoaderListene
 		super.onDestroy();
 	}
 	
+	@Override
+	protected void onActivityResult(int requestCode, int responseCode, Intent intent) {
+		if (requestCode == Profile.GOOGLEPLUS_SIGNIN) {
+			if (mProfile == null) {
+				invalidateProfile();
+			}
+			mProfile.onActivityResult(requestCode, responseCode, intent);
+		}
+		super.onActivityResult(requestCode, responseCode, intent);
+	}
+
+
 	private void releaseYoutubeLoaders() {
 	    HashMap<View,YouTubeThumbnailLoader> loaders = ((GlobalState)GlobalState.getContext()).getYouTubeThumbnailLoaderList();
 	    for (Entry<View, YouTubeThumbnailLoader> entry : loaders.entrySet() ) {

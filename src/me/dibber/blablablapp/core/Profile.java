@@ -9,10 +9,11 @@ import java.io.InputStream;
 import java.net.URL;
 import java.util.Arrays;
 
+import me.dibber.blablablapp.R;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import me.dibber.blablablapp.R;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -20,6 +21,7 @@ import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.IntentSender.SendIntentException;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.PorterDuff;
@@ -33,6 +35,7 @@ import android.preference.PreferenceManager;
 import android.provider.MediaStore;
 import android.support.v4.app.DialogFragment;
 import android.text.TextUtils;
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -47,11 +50,17 @@ import com.facebook.FacebookCallback;
 import com.facebook.FacebookException;
 import com.facebook.FacebookSdk;
 import com.facebook.GraphRequest;
-import com.facebook.ProfileTracker;
 import com.facebook.GraphRequest.GraphJSONObjectCallback;
 import com.facebook.GraphResponse;
+import com.facebook.ProfileTracker;
 import com.facebook.login.LoginManager;
 import com.facebook.login.LoginResult;
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.common.api.GoogleApiClient.ConnectionCallbacks;
+import com.google.android.gms.common.api.GoogleApiClient.OnConnectionFailedListener;
+import com.google.android.gms.plus.Plus;
+import com.google.android.gms.plus.model.people.Person;
 
 public class Profile {
 	
@@ -62,10 +71,18 @@ public class Profile {
 	private static final String PREFERENCE_PROFILE_EMAIL = "pref_profile_email";
 	private static final String PROFILE_ICON_FILE = "profile_icon.jpg";
 	
+	private static final int PROFILE_PIC_PIXEL_SIZE = 200;
+	
     // Facebook
 	private static final String FACEBOOK_PERMISSIONS = "email";
-    private CallbackManager mCallbackMan;
-    private ProfileTracker mProfileTracker;
+    private CallbackManager mFacebookCallbackMan;
+    private ProfileTracker mFacebookProfileTracker;
+    
+    // Google+
+    public static final int GOOGLEPLUS_SIGNIN = 76;
+    private GoogleApiClient mGoogleApiClient;
+    private boolean mGoogleResolvingInProgress;
+    private boolean mGoogleSignInClicked;
 	
 	private static Profile defaultProfile;
 	
@@ -105,7 +122,6 @@ public class Profile {
 			if (defaultProfile.mProfileType == ProfileType.FACEBOOK) {
 				defaultProfile.initFaceBook();
 			}
-			
 		}
 		return defaultProfile;
 	}
@@ -177,7 +193,9 @@ public class Profile {
 	}
 	
 	public void close() {
-		mProfileTracker.stopTracking();
+		if (mFacebookProfileTracker != null) {
+			mFacebookProfileTracker.stopTracking();
+		}
 	}
 	
 	private ProfileType getProfileType() {
@@ -201,7 +219,7 @@ public class Profile {
 	
 	private void initFaceBook() {
 		FacebookSdk.sdkInitialize(GlobalState.getContext());
-		mProfileTracker = new ProfileTracker() {
+		mFacebookProfileTracker = new ProfileTracker() {
 
 			@Override
 			protected void onCurrentProfileChanged(com.facebook.Profile oldProfile,	com.facebook.Profile currentProfile) {
@@ -211,10 +229,10 @@ public class Profile {
 				}
 			}
         };
-        mProfileTracker.startTracking();
+        mFacebookProfileTracker.startTracking();
 
-        mCallbackMan = CallbackManager.Factory.create();
-        LoginManager.getInstance().registerCallback(mCallbackMan, new FacebookCallback<LoginResult>() {
+        mFacebookCallbackMan = CallbackManager.Factory.create();
+        LoginManager.getInstance().registerCallback(mFacebookCallbackMan, new FacebookCallback<LoginResult>() {
 			
 			@Override
 			public void onSuccess(LoginResult result) {
@@ -234,10 +252,34 @@ public class Profile {
 		});
 	}
 	
+	private void setProfilePicFromURL (final String path) {
+		Thread t = new Thread(new Runnable() {
+			
+			@Override
+			public void run() {
+				try {
+					URL url = new URL(path);
+					InputStream in = url.openStream();
+					setIcon(Drawable.createFromStream(in, "src"));
+					in.close();
+				} catch (FileNotFoundException e) {
+					Log.e("FileNotFoundException on getting Facebook profile image", e.toString());
+				} catch (IOException e1) {
+					Log.e("IOException on getting Facebook profile image", e1.toString());
+				}
+				commitProfileChange();
+			}
+		});
+		t.start();
+		
+		commitProfileChange();
+	}
+	
 	private void loginFaceBook(com.facebook.Profile profile) {
 		mName = profile.getName();
 		mProfileType = ProfileType.FACEBOOK;
-		final Uri profileImage = profile.getProfilePictureUri(200, 200);
+		final Uri profileImage = profile.getProfilePictureUri(PROFILE_PIC_PIXEL_SIZE, PROFILE_PIC_PIXEL_SIZE);
+		setProfilePicFromURL(profileImage.toString());
 		
 		GraphRequest request = GraphRequest.newMeRequest(AccessToken.getCurrentAccessToken(), new GraphJSONObjectCallback() {
 			
@@ -259,28 +301,92 @@ public class Profile {
 		params.putString("fields", "email");
 		request.setParameters(params);
 		request.executeAsync();
-		
-		Thread t = new Thread(new Runnable() {
+		commitProfileChange();
+	}
+	
+	private void initGooglePlus() {
+		mGoogleApiClient = new GoogleApiClient.Builder(GlobalState.getContext())
+        .addConnectionCallbacks(new ConnectionCallbacks() {
 			
 			@Override
-			public void run() {
-				try {
-					URL url = new URL(profileImage.toString());
-					InputStream in = url.openStream();
-					setIcon(Drawable.createFromStream(in, "src"));
-					in.close();
-				} catch (FileNotFoundException e) {
-					Log.e("FileNotFoundException on getting Facebook profile image", e.toString());
-				} catch (IOException e1) {
-					Log.e("IOException on getting Facebook profile image", e1.toString());
-				}
-				commitProfileChange();
+			public void onConnectionSuspended(int cause) {
+				mGoogleApiClient.connect();
 			}
-		});
-		t.start();
-		
-		
+			
+			@Override
+			public void onConnected(Bundle connectionHint) {
+				mGoogleSignInClicked = false;
+				loginGooglePlus();
+			}
+		})
+        .addOnConnectionFailedListener(new OnConnectionFailedListener() {
+			
+			@Override
+			public void onConnectionFailed(ConnectionResult result) {
+				if (!mGoogleResolvingInProgress) {
+					if (mGoogleSignInClicked && result.hasResolution()) {
+						try {
+							mGoogleResolvingInProgress = true;
+							((GlobalState)GlobalState.getContext()).getCurrentHomeActivity()
+								.startIntentSenderForResult(result.getResolution().getIntentSender(), GOOGLEPLUS_SIGNIN, null, 0,0,0);
+						} catch (SendIntentException e) {
+							mGoogleResolvingInProgress = false;
+							mGoogleApiClient.connect();
+						}
+					}
+				}
+			}
+		})
+        .addApi(Plus.API)
+        .addScope(Plus.SCOPE_PLUS_LOGIN)
+        .build();
+	}
+	
+	private void loginGooglePlus() {
+		if (mGoogleApiClient == null) {
+			return;
+		}
+		if (Plus.PeopleApi.getCurrentPerson(mGoogleApiClient) != null) {
+			Person currentPerson = Plus.PeopleApi.getCurrentPerson(mGoogleApiClient);
+			mName = currentPerson.getDisplayName();
+			mProfileType = ProfileType.GOOGLEPLUS;
+			if (currentPerson.getImage().getUrl() != null) {
+				String url = currentPerson.getImage().getUrl();
+				for (int i = 0; i+3 < url.length(); i++) {
+					if ((url.charAt(i) == '?' || url.charAt(i) == '&')&& url.charAt(i+1) == 's' && url.charAt(i+2) == 'z' && url.charAt(i+3) == '=') {
+						int j = 4;
+						while (i+j < url.length() && url.charAt(i+j) != '&') {
+							j++;
+						}
+						String start = url.substring(0, i+4);
+						String end = "";
+						if (i+j < url.length()) {
+							end = url.substring(i+j, url.length());
+						}
+						url = start + PROFILE_PIC_PIXEL_SIZE + end;
+						break;
+					}
+				}
+				setProfilePicFromURL(url);
+			}
+		}
+		if (Plus.AccountApi.getAccountName(mGoogleApiClient) != null) {
+			mEmail = Plus.AccountApi.getAccountName(mGoogleApiClient);
+		} 
 		commitProfileChange();
+	}
+	
+	public void onActivityResult(int requestCode, int responseCode, Intent intent) {
+		if (requestCode == GOOGLEPLUS_SIGNIN) {
+			if (responseCode != Activity.RESULT_OK) {
+				mGoogleSignInClicked = false;
+			}
+			mGoogleResolvingInProgress = false;
+
+		    if (!mGoogleApiClient.isConnecting()) {
+		    	mGoogleApiClient.reconnect();
+		    }
+		}
 	}
 	
 	private void commitProfileChange() {
@@ -306,10 +412,12 @@ public class Profile {
 		
 		switch (mProfileType) {
 		case FACEBOOK:
-			FacebookDialog dialogFaceBook = new FacebookDialog();
+			ProfileDialog dialogFaceBook = new ProfileDialog();
 			dialogFaceBook.show(globalState.getCurrentHomeActivity().getSupportFragmentManager(), "facebookDialog");
 			break;
 		case GOOGLEPLUS:
+			ProfileDialog dialogGooglePlus = new ProfileDialog();
+			dialogGooglePlus.show(globalState.getCurrentHomeActivity().getSupportFragmentManager(), "dialogGooglePlus");
 			break;
 		case MANUALLY_CREATED:
 			ManuallyCreatedProfileDialog dialogManual = new ManuallyCreatedProfileDialog();
@@ -345,6 +453,7 @@ public class Profile {
 		String tag;
 		
 		ImageView faceBookLogin;
+		ImageView googlePlusLogin;
 		
 		@Override
 		public Dialog onCreateDialog(Bundle savedInstanceState) {
@@ -372,6 +481,17 @@ public class Profile {
 					getProfile().initFaceBook();
 					LoginManager loginMan = LoginManager.getInstance();
 					loginMan.logInWithReadPermissions(LoginDialog.this, Arrays.asList(FACEBOOK_PERMISSIONS));
+				}
+			});
+			googlePlusLogin = (ImageView) view.findViewById(R.id.login_googleplus);
+			googlePlusLogin.setOnClickListener(new View.OnClickListener() {
+				
+				@Override
+				public void onClick(View v) {
+					getProfile().initGooglePlus();
+					getProfile().mGoogleSignInClicked = true;
+					getProfile().mGoogleApiClient.connect();
+					d.dismiss();
 				}
 			});
 			
@@ -424,8 +544,8 @@ public class Profile {
 		@Override
 		public void onActivityResult(int requestCode, int resultCode, Intent data) {
 			super.onActivityResult(requestCode, resultCode, data);
-			if (getProfile().mCallbackMan != null) {
-				getProfile().mCallbackMan.onActivityResult(requestCode, resultCode, data);
+			if (getProfile().mFacebookCallbackMan != null) {
+				getProfile().mFacebookCallbackMan.onActivityResult(requestCode, resultCode, data);
 			}
 			d.dismiss();
 		}
@@ -433,7 +553,7 @@ public class Profile {
 	}
 	
 	@SuppressLint("InflateParams")
-	public static class FacebookDialog extends DialogFragment {
+	public static class ProfileDialog extends DialogFragment {
 		
 		TextView userName;
 		TextView email;
@@ -444,12 +564,34 @@ public class Profile {
 		public Dialog onCreateDialog(Bundle savedInstanceState) {
 			AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
 			LayoutInflater inflater = getActivity().getLayoutInflater();
-			View view = inflater.inflate(R.layout.dialog_profile_facebook, null);
-			userName = (TextView) view.findViewById(R.id.facebook_username);
-			email = (TextView) view.findViewById(R.id.facebook_email);
-			profilePic = (ImageView) view.findViewById(R.id.facebook_profilePic);
+			View view = inflater.inflate(R.layout.dialog_profile_profile, null);
+			userName = (TextView) view.findViewById(R.id.profile_profile_username);
+			email = (TextView) view.findViewById(R.id.profile_profile_email);
+			profilePic = (ImageView) view.findViewById(R.id.profile_profile_profilePic);
+			
+			int iconId = 0;
+			switch (getProfile().getProfileType()) {
+			case FACEBOOK:
+				iconId = R.drawable.facebook_icon_125x125;
+				break;
+			case GOOGLEPLUS:
+				iconId = R.drawable.googleplus_icon_125x125;
+				break;
+			case MANUALLY_CREATED:
+			case NOT_LOGGED_IN:
+			case TWITTER:
+			default:
+				iconId = R.drawable.googleplus_icon_125x125;
+				break;
+			}
+			Bitmap btm = ((BitmapDrawable) getResources().getDrawable(iconId)).getBitmap();
+			DisplayMetrics metrics = getResources().getDisplayMetrics();
+			int px = (int) (32 * (metrics.densityDpi / 160f));
+			Drawable scaledIcon = new BitmapDrawable(getResources(),Bitmap.createScaledBitmap(btm, px, px, true));
+			
 			final AlertDialog d = builder.setView(view)
-				   .setTitle(R.string.facebook_profile)
+				   .setTitle(R.string.profile)
+				   .setIcon(scaledIcon)
 				   .setPositiveButton(R.string.signout, null)
 				   .setNegativeButton(R.string.cancel, null)
 				   .create();
@@ -469,10 +611,34 @@ public class Profile {
 						
 						@Override
 						public void onClick(View v) {
-							LoginManager loginMan = LoginManager.getInstance();
-							loginMan.logOut();
-							getProfile().logout();
-							d.dismiss();
+							switch (getProfile().getProfileType()) {
+							case FACEBOOK:
+								LoginManager loginMan = LoginManager.getInstance();
+								loginMan.logOut();
+								getProfile().logout();
+								d.dismiss();
+								break;
+							case GOOGLEPLUS:
+								if (getProfile().mGoogleApiClient != null) {
+									if (getProfile().mGoogleApiClient.isConnected()) {
+										Plus.AccountApi.clearDefaultAccount(getProfile().mGoogleApiClient);
+										getProfile().mGoogleApiClient.disconnect();
+									}
+								}
+								getProfile().logout();
+								d.dismiss();
+								break;
+							case MANUALLY_CREATED:
+								break;
+							case NOT_LOGGED_IN:
+								break;
+							case TWITTER:
+								break;
+							default:
+								break;
+							
+							}
+							
 						}
 					});
 					
@@ -600,8 +766,8 @@ public class Profile {
 		    photoPickerIntent.putExtra("crop", "true");
 		    photoPickerIntent.putExtra("aspectX", 1);
 		    photoPickerIntent.putExtra("aspectY", 1);
-		    photoPickerIntent.putExtra("outputX", 200);
-			photoPickerIntent.putExtra("outputY", 200);
+		    photoPickerIntent.putExtra("outputX", PROFILE_PIC_PIXEL_SIZE);
+			photoPickerIntent.putExtra("outputY", PROFILE_PIC_PIXEL_SIZE);
 			photoPickerIntent.putExtra("noFaceDetection", true);
 			photoPickerIntent.putExtra("scale", true);
 			photoPickerIntent.putExtra("return-data", false);
@@ -666,7 +832,7 @@ public class Profile {
 						if (d != null) {
 							if (d.getIntrinsicHeight() != d.getIntrinsicWidth()) {
 								Bitmap bitmap = ((BitmapDrawable) d).getBitmap();
-								d = new BitmapDrawable(getResources(),Bitmap.createScaledBitmap(bitmap, 200, 200, true));
+								d = new BitmapDrawable(getResources(),Bitmap.createScaledBitmap(bitmap, PROFILE_PIC_PIXEL_SIZE, PROFILE_PIC_PIXEL_SIZE, true));
 							}
 							profilePic.setImageDrawable(d);
 						}
