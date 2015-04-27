@@ -9,14 +9,16 @@
     <color name="regular_foreground_off">@color/lightgrey</color>
     <color name="regular_foreground_secondary_on">@color/darkgrey</color>
     <color name="regular_foreground_secondary_off">@color/lightgrey</color>
+    <color name="regular_hint">@color/grey</color>
     
     <!-- primary colors used by the action bar
      	 foreground is text and icon color
      	 secondary is used for e.g. hint in the searchview -->
-    <color name="actionbar_background">@color/white</color>
-    <color name="actionbar_foreground">@color/black</color>
-    <color name="actionbar_foreground_secondary">@color/grey</color>
+    <color name="actionbar_background">@color/red</color>
+    <color name="actionbar_foreground">@color/white</color>
+    <color name="actionbar_foreground_hint">@color/white</color>
     <color name="actionbar_dark">@color/darkred</color>
+    <color name="actionbar_dark_foreground">@color/white</color>
     
     <!-- color used for some accents, like enabled checkboxes -->
     <color name="color_accent">@color/blue</color>

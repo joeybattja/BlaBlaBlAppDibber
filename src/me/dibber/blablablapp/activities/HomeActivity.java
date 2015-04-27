@@ -72,11 +72,22 @@ public class HomeActivity extends ActionBarActivity implements DataLoaderListene
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+		setThisAsCurrentHomeActivity();
 		setContentView(R.layout.activity_home);
 		
 		getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 		
+		if (savedInstanceState != null) {
+	        currentPost = savedInstanceState.getInt(CURRENT_POST);
+	    	currentPage = savedInstanceState.getInt(CURRENT_PAGE);
+	        currentType = (ContentFrameType) savedInstanceState.getSerializable(CURRENT_TYPE);
+        }
+		
 		mDrawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
+		mDrawerView = (LinearLayout) findViewById(R.id.drawer_view);
+		mDrawerList = (ListView) findViewById(R.id.drawer_list);
+		mDrawerProfile = (LinearLayout) findViewById(R.id.drawer_profile);
+		
 		mDrawerToggle = new ActionBarDrawerToggle(this, mDrawerLayout, R.string.drawer_open, R.string.drawer_close) {
 			
 			/** Called when a drawer has settled in a completely closed state. */
@@ -90,8 +101,6 @@ public class HomeActivity extends ActionBarActivity implements DataLoaderListene
             }
 		};
 		mDrawerLayout.setDrawerListener(mDrawerToggle);
-		mDrawerView = (LinearLayout) findViewById(R.id.drawer_view);
-        mDrawerList = (ListView) findViewById(R.id.drawer_list);
         mDrawerList.setAdapter(new ArrayAdapter<>(this, R.layout.drawer_list_item, Pages.getPageTitles() ));
         mDrawerList.setOnItemClickListener(new OnItemClickListener() {
 			@Override
@@ -101,8 +110,6 @@ public class HomeActivity extends ActionBarActivity implements DataLoaderListene
 				replaceContentFrame(ContentFrameType.PAGE, position);
 			}
 		});
-        invalidateProfile();
-        mDrawerProfile = (LinearLayout) findViewById(R.id.drawer_profile);
         mDrawerProfile.setOnClickListener(new OnClickListener() {
 			
 			@Override
@@ -110,13 +117,10 @@ public class HomeActivity extends ActionBarActivity implements DataLoaderListene
 				getProfile().openDialog();
 			}
 		});
-        setThisAsCurrentHomeActivity();
-        if (savedInstanceState != null) {
-	        currentPost = savedInstanceState.getInt(CURRENT_POST);
-	    	currentPage = savedInstanceState.getInt(CURRENT_PAGE);
-	        currentType = (ContentFrameType) savedInstanceState.getSerializable(CURRENT_TYPE);
-        } 
+        
         invalidateContentFrame();
+        invalidateProfile();
+        
         if (((GlobalState)GlobalState.getContext()).getPosts().getAllPosts().size() == 0) {
         	refreshPosts();
         }
@@ -457,7 +461,11 @@ public class HomeActivity extends ActionBarActivity implements DataLoaderListene
 		Fragment f = getCurrentFragment();
 		if (f instanceof PostDetailFragment) {
 			int currentitemId = ((PostDetailFragment)f).getViewPagerCurrentItem();
-			return (PostFragment) ((PostDetailFragment)f).getViewPagerItem(currentitemId);
+			if (currentitemId == 0) {
+				return null;
+			} else {
+				return (PostFragment) ((PostDetailFragment)f).getViewPagerItem(currentitemId);
+			}
 		} 
 		return null;
 	}
@@ -518,7 +526,7 @@ public class HomeActivity extends ActionBarActivity implements DataLoaderListene
 		try {
  			dl.setDataSource(AppConfig.getURLPath(Function.GET_POSTS_AFTER, Integer.toString(lastPostId)));
 		} catch (MalformedURLException e) {
-			Log.d("Path incorrect", e.toString());
+			Log.w("Path incorrect", e.toString());
 		}
 		// Need to check if the MenuItem is already available, since this method is called in onCreate and onCreateOptionsMenu is called after onCreate has ended.
 		if (refresh != null) {
@@ -586,7 +594,6 @@ public class HomeActivity extends ActionBarActivity implements DataLoaderListene
 					invalidateProfile();
 				}
 			});
-			invalidateProfile();
 		}
 		return mCurrentProfile;
 	}

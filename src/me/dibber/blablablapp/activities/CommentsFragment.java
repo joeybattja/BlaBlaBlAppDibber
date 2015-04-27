@@ -1,8 +1,13 @@
 package me.dibber.blablablapp.activities;
 
+import java.net.MalformedURLException;
 import java.util.ArrayList;
 
 import me.dibber.blablablapp.R;
+import me.dibber.blablablapp.core.DataLoader;
+import me.dibber.blablablapp.core.AppConfig.Function;
+import me.dibber.blablablapp.core.DataLoader.DataLoaderListener;
+import me.dibber.blablablapp.core.AppConfig;
 import me.dibber.blablablapp.core.GlobalState;
 import me.dibber.blablablapp.core.PostCollection;
 import me.dibber.blablablapp.core.Profile;
@@ -45,6 +50,19 @@ public class CommentsFragment extends Fragment {
 		mNewComment = (EditText) rootView.findViewById(R.id.newComment_comment);
 		mSubmitComment = (Button) rootView.findViewById(R.id.newComment_submitButton);
 		
+		displayComments();
+		displayReplySection();
+		
+		return rootView;
+	}
+	
+	private void displayComments() {
+		if (postId <= 0) {
+			return;
+		}
+		if (posts == null) {
+			posts = ((GlobalState) GlobalState.getContext() ).getPosts();
+		}
 		commentIds = posts.getItemComments(postId);
 		int commentCount = posts.countComments(postId);
 		if (commentIds.size() != commentCount) {
@@ -57,6 +75,8 @@ public class CommentsFragment extends Fragment {
 				mCountComments.setVisibility(View.GONE);
 				mCommentsFrame.setVisibility(View.GONE);
 			} else {
+				mCountComments.setVisibility(View.VISIBLE);
+				mCommentsFrame.setVisibility(View.VISIBLE);
 				mCountComments.setTypeface(null,Typeface.BOLD);
 				mCountComments.setText(getResources().getQuantityString(R.plurals.nrOfComments, commentCount, commentCount));
 				
@@ -73,6 +93,9 @@ public class CommentsFragment extends Fragment {
 				}
 			} 
 		}
+	}
+	
+	private void displayReplySection() {
 		if ( ((GlobalState)GlobalState.getContext()).optionWriteComments() ) {
 			
 			if (mLeaveReply != null) {
@@ -109,7 +132,30 @@ public class CommentsFragment extends Fragment {
 							error = true;
 						}
 						if (!error) {
-							postComment(pro.getName(), pro.getEmail(), mNewComment.getText().toString().trim());
+							postComment(pro.getName(), pro.getEmail(), mNewComment.getText().toString().trim(), new OnCommentPostedListener() {
+								
+								@Override
+								public void onCommentPosted(boolean success) {
+									mNewComment.setText("");
+									DataLoader dl = new DataLoader();
+									dl.setDataLoaderListener(new DataLoaderListener() {
+										
+										@Override
+										public void onDataLoaderOnlineDone(boolean success) {
+											invalidateComments();
+										}
+										
+										@Override
+										public void onDataLoaderDiskDone(boolean success) {	}
+									});
+									dl.isInSynchWithExistingPosts(false);
+									try {
+										dl.setDataSource(AppConfig.getURLPath(Function.GET_POST_BY_ID, Integer.toString(postId)));
+									} catch (MalformedURLException e) {
+										Log.w("Path incorrect", e.toString());
+									}
+								}
+							});
 						}
 					}
 				});
@@ -122,8 +168,6 @@ public class CommentsFragment extends Fragment {
 				mNewCommentForm.setVisibility(View.GONE);
 			}
 		}
-		
-		return rootView;
 	}
 	
 	public static class CommentItemFragment extends Fragment {
@@ -187,43 +231,17 @@ public class CommentsFragment extends Fragment {
 	}
 	
 	public void invalidateComments() {
-		if (postId <= 0) {
-			return;
-		}
-		if (posts == null) {
-			posts = ((GlobalState)GlobalState.getContext()).getPosts();
-		}
-		boolean commentsChanged = false;
-		int newCount = posts.countComments(postId);
-		if (newCount > 0) {
-			if (mCountComments != null) {
-				int currentCount = 0;
-				try {
-					currentCount = Integer.parseInt(mCountComments.getText().toString());
-				} catch (NumberFormatException e) {
-				}
-				if (newCount != currentCount) {
-					commentsChanged = true;
-				}
-			}
-		}
-		if (commentsChanged) {
-			// TODO: show new comments...
-		}
-		if (mSubmitComment != null) {
-			Profile pr = ((HomeActivity)getActivity()).getProfile();
-			String text;				
-			if (pr.isLoggedIn()) {
-				text = getResources().getString(R.string.Post_comment_as) + " " + pr.getName();
-			} else {
-				text = getResources().getString(R.string.Post_comment_as) + "...";
-			}
-			mSubmitComment.setText(text);
-		}
+		displayComments();
+		displayReplySection();
 	}
 	
-	private void postComment(String name, String email, String comment) {
+	private void postComment(String name, String email, String comment, OnCommentPostedListener listener) {
 		// TODO make a method to post comment. First API needs to be updated!
+		listener.onCommentPosted(true);
+	}
+	
+	public interface OnCommentPostedListener {
+		void onCommentPosted(boolean success);
 	}
 	
 }

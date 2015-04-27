@@ -10,7 +10,7 @@
         <item name="android:textColor">@color/regular_foreground</item>
         <item name="android:textColorSecondary">@color/regular_foreground_secondary</item>
         <item name="android:textColorPrimary">@color/actionbar_foreground</item>
-        <item name="android:textColorHint">@color/actionbar_foreground_secondary</item>
+        <item name="android:textColorHint">@color/actionbar_foreground_hint</item>
         
     </style>
 

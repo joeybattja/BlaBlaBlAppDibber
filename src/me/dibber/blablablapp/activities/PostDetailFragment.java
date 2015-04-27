@@ -67,11 +67,13 @@ public class PostDetailFragment extends Fragment {
 		
 		int lastSynchId = ((GlobalState)GlobalState.getContext()).getOldestSynchedPost();
 		posToSynch = postIds.indexOf(lastSynchId);
-		
 		return rootView;
 	}
 	
 	public int getViewPagerCurrentItem() {
+		if (mViewPager == null || postIds == null) {
+			return 0;
+		}
 		return postIds.get(mViewPager.getCurrentItem());
 	}
 	

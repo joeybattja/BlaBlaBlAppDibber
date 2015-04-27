@@ -18,6 +18,7 @@ public class AppConfig {
 	private static final String API_GET_RECENT_POSTS = "?function=get_recent_posts";
 	private static final String API_COUNT_PARAM = "&count=";
 	private static final String API_AFTERID_PARAM = "&afterPostId=";
+	private static final String API_POSTID_PARAM = "&postId=";
 	private static final String API_GET_SUPPORTED_VERSIONS = "?function=get_supported_versions";
 	private static final String API_ADD_DEVICE = "?function=add_device&deviceId=";
 	
@@ -32,7 +33,7 @@ public class AppConfig {
 	// name of properties file
     private static String PROPERTY_FILENAME = "blog.properties";
 	
-	public enum Function {GET_RECENT_POSTS,GET_POSTS_AFTER,GET_SUPPORTED_VERSIONS,ADD_DEVICE};
+	public enum Function {GET_RECENT_POSTS,GET_POST_BY_ID,GET_POSTS_AFTER,GET_SUPPORTED_VERSIONS,ADD_DEVICE};
 	
 	public static String getURLPath(Function function) {
 		return getURLPath(function,null);
@@ -46,6 +47,7 @@ public class AppConfig {
 			break;
 		case GET_POSTS_AFTER:
 		case GET_RECENT_POSTS:
+		case GET_POST_BY_ID:
 			String nr = getProperties(GlobalState.getContext()).getProperty("NUMBER_OF_POSTS_PER_REQUEST","20");
 			try {
 				count = Integer.parseInt(nr);
@@ -67,6 +69,13 @@ public class AppConfig {
 		switch (function) {
 		case GET_RECENT_POSTS:
 			path = API_URL + API_PHP + API_GET_RECENT_POSTS + API_COUNT_PARAM + count;
+			break;
+		case GET_POST_BY_ID:
+			if (param != null) {
+				path = API_URL + API_PHP + API_GET_RECENT_POSTS + API_POSTID_PARAM + param + API_COUNT_PARAM + count;
+			} else {
+				path = API_URL + API_PHP + API_GET_RECENT_POSTS + API_COUNT_PARAM + count;
+			}
 			break;
 		case GET_POSTS_AFTER:
 			if (param != null) {

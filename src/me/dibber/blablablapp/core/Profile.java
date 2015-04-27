@@ -382,7 +382,10 @@ public class Profile {
 				mGoogleSignInClicked = false;
 			}
 			mGoogleResolvingInProgress = false;
-
+			
+			if (mGoogleApiClient == null) {
+				initGooglePlus();
+			}
 		    if (!mGoogleApiClient.isConnecting()) {
 		    	mGoogleApiClient.reconnect();
 		    }
@@ -461,7 +464,9 @@ public class Profile {
 			LayoutInflater inflater = getActivity().getLayoutInflater();
 			View view = inflater.inflate(R.layout.dialog_profile_login, null);
 			userName = (EditText) view.findViewById(R.id.login_username);
+			userName.setHintTextColor(getResources().getColor(R.color.regular_hint));
 			email = (EditText) view.findViewById(R.id.login_email);
+			email.setHintTextColor(getResources().getColor(R.color.regular_hint));
 			extraText = (TextView) view.findViewById(R.id.login_signinManually);
 			d = builder.setView(view)
 				   .setTitle(R.string.login_dialog)
