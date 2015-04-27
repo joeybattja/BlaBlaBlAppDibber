@@ -463,19 +463,26 @@ public class Profile {
 			AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
 			LayoutInflater inflater = getActivity().getLayoutInflater();
 			View view = inflater.inflate(R.layout.dialog_profile_login, null);
+			
 			userName = (EditText) view.findViewById(R.id.login_username);
-			userName.setHintTextColor(getResources().getColor(R.color.regular_hint));
 			email = (EditText) view.findViewById(R.id.login_email);
-			email.setHintTextColor(getResources().getColor(R.color.regular_hint));
 			extraText = (TextView) view.findViewById(R.id.login_signinManually);
+			
 			d = builder.setView(view)
 				   .setTitle(R.string.login_dialog)
 				   .setPositiveButton(R.string.signin, null)
 				   .setNegativeButton(R.string.cancel, null)
 				   .create();
+			
+			userName.setHintTextColor(getResources().getColor(R.color.regular_hint));
+			userName.setTextColor(getResources().getColor(R.color.regular_foreground));
+			email.setHintTextColor(getResources().getColor(R.color.regular_hint));
+			email.setTextColor(getResources().getColor(R.color.regular_foreground));
+			extraText.setTextColor(getResources().getColor(R.color.regular_foreground));
+			extraText.setTypeface(null, Typeface.ITALIC);
+			
 			userName.setText(getProfile().getName());
 			email.setText(getProfile().getEmail());
-			extraText.setTypeface(null, Typeface.ITALIC);
 			extraText.setText(R.string.login_signinManually);
 			
 			faceBookLogin = (ImageView) view.findViewById(R.id.login_facebook);
@@ -600,7 +607,11 @@ public class Profile {
 				   .setPositiveButton(R.string.signout, null)
 				   .setNegativeButton(R.string.cancel, null)
 				   .create();
+			
+			userName.setTextColor(getResources().getColor(R.color.regular_foreground));
 			userName.setTypeface(null, Typeface.BOLD);
+			email.setTextColor(getResources().getColor(R.color.regular_foreground));
+			
 			userName.setText(getProfile().getName());
 			email.setText(getProfile().getEmail());
 			profilePic.setAdjustViewBounds(true);
@@ -690,9 +701,16 @@ public class Profile {
 				   .setNeutralButton(R.string.signout, null)
 				   .setNegativeButton(R.string.cancel, null)
 				   .create();
+			
+			userName.setHintTextColor(getResources().getColor(R.color.regular_hint));
+			userName.setTextColor(getResources().getColor(R.color.regular_foreground));
+			email.setHintTextColor(getResources().getColor(R.color.regular_hint));
+			email.setTextColor(getResources().getColor(R.color.regular_foreground));
+			extraText.setTextColor(getResources().getColor(R.color.regular_foreground));
+			extraText.setTypeface(null, Typeface.ITALIC);
+			
 			userName.setText(getProfile().getName());
 			email.setText(getProfile().getEmail());
-			extraText.setTypeface(null, Typeface.ITALIC);
 			extraText.setText(R.string.manuallyCreated_extraText);
 			profilePic.setAdjustViewBounds(true);
 			profilePic.setImageDrawable(getProfile().getIcon());
