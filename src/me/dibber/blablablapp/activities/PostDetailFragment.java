@@ -263,6 +263,12 @@ public class PostDetailFragment extends Fragment {
 			return rootView;
 		}
 		
+		public void invalidatePostFragment() {
+			if (mCommentsFragment != null) {
+				mCommentsFragment.invalidateComments();
+			}
+		}
+		
 		public void updateTextMargins() {
 			
 			if (mImageView != null) {

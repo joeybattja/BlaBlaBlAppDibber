@@ -54,11 +54,10 @@
         <item quantity="other">%d comments</item>
     </plurals>
 	<string name="leave_a_reply">Leave a comment</string>
-	<string name="submit_comment">Submit comment</string>
-	<string name="comment_name">Name</string>
-	<string name="comment_email">Email</string>
-	<string name="comment_website">Website</string>
-	<string name="comment_comment">Comment</string>
+	<string name="Post_comment_as">Post comment as</string>
+	<string name="comment">Comment</string>
+	<string name="post_error_no_name">Error while posting comment: no name registered in profile. Please login again.</string>
+	<string name="post_error_invalid_email">Error while posting comment: the email address in your profile is invalid. Please login again with a valid email address.</string>
 	
 	<!-- Notifications -->
 	<string name="notify_new_posts">There are %d new posts</string>

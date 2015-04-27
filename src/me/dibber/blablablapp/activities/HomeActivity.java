@@ -66,7 +66,7 @@ public class HomeActivity extends ActionBarActivity implements DataLoaderListene
     private ListView mDrawerList;
     private LinearLayout mDrawerView;
     private LinearLayout mDrawerProfile;
-    private Profile mProfile;
+    private Profile mCurrentProfile;
     public enum ContentFrameType {PAGE,POST}
 
 	@Override
@@ -107,10 +107,7 @@ public class HomeActivity extends ActionBarActivity implements DataLoaderListene
 			
 			@Override
 			public void onClick(View v) {
-				if (mProfile == null) {
-					invalidateProfile();
-				}
-				mProfile.openDialog();
+				getProfile().openDialog();
 			}
 		});
         setThisAsCurrentHomeActivity();
@@ -145,8 +142,8 @@ public class HomeActivity extends ActionBarActivity implements DataLoaderListene
 	protected void onDestroy() {
 		clearHomeActivityReference();
 		releaseYoutubeLoaders();
-	    if (mProfile != null) {
-	    	mProfile.close();
+	    if (mCurrentProfile != null) {
+	    	mCurrentProfile.close();
 	    }
 		super.onDestroy();
 	}
@@ -154,10 +151,7 @@ public class HomeActivity extends ActionBarActivity implements DataLoaderListene
 	@Override
 	protected void onActivityResult(int requestCode, int responseCode, Intent intent) {
 		if (requestCode == Profile.GOOGLEPLUS_SIGNIN) {
-			if (mProfile == null) {
-				invalidateProfile();
-			}
-			mProfile.onActivityResult(requestCode, responseCode, intent);
+			getProfile().onActivityResult(requestCode, responseCode, intent);
 		}
 		super.onActivityResult(requestCode, responseCode, intent);
 	}
@@ -583,30 +577,41 @@ public class HomeActivity extends ActionBarActivity implements DataLoaderListene
 		});
 	}
 	
-	private void invalidateProfile() {
-		if (mProfile == null) {
-			mProfile = Profile.getDefaultProfile();
-			mProfile.setOnProfileChangedListener(new Profile.OnProfileChangedListener() {
+	public Profile getProfile() {
+		if (mCurrentProfile == null) {
+			mCurrentProfile = Profile.getDefaultProfile();
+			mCurrentProfile.setOnProfileChangedListener(new Profile.OnProfileChangedListener() {
 				@Override
 				public void onProfileChanged() {
 					invalidateProfile();
 				}
 			});
+			invalidateProfile();
 		}
+		return mCurrentProfile;
+	}
+	
+	private void invalidateProfile() {
+		Profile profile = getProfile();
 		ImageView mProfileImage = (ImageView) findViewById(R.id.drawer_profile_picture);
-		mProfileImage.setImageDrawable( mProfile.getIcon());
+		mProfileImage.setImageDrawable( profile.getIcon());
 		TextView mProfileName = (TextView) findViewById(R.id.drawer_profile_name);
 		mProfileName.setTypeface(null, Typeface.BOLD);
 		TextView mProfileEmail = (TextView) findViewById(R.id.drawer_profile_email);
 		mProfileEmail.setTypeface(null, Typeface.ITALIC);
 
-		if (mProfile.isLoggedIn()) {
-			mProfileName.setText(mProfile.getName());
-			mProfileEmail.setText(mProfile.getEmail());
+		if (profile.isLoggedIn()) {
+			mProfileName.setText(profile.getName());
+			mProfileEmail.setText(profile.getEmail());
 		} else {
 			mProfileName.setText(R.string.signin);
 			mProfileEmail.setText("");
 		}
+		// need to invalidate PostFragment because of the submit button in the comments section
+		if (getCurrentPostFragment() != null) {
+			getCurrentPostFragment().invalidatePostFragment();
+		}
+		
 	}
 	
 	private void exitApplication() {

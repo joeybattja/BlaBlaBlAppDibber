@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import me.dibber.blablablapp.R;
 import me.dibber.blablablapp.core.GlobalState;
 import me.dibber.blablablapp.core.PostCollection;
+import me.dibber.blablablapp.core.Profile;
 import android.graphics.Typeface;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -17,6 +18,7 @@ import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 public class CommentsFragment extends Fragment {
 	
@@ -24,9 +26,6 @@ public class CommentsFragment extends Fragment {
 	private LinearLayout mCommentsFrame;
 	private TextView mLeaveReply;
 	private LinearLayout mNewCommentForm;	
-	private EditText mName;
-	private EditText mEmail;
-	private EditText mWebsite;
 	private EditText mNewComment;
 	private Button mSubmitComment;
 	
@@ -43,9 +42,6 @@ public class CommentsFragment extends Fragment {
 		mCommentsFrame = (LinearLayout) rootView.findViewById(R.id.comment_Commentsframe);
 		mLeaveReply = (TextView) rootView.findViewById(R.id.comment_LeaveReplyText);
 		mNewCommentForm = (LinearLayout) rootView.findViewById(R.id.newComment_form);
-		mName = (EditText) rootView.findViewById(R.id.newComment_name);
-		mEmail = (EditText) rootView.findViewById(R.id.newComment_email);
-		mWebsite = (EditText) rootView.findViewById(R.id.newComment_website);
 		mNewComment = (EditText) rootView.findViewById(R.id.newComment_comment);
 		mSubmitComment = (Button) rootView.findViewById(R.id.newComment_submitButton);
 		
@@ -83,8 +79,40 @@ public class CommentsFragment extends Fragment {
 				mLeaveReply.setTypeface(null,Typeface.BOLD);
 				mLeaveReply.setText(R.string.leave_a_reply);
 			}
-			if (mName != null && mEmail != null && mWebsite != null && mNewComment != null && mSubmitComment != null) {
+			if (mSubmitComment != null && mNewComment != null) {
+				Profile pr = ((HomeActivity)getActivity()).getProfile();
+				String text;				
+				if (pr.isLoggedIn()) {
+					text = getResources().getString(R.string.Post_comment_as) + " " + pr.getName();
+				} else {
+					text = getResources().getString(R.string.Post_comment_as) + "...";
+				}
+				mSubmitComment.setText(text);
 				
+				mSubmitComment.setOnClickListener(new View.OnClickListener() {
+					
+					@Override
+					public void onClick(View v) {
+						boolean error = false;
+						Profile pro = ((HomeActivity)getActivity()).getProfile();
+						if (!pro.isLoggedIn()) {
+							pro.openDialog();
+							error = true;
+						} else if (pro.getName().isEmpty()) {
+							Toast.makeText(getActivity(), R.string.post_error_no_name, Toast.LENGTH_LONG).show();
+							error = true;
+						} else if (!android.util.Patterns.EMAIL_ADDRESS.matcher(pro.getEmail()).matches()) {
+							Toast.makeText(getActivity(), R.string.post_error_invalid_email, Toast.LENGTH_LONG).show();						
+							error = true;
+						} else if (mNewComment.getText().toString().trim().isEmpty()) {
+							mNewComment.setError(getResources().getString(R.string.is_required));
+							error = true;
+						}
+						if (!error) {
+							postComment(pro.getName(), pro.getEmail(), mNewComment.getText().toString().trim());
+						}
+					}
+				});
 			}
 		} else {
 			if (mLeaveReply != null) { 
@@ -157,4 +185,45 @@ public class CommentsFragment extends Fragment {
 			return commentRootView;
 		}
 	}
+	
+	public void invalidateComments() {
+		if (postId <= 0) {
+			return;
+		}
+		if (posts == null) {
+			posts = ((GlobalState)GlobalState.getContext()).getPosts();
+		}
+		boolean commentsChanged = false;
+		int newCount = posts.countComments(postId);
+		if (newCount > 0) {
+			if (mCountComments != null) {
+				int currentCount = 0;
+				try {
+					currentCount = Integer.parseInt(mCountComments.getText().toString());
+				} catch (NumberFormatException e) {
+				}
+				if (newCount != currentCount) {
+					commentsChanged = true;
+				}
+			}
+		}
+		if (commentsChanged) {
+			// TODO: show new comments...
+		}
+		if (mSubmitComment != null) {
+			Profile pr = ((HomeActivity)getActivity()).getProfile();
+			String text;				
+			if (pr.isLoggedIn()) {
+				text = getResources().getString(R.string.Post_comment_as) + " " + pr.getName();
+			} else {
+				text = getResources().getString(R.string.Post_comment_as) + "...";
+			}
+			mSubmitComment.setText(text);
+		}
+	}
+	
+	private void postComment(String name, String email, String comment) {
+		// TODO make a method to post comment. First API needs to be updated!
+	}
+	
 }

@@ -155,7 +155,7 @@ public class PostCollection {
 			return " ";
 		} 
 		if (posts.get(postId).comments == null) {
-			return null;
+			return " ";
 		}
 		for (Post.Comment c : posts.get(postId).comments) {
 			if (c.id == commentId) {
@@ -174,7 +174,7 @@ public class PostCollection {
 			return " ";
 		} 
 		if (posts.get(postId).comments == null) {
-			return null;
+			return " ";
 		}
 		for (Post.Comment c : posts.get(postId).comments) {
 			if (c.id == commentId) {
@@ -359,7 +359,7 @@ public class PostCollection {
 	
 	public String getItemYouTubeVideoID(int postId) {
 		if (posts.get(postId) == null) {
-			return " ";
+			return null;
 		}
 		String videoURL = null;
 		ArrayList<Post.Attachment> att = posts.get(postId).attachments;
@@ -415,14 +415,14 @@ public class PostCollection {
 	
 	private ArrayList<Post.Attachment> getAttachments(int postId) {
 		if (posts.get(postId) == null) {
-			return null;
+			return new ArrayList<Post.Attachment>();
 		} 
 		return posts.get(postId).attachments;
 	}
 	
 	private ArrayList<Drawable> getImages(int postId) {
 		if (posts.get(postId) == null) {
-			return null;
+			return new ArrayList<Drawable>();
 		} 
 		ArrayList<Drawable> images = new ArrayList<Drawable>();
 		ArrayList<Post.Attachment> att = posts.get(postId).attachments;
