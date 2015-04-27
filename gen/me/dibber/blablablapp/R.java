@@ -1869,38 +1869,40 @@ containing a value of this type.
         public static final int isLandscape=0x7f070006;
     }
     public static final class color {
-        public static final int abc_background_cache_hint_selector_material_dark=0x7f080075;
-        public static final int abc_background_cache_hint_selector_material_light=0x7f080076;
+        public static final int abc_background_cache_hint_selector_material_dark=0x7f080078;
+        public static final int abc_background_cache_hint_selector_material_light=0x7f080079;
         public static final int abc_input_method_navigation_guard=0x7f080003;
-        public static final int abc_primary_text_disable_only_material_dark=0x7f080077;
-        public static final int abc_primary_text_disable_only_material_light=0x7f080078;
-        public static final int abc_primary_text_material_dark=0x7f080079;
-        public static final int abc_primary_text_material_light=0x7f08007a;
-        public static final int abc_search_url_text=0x7f08007b;
+        public static final int abc_primary_text_disable_only_material_dark=0x7f08007a;
+        public static final int abc_primary_text_disable_only_material_light=0x7f08007b;
+        public static final int abc_primary_text_material_dark=0x7f08007c;
+        public static final int abc_primary_text_material_light=0x7f08007d;
+        public static final int abc_search_url_text=0x7f08007e;
         public static final int abc_search_url_text_normal=0x7f080000;
         public static final int abc_search_url_text_pressed=0x7f080002;
         public static final int abc_search_url_text_selected=0x7f080001;
-        public static final int abc_secondary_text_material_dark=0x7f08007c;
-        public static final int abc_secondary_text_material_light=0x7f08007d;
+        public static final int abc_secondary_text_material_dark=0x7f08007f;
+        public static final int abc_secondary_text_material_light=0x7f080080;
         public static final int accent_material_dark=0x7f08000f;
         public static final int accent_material_light=0x7f08000e;
-        public static final int action_foreground=0x7f08007e;
+        public static final int action_foreground=0x7f080081;
         /**  primary colors used by the action bar
      	 foreground is text and icon color
      	 secondary is used for e.g. hint in the searchview 
          */
-        public static final int actionbar_background=0x7f08005b;
-        public static final int actionbar_dark=0x7f08005e;
-        public static final int actionbar_dark_foreground=0x7f08005f;
-        public static final int actionbar_foreground=0x7f08005c;
-        public static final int actionbar_foreground_hint=0x7f08005d;
+        public static final int actionbar_background=0x7f08005a;
+        public static final int actionbar_dark=0x7f08005d;
+        public static final int actionbar_dark_foreground=0x7f08005e;
+        public static final int actionbar_foreground=0x7f08005b;
+        public static final int actionbar_foreground_hint=0x7f08005c;
         public static final int background_floating_material_dark=0x7f080006;
         public static final int background_floating_material_light=0x7f080007;
         public static final int background_material_dark=0x7f080004;
         public static final int background_material_light=0x7f080005;
-        public static final int background_selectable=0x7f08007f;
-        public static final int black=0x7f080066;
-        public static final int blue=0x7f08006f;
+        public static final int background_selectable=0x7f080082;
+        public static final int black=0x7f080065;
+        public static final int blue=0x7f08006e;
+        public static final int blue_d=0x7f08006f;
+        public static final int blue_l=0x7f08006d;
         /**  White 50% 
          */
         public static final int bright_foreground_disabled_material_dark=0x7f080016;
@@ -1915,7 +1917,7 @@ containing a value of this type.
         public static final int button_material_light=0x7f080011;
         /**  color used for some accents, like enabled checkboxes 
          */
-        public static final int color_accent=0x7f080060;
+        public static final int color_accent=0x7f08005f;
         public static final int com_facebook_blue=0x7f080031;
         public static final int com_facebook_button_background_color=0x7f080036;
         public static final int com_facebook_button_background_color_disabled=0x7f080037;
@@ -1941,23 +1943,22 @@ containing a value of this type.
         public static final int common_signin_btn_light_text_disabled=0x7f080044;
         public static final int common_signin_btn_light_text_focused=0x7f080045;
         public static final int common_signin_btn_light_text_pressed=0x7f080043;
-        public static final int common_signin_btn_text_dark=0x7f080080;
-        public static final int common_signin_btn_text_light=0x7f080081;
-        public static final int darkblue=0x7f080070;
-        public static final int darkgreen=0x7f080074;
-        public static final int darkgrey=0x7f080067;
-        public static final int darkpurple=0x7f080072;
-        public static final int darkred=0x7f08006c;
+        public static final int common_signin_btn_text_dark=0x7f080083;
+        public static final int common_signin_btn_text_light=0x7f080084;
         public static final int dim_foreground_disabled_material_dark=0x7f08001c;
         public static final int dim_foreground_disabled_material_light=0x7f08001d;
         public static final int dim_foreground_material_dark=0x7f08001a;
         public static final int dim_foreground_material_light=0x7f08001b;
         /**  color for divider line 
          */
-        public static final int divider_line=0x7f080063;
-        public static final int foreground_selectable=0x7f080082;
-        public static final int green=0x7f080073;
+        public static final int divider_line=0x7f080062;
+        public static final int foreground_selectable=0x7f080085;
+        public static final int green=0x7f080074;
+        public static final int green_d=0x7f080075;
+        public static final int green_l=0x7f080073;
         public static final int grey=0x7f080068;
+        public static final int grey_d=0x7f080069;
+        public static final int grey_l=0x7f080067;
         /**  TODO: This is 40% alpha on the default accent color. 
          */
         public static final int highlighted_text_material_dark=0x7f080020;
@@ -1966,7 +1967,6 @@ containing a value of this type.
         public static final int highlighted_text_material_light=0x7f080021;
         public static final int hint_foreground_material_dark=0x7f08001e;
         public static final int hint_foreground_material_light=0x7f08001f;
-        public static final int lightgrey=0x7f080069;
         public static final int link_text_material_dark=0x7f080022;
         public static final int link_text_material_light=0x7f080023;
         public static final int material_blue_grey_800=0x7f08002e;
@@ -1974,8 +1974,8 @@ containing a value of this type.
         public static final int material_blue_grey_950=0x7f080030;
         public static final int material_deep_teal_200=0x7f08002c;
         public static final int material_deep_teal_500=0x7f08002d;
-        public static final int orange=0x7f08006e;
-        public static final int pitchblack=0x7f080065;
+        public static final int orange=0x7f080077;
+        public static final int pitchblack=0x7f080064;
         public static final int primary_dark_material_dark=0x7f08000a;
         public static final int primary_dark_material_light=0x7f08000b;
         public static final int primary_material_dark=0x7f080008;
@@ -1989,19 +1989,22 @@ containing a value of this type.
          */
         public static final int primary_text_disabled_material_light=0x7f080028;
         public static final int purple=0x7f080071;
+        public static final int purple_d=0x7f080072;
+        public static final int purple_l=0x7f080070;
         public static final int red=0x7f08006b;
+        public static final int red_d=0x7f08006c;
+        public static final int red_l=0x7f08006a;
         /**  regular background color and text (foreground) color, 
     	 for disabled text foreground_off is used 
     	 foreground_secondary are e.g. summary lines below the title in the settings menu 
          */
         public static final int regular_background=0x7f080055;
-        public static final int regular_foreground=0x7f080083;
-        public static final int regular_foreground_off=0x7f080057;
-        public static final int regular_foreground_on=0x7f080056;
-        public static final int regular_foreground_secondary=0x7f080084;
-        public static final int regular_foreground_secondary_off=0x7f080059;
-        public static final int regular_foreground_secondary_on=0x7f080058;
-        public static final int regular_hint=0x7f08005a;
+        public static final int regular_foreground=0x7f080086;
+        public static final int regular_foreground_a=0x7f080056;
+        public static final int regular_foreground_hint=0x7f080057;
+        public static final int regular_foreground_secondary=0x7f080087;
+        public static final int regular_foreground_secondary_a=0x7f080058;
+        public static final int regular_foreground_secondary_hint=0x7f080059;
         public static final int ripple_material_dark=0x7f08000c;
         public static final int ripple_material_light=0x7f08000d;
         public static final int secondary_text_default_material_dark=0x7f080027;
@@ -2010,11 +2013,11 @@ containing a value of this type.
         public static final int secondary_text_disabled_material_light=0x7f080029;
         /**  color used for selected items in a list, for instance in the drawer 
          */
-        public static final int selected_background=0x7f080061;
-        public static final int selected_foreground=0x7f080062;
+        public static final int selected_background=0x7f080060;
+        public static final int selected_foreground=0x7f080061;
         public static final int switch_thumb_normal_material_dark=0x7f080012;
         public static final int switch_thumb_normal_material_light=0x7f080013;
-        public static final int transparent=0x7f08006a;
+        public static final int transparent=0x7f080066;
         public static final int wallet_bright_foreground_disabled_holo_light=0x7f08004d;
         /** 
          Wallet colors to support consistent Wallet fragment holo dark UI in client application
@@ -2033,12 +2036,12 @@ containing a value of this type.
         public static final int wallet_hint_foreground_holo_light=0x7f08004f;
         public static final int wallet_holo_blue_light=0x7f080053;
         public static final int wallet_link_text_light=0x7f080054;
-        public static final int wallet_primary_text_holo_light=0x7f080085;
-        public static final int wallet_secondary_text_holo_dark=0x7f080086;
+        public static final int wallet_primary_text_holo_light=0x7f080088;
+        public static final int wallet_secondary_text_holo_dark=0x7f080089;
         /**  some colors to pick from ;) 
          */
-        public static final int white=0x7f080064;
-        public static final int yellow=0x7f08006d;
+        public static final int white=0x7f080063;
+        public static final int yellow=0x7f080076;
     }
     public static final class dimen {
         /**  Default height of an action bar. 

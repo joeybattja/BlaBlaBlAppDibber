@@ -5,19 +5,18 @@
     	 for disabled text foreground_off is used 
     	 foreground_secondary are e.g. summary lines below the title in the settings menu -->
     <color name="regular_background">@color/white</color>
-    <color name="regular_foreground_on">@color/black</color>
-    <color name="regular_foreground_off">@color/lightgrey</color>
-    <color name="regular_foreground_secondary_on">@color/darkgrey</color>
-    <color name="regular_foreground_secondary_off">@color/lightgrey</color>
-    <color name="regular_hint">@color/grey</color>
+    <color name="regular_foreground_a">@color/black</color>
+    <color name="regular_foreground_hint">@color/grey</color>
+    <color name="regular_foreground_secondary_a">@color/grey_d</color>
+    <color name="regular_foreground_secondary_hint">@color/grey_l</color>
     
     <!-- primary colors used by the action bar
      	 foreground is text and icon color
      	 secondary is used for e.g. hint in the searchview -->
-    <color name="actionbar_background">@color/red</color>
-    <color name="actionbar_foreground">@color/white</color>
-    <color name="actionbar_foreground_hint">@color/white</color>
-    <color name="actionbar_dark">@color/darkred</color>
+    <color name="actionbar_background">@color/grey_l</color>
+    <color name="actionbar_foreground">@color/black</color>
+    <color name="actionbar_foreground_hint">@color/grey</color>
+    <color name="actionbar_dark">@color/grey_d</color>
     <color name="actionbar_dark_foreground">@color/white</color>
     
     <!-- color used for some accents, like enabled checkboxes -->
@@ -28,28 +27,33 @@
     <color name="selected_foreground">@color/white</color>
     
     <!-- color for divider line -->
-    <color name="divider_line">@color/lightgrey</color>
+    <color name="divider_line">@color/grey_l</color>
     
     
     <!-- some colors to pick from ;) -->
     <color name="white">#FFFFFF</color>
     
     <color name="pitchblack">#000000</color>
-    <color name="black">#DB000000</color>
-    <color name="darkgrey">#8B000000</color>
-    <color name="grey">#41000000</color>
-    <color name="lightgrey">#1C000000</color>
+    <color name="black">#212121</color>
     <color name="transparent">#00000000</color>
     
-    <color name="red">#FF4444</color>
-    <color name="darkred">#CC0000</color>
-    <color name="yellow">#FFBB33</color>
-    <color name="orange">#FF8800</color>
-    <color name="blue">#33B5E5</color>
-    <color name="darkblue">#0099CC</color>
-    <color name="purple">#AA66CC</color>
-    <color name="darkpurple">#9933CC</color>
-    <color name="green">#99CC00</color>
-    <color name="darkgreen">#669900</color>
+    <color name="grey_l">#e0e0e0</color>
+    <color name="grey">#bdbdbd</color>
+    <color name="grey_d">#757575</color>
+    
+    <color name="red_l">#FFCDD2</color>
+    <color name="red">#F44336</color>
+    <color name="red_d">#D32F2F</color>
+    <color name="blue_l">#BBDEFB</color>
+    <color name="blue">#2196F3</color>
+    <color name="blue_d">#1976D2</color>
+    <color name="purple_l">#E1BEE7</color>
+    <color name="purple">#9C27B0</color>
+    <color name="purple_d">#7B1FA2</color>
+    <color name="green_l">#C8E6C9</color>
+    <color name="green">#4CAF50</color>
+    <color name="green_d">#388E3C</color>
+    <color name="yellow">#FFEB3B</color>
+    <color name="orange">#FF9800</color>
 
 </resources>

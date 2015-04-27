@@ -474,11 +474,11 @@ public class Profile {
 				   .setNegativeButton(R.string.cancel, null)
 				   .create();
 			
-			userName.setHintTextColor(getResources().getColor(R.color.regular_hint));
-			userName.setTextColor(getResources().getColor(R.color.regular_foreground));
-			email.setHintTextColor(getResources().getColor(R.color.regular_hint));
-			email.setTextColor(getResources().getColor(R.color.regular_foreground));
-			extraText.setTextColor(getResources().getColor(R.color.regular_foreground));
+			userName.setHintTextColor(getResources().getColor(R.color.regular_foreground_hint));
+			userName.setTextColor(getResources().getColor(R.color.regular_foreground_a));
+			email.setHintTextColor(getResources().getColor(R.color.regular_foreground_hint));
+			email.setTextColor(getResources().getColor(R.color.regular_foreground_a));
+			extraText.setTextColor(getResources().getColor(R.color.regular_foreground_a));
 			extraText.setTypeface(null, Typeface.ITALIC);
 			
 			userName.setText(getProfile().getName());
@@ -487,7 +487,6 @@ public class Profile {
 			
 			faceBookLogin = (ImageView) view.findViewById(R.id.login_facebook);
 			faceBookLogin.setOnClickListener(new View.OnClickListener() {
-				
 				@Override
 				public void onClick(View v) {
 					getProfile().initFaceBook();
@@ -495,6 +494,7 @@ public class Profile {
 					loginMan.logInWithReadPermissions(LoginDialog.this, Arrays.asList(FACEBOOK_PERMISSIONS));
 				}
 			});
+			
 			googlePlusLogin = (ImageView) view.findViewById(R.id.login_googleplus);
 			googlePlusLogin.setOnClickListener(new View.OnClickListener() {
 				
@@ -608,9 +608,9 @@ public class Profile {
 				   .setNegativeButton(R.string.cancel, null)
 				   .create();
 			
-			userName.setTextColor(getResources().getColor(R.color.regular_foreground));
+			userName.setTextColor(getResources().getColor(R.color.regular_foreground_a));
 			userName.setTypeface(null, Typeface.BOLD);
-			email.setTextColor(getResources().getColor(R.color.regular_foreground));
+			email.setTextColor(getResources().getColor(R.color.regular_foreground_a));
 			
 			userName.setText(getProfile().getName());
 			email.setText(getProfile().getEmail());
@@ -702,11 +702,11 @@ public class Profile {
 				   .setNegativeButton(R.string.cancel, null)
 				   .create();
 			
-			userName.setHintTextColor(getResources().getColor(R.color.regular_hint));
-			userName.setTextColor(getResources().getColor(R.color.regular_foreground));
-			email.setHintTextColor(getResources().getColor(R.color.regular_hint));
-			email.setTextColor(getResources().getColor(R.color.regular_foreground));
-			extraText.setTextColor(getResources().getColor(R.color.regular_foreground));
+			userName.setHintTextColor(getResources().getColor(R.color.regular_foreground_hint));
+			userName.setTextColor(getResources().getColor(R.color.regular_foreground_a));
+			email.setHintTextColor(getResources().getColor(R.color.regular_foreground_hint));
+			email.setTextColor(getResources().getColor(R.color.regular_foreground_a));
+			extraText.setTextColor(getResources().getColor(R.color.regular_foreground_a));
 			extraText.setTypeface(null, Typeface.ITALIC);
 			
 			userName.setText(getProfile().getName());
