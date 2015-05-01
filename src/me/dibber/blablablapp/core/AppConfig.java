@@ -2,6 +2,8 @@ package me.dibber.blablablapp.core;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.util.Properties;
 
 import android.content.Context;
@@ -13,7 +15,8 @@ import android.util.Log;
 public class AppConfig {
 	
 	// Blog API parameters:
-	private static final String API_URL = "http://www.blablablog.nl/";
+	private static final String API_URL = "http://www.blablablog.nl/"; 	// test server = "http://server.dibber.me/wordpress/";
+
 	private static final String API_PHP = "new_api.php";
 	private static final String API_GET_RECENT_POSTS = "?function=get_recent_posts";
 	private static final String API_COUNT_PARAM = "&count=";
@@ -21,6 +24,7 @@ public class AppConfig {
 	private static final String API_POSTID_PARAM = "&postId=";
 	private static final String API_GET_SUPPORTED_VERSIONS = "?function=get_supported_versions";
 	private static final String API_ADD_DEVICE = "?function=add_device&deviceId=";
+	private static final String API_POST_COMMENT = "?function=post_comment";
 	
 	// API Keys:
 	private static final String YOUTUBE_API_KEY = "AIzaSyD7xWiQl4I8KW987uZyns8qma0eWfCY_8c";
@@ -90,6 +94,21 @@ public class AppConfig {
 		case ADD_DEVICE:
 			path = API_URL + API_PHP + API_ADD_DEVICE + param;
 			break;
+		}
+		return path;
+	}
+	
+	public static String getURLPathPostComment(int postId, String author, String email, String comment) {
+		String path; 
+		
+		try {
+			path = API_URL + API_PHP + API_POST_COMMENT + "&postId=" + postId + "&commentAuthor=" + URLEncoder.encode(author, "UTF-8") +
+					"&commentAuthorEmail=" + URLEncoder.encode(email, "UTF-8") + "&commentContent=" + URLEncoder.encode(comment, "UTF-8");
+		} catch (UnsupportedEncodingException e) {
+			Log.w("Error while trying to encode URL for post comment", e.toString());
+			path = API_URL + API_PHP + API_POST_COMMENT + "&postId=" + postId + "&commentAuthor=" + author + 
+					"&commentAuthorEmail=" + email + "&commentContent=" + comment;
+			path = path.replace(" ", "%20").replace("\n","%0A");
 		}
 		return path;
 	}

@@ -1,16 +1,25 @@
 package me.dibber.blablablapp.activities;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.ArrayList;
 
 import me.dibber.blablablapp.R;
-import me.dibber.blablablapp.core.DataLoader;
-import me.dibber.blablablapp.core.AppConfig.Function;
-import me.dibber.blablablapp.core.DataLoader.DataLoaderListener;
 import me.dibber.blablablapp.core.AppConfig;
+import me.dibber.blablablapp.core.AppConfig.Function;
+import me.dibber.blablablapp.core.DataLoader;
+import me.dibber.blablablapp.core.DataLoader.DataLoaderListener;
 import me.dibber.blablablapp.core.GlobalState;
 import me.dibber.blablablapp.core.PostCollection;
 import me.dibber.blablablapp.core.Profile;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import android.graphics.Typeface;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -136,24 +145,34 @@ public class CommentsFragment extends Fragment {
 								
 								@Override
 								public void onCommentPosted(boolean success) {
-									mNewComment.setText("");
-									DataLoader dl = new DataLoader();
-									dl.setDataLoaderListener(new DataLoaderListener() {
+									getActivity().runOnUiThread(new Runnable() {
 										
 										@Override
-										public void onDataLoaderOnlineDone(boolean success) {
-											invalidateComments();
+										public void run() {
+
+											mNewComment.setText("");
+											DataLoader dl = new DataLoader();
+											dl.setDataLoaderListener(new DataLoaderListener() {
+												
+												@Override
+												public void onDataLoaderOnlineDone(boolean success) {
+													invalidateComments();
+												}
+												
+												@Override
+												public void onDataLoaderDiskDone(boolean success) {	}
+												
+											});
+											dl.isInSynchWithExistingPosts(false);
+											try {
+												dl.setDataSource(AppConfig.getURLPath(Function.GET_POST_BY_ID, Integer.toString(postId)));
+											} catch (MalformedURLException e) {
+												Log.w("Path incorrect", e.toString());
+											}
+											dl.prepareAsync();
 										}
-										
-										@Override
-										public void onDataLoaderDiskDone(boolean success) {	}
 									});
-									dl.isInSynchWithExistingPosts(false);
-									try {
-										dl.setDataSource(AppConfig.getURLPath(Function.GET_POST_BY_ID, Integer.toString(postId)));
-									} catch (MalformedURLException e) {
-										Log.w("Path incorrect", e.toString());
-									}
+									
 								}
 							});
 						}
@@ -231,13 +250,43 @@ public class CommentsFragment extends Fragment {
 	}
 	
 	public void invalidateComments() {
-		displayComments();
-		displayReplySection();
+		posts = ((GlobalState) GlobalState.getContext() ).getPosts();
+		getActivity().runOnUiThread(new Runnable() {
+			@Override
+			public void run() {
+				displayComments();
+				displayReplySection();
+			}
+		});
+		
 	}
 	
-	private void postComment(String name, String email, String comment, OnCommentPostedListener listener) {
-		// TODO make a method to post comment. First API needs to be updated!
-		listener.onCommentPosted(true);
+	private void postComment(String name, String email, String comment, final OnCommentPostedListener listener) {
+		final String path = AppConfig.getURLPathPostComment(postId, name, email, comment);
+		Thread t = new Thread(new Runnable() {
+			
+			@Override
+			public void run() {
+				try {
+					URL url = new URL(path);
+					InputStream in = url.openStream();
+					BufferedReader reader = new BufferedReader(new InputStreamReader(in));
+					JSONObject reply = new JSONObject(reader.readLine());
+					if (!"OK".equals(reply.getString("status"))) {
+						Log.w("error",reply.getString("reason"));
+						listener.onCommentPosted(false);
+					} else {
+						listener.onCommentPosted(true);
+					}
+				} catch (IOException e) {
+					Log.w("IOException while posting comment", e.toString());
+				} catch (JSONException e1) {
+					Log.w("JSONException while posting comment", e1.toString());
+				}
+			}
+		});
+		t.start();
+		
 	}
 	
 	public interface OnCommentPostedListener {
