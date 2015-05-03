@@ -2775,6 +2775,7 @@ containing a value of this type.
         public static final int drawer_close=0x7f0c0046;
         public static final int drawer_open=0x7f0c0045;
         public static final int facebook_app_id=0x7f0c0049;
+        public static final int guest=0x7f0c0069;
         public static final int invalid_email=0x7f0c005a;
         public static final int is_required=0x7f0c0059;
         public static final int leave_a_reply=0x7f0c0066;
@@ -2797,23 +2798,24 @@ containing a value of this type.
  Notifications 
  Notifications 
          */
-        public static final int notify_new_posts=0x7f0c006b;
+        public static final int notify_new_posts=0x7f0c006d;
         public static final int ok=0x7f0c0064;
-        public static final int post_error_invalid_email=0x7f0c006a;
-        public static final int post_error_no_name=0x7f0c0069;
+        public static final int post_error_exception=0x7f0c006c;
+        public static final int post_error_invalid_email=0x7f0c006b;
+        public static final int post_error_no_name=0x7f0c006a;
         /**  Settings 
  Settings 
  Settings 
          */
-        public static final int pref_notifications=0x7f0c006c;
-        public static final int pref_storage=0x7f0c0070;
-        public static final int pref_sum_max_post_stored=0x7f0c0074;
-        public static final int pref_sum_notify_messages=0x7f0c006f;
-        public static final int pref_sum_use_storage=0x7f0c0072;
-        public static final int pref_title_max_post_stored=0x7f0c0073;
-        public static final int pref_title_notify_messages=0x7f0c006e;
-        public static final int pref_title_notify_new_posts=0x7f0c006d;
-        public static final int pref_title_use_storage=0x7f0c0071;
+        public static final int pref_notifications=0x7f0c006e;
+        public static final int pref_storage=0x7f0c0072;
+        public static final int pref_sum_max_post_stored=0x7f0c0076;
+        public static final int pref_sum_notify_messages=0x7f0c0071;
+        public static final int pref_sum_use_storage=0x7f0c0074;
+        public static final int pref_title_max_post_stored=0x7f0c0075;
+        public static final int pref_title_notify_messages=0x7f0c0070;
+        public static final int pref_title_notify_new_posts=0x7f0c006f;
+        public static final int pref_title_use_storage=0x7f0c0073;
         /**   Profile 
   Profile 
   Profile 

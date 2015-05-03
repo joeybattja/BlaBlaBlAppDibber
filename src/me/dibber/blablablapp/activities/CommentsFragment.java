@@ -59,8 +59,7 @@ public class CommentsFragment extends Fragment {
 		mNewComment = (EditText) rootView.findViewById(R.id.newComment_comment);
 		mSubmitComment = (Button) rootView.findViewById(R.id.newComment_submitButton);
 		
-		displayComments();
-		displayReplySection();
+		invalidateComments();
 		
 		return rootView;
 	}
@@ -69,9 +68,8 @@ public class CommentsFragment extends Fragment {
 		if (postId <= 0) {
 			return;
 		}
-		if (posts == null) {
-			posts = ((GlobalState) GlobalState.getContext() ).getPosts();
-		}
+		posts = ((GlobalState) GlobalState.getContext() ).getPosts();
+		
 		commentIds = posts.getItemComments(postId);
 		int commentCount = posts.countComments(postId);
 		if (commentIds.size() != commentCount) {
@@ -144,35 +142,21 @@ public class CommentsFragment extends Fragment {
 							postComment(pro.getName(), pro.getEmail(), mNewComment.getText().toString().trim(), new OnCommentPostedListener() {
 								
 								@Override
-								public void onCommentPosted(boolean success) {
-									getActivity().runOnUiThread(new Runnable() {
-										
-										@Override
-										public void run() {
-
-											mNewComment.setText("");
-											DataLoader dl = new DataLoader();
-											dl.setDataLoaderListener(new DataLoaderListener() {
-												
-												@Override
-												public void onDataLoaderOnlineDone(boolean success) {
-													invalidateComments();
+								public void onCommentPosted(final boolean success) {
+									HomeActivity ha = ((GlobalState)GlobalState.getContext()).getCurrentHomeActivity();
+									if (ha != null) {
+										ha.runOnUiThread(new Runnable() {
+											
+											@Override
+											public void run() {
+												if (!success) {
+													Toast.makeText(GlobalState.getContext(), getResources().getString(R.string.post_error_exception), Toast.LENGTH_LONG).show();
 												}
-												
-												@Override
-												public void onDataLoaderDiskDone(boolean success) {	}
-												
-											});
-											dl.isInSynchWithExistingPosts(false);
-											try {
-												dl.setDataSource(AppConfig.getURLPath(Function.GET_POST_BY_ID, Integer.toString(postId)));
-											} catch (MalformedURLException e) {
-												Log.w("Path incorrect", e.toString());
+												mNewComment.setText("");
+												invalidateComments();
 											}
-											dl.prepareAsync();
-										}
-									});
-									
+										});
+									}
 								}
 							});
 						}
@@ -189,6 +173,75 @@ public class CommentsFragment extends Fragment {
 		}
 	}
 	
+	public void invalidateComments() {
+		if (postId <= 0) {
+			return;
+		}
+		posts = ((GlobalState) GlobalState.getContext() ).getPosts();
+		
+		DataLoader dl = new DataLoader();
+		try {
+			dl.setDataSource(AppConfig.getURLPath(Function.GET_COMMENTS,Integer.toString(postId)));
+		} catch (MalformedURLException e) {
+			Log.w("Path incorrect", e.toString());
+		}
+		dl.setDataLoaderListener(new DataLoaderListener() {
+			
+			@Override
+			public void onDataLoaderOnlineDone(boolean success) {
+				HomeActivity ha = ((GlobalState)GlobalState.getContext()).getCurrentHomeActivity();
+				if (ha != null) {
+					ha.runOnUiThread(new Runnable() {
+						@Override
+						public void run() {
+							displayComments();
+							displayReplySection();
+						}
+					});
+				}
+			}
+			
+			@Override
+			public void onDataLoaderDiskDone(boolean success) {	}
+		});
+		dl.prepareAsync();
+	}
+	
+	private void postComment(String name, String email, String comment, final OnCommentPostedListener listener) {
+		final String path = AppConfig.getURLPathPostComment(postId, name, email, comment);
+		Thread t = new Thread(new Runnable() {
+			
+			@Override
+			public void run() {
+				try {
+					URL url = new URL(path);
+					InputStream in = url.openStream();
+					BufferedReader reader = new BufferedReader(new InputStreamReader(in));
+					JSONObject reply = new JSONObject(reader.readLine());
+					if (!"OK".equals(reply.getString("status"))) {
+						Log.w("error",reply.getString("reason"));
+						listener.onCommentPosted(false);
+					} else {
+						listener.onCommentPosted(true);
+					}
+				} catch (IOException e) {
+					Log.w("IOException while posting comment", e.toString());
+					listener.onCommentPosted(false);
+
+				} catch (JSONException e1) {
+					Log.w("JSONException while posting comment", e1.toString());
+					listener.onCommentPosted(false);
+				}
+			}
+		});
+		t.start();
+		
+	}
+	
+	public interface OnCommentPostedListener {
+		void onCommentPosted(boolean success);
+	}
+
 	public static class CommentItemFragment extends Fragment {
 		
 		public final static String ARG_POSTID = "arg postid";
@@ -239,7 +292,7 @@ public class CommentsFragment extends Fragment {
 			mIndentView.setLayoutParams(indentParams);
 			
 			mContentView.setText(psts.getCommentContent(pstId, cmntId));
-
+	
 			
 			if (psts.getItemComments(pstId).get(psts.getItemComments(pstId).size() -1) == cmntId) {
 				mLine.setVisibility(View.GONE);
@@ -247,50 +300,6 @@ public class CommentsFragment extends Fragment {
 			
 			return commentRootView;
 		}
-	}
-	
-	public void invalidateComments() {
-		posts = ((GlobalState) GlobalState.getContext() ).getPosts();
-		getActivity().runOnUiThread(new Runnable() {
-			@Override
-			public void run() {
-				displayComments();
-				displayReplySection();
-			}
-		});
-		
-	}
-	
-	private void postComment(String name, String email, String comment, final OnCommentPostedListener listener) {
-		final String path = AppConfig.getURLPathPostComment(postId, name, email, comment);
-		Thread t = new Thread(new Runnable() {
-			
-			@Override
-			public void run() {
-				try {
-					URL url = new URL(path);
-					InputStream in = url.openStream();
-					BufferedReader reader = new BufferedReader(new InputStreamReader(in));
-					JSONObject reply = new JSONObject(reader.readLine());
-					if (!"OK".equals(reply.getString("status"))) {
-						Log.w("error",reply.getString("reason"));
-						listener.onCommentPosted(false);
-					} else {
-						listener.onCommentPosted(true);
-					}
-				} catch (IOException e) {
-					Log.w("IOException while posting comment", e.toString());
-				} catch (JSONException e1) {
-					Log.w("JSONException while posting comment", e1.toString());
-				}
-			}
-		});
-		t.start();
-		
-	}
-	
-	public interface OnCommentPostedListener {
-		void onCommentPosted(boolean success);
 	}
 	
 }

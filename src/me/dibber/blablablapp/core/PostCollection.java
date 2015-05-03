@@ -151,22 +151,22 @@ public class PostCollection {
 	}
 	
 	public String getCommentAuthor(int postId, int commentId) {
-		if (posts.get(postId) == null) {
-			return " ";
-		} 
-		if (posts.get(postId).comments == null) {
-			return " ";
+		String author = "";
+		if (posts.get(postId) != null && posts.get(postId).comments != null) {
+			for (Post.Comment c : posts.get(postId).comments) {
+				if (c.id == commentId) {
+					if (c.author == null) { 
+						author = "";
+					} else {
+						author = c.author;
+					}
+				} 
+			}
 		}
-		for (Post.Comment c : posts.get(postId).comments) {
-			if (c.id == commentId) {
-				if (c.author == null) { 
-					return " ";
-				} else {
-					return c.author;
-				}
-			} 
-		} 
-		return " ";
+		if (author.isEmpty()) {
+			author = GlobalState.getContext().getResources().getString(R.string.guest);
+		}
+		return author;
 	}
 	
 	public CharSequence getCommentContent(int postId, int commentId) {
@@ -406,11 +406,7 @@ public class PostCollection {
 		if (posts.get(postId) == null) {
 			return 0;
 		}
-		ArrayList<Post.Comment> comments = posts.get(postId).comments;
-		if (comments == null) {
-			return 0;
-		}
-		return comments.size();
+		return posts.get(postId).commentcount;
 	}
 	
 	private ArrayList<Post.Attachment> getAttachments(int postId) {

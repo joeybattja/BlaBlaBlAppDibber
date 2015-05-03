@@ -54,8 +54,10 @@
 	<string name="leave_a_reply">Plaats een reactie</string>
 	<string name="Post_comment_as">Plaats een reactie als</string>
 	<string name="comment">Reactie</string>
+	<string name="guest">Gast</string>
 	<string name="post_error_no_name">Kan helaas geen reactie plaatsen: naam onbekend in profiel. Log opnieuw in.</string>
 	<string name="post_error_invalid_email">Kan helaas geen reactie plaatsen: foutief emailadres in profiel. Log opnieuw in met een correct emailadres.</string>
+	<string name="post_error_exception">Er is een onverwachte fout opgetreden tijdens het plaatsen van een reactie</string>
 	
 	<!-- Notifications -->
 	<string name="notify_new_posts">Er zijn %d nieuwe posts</string>

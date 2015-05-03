@@ -17,7 +17,6 @@ import java.util.ArrayList;
 import java.util.Locale;
 
 import me.dibber.blablablapp.core.Post.Attachment;
-import me.dibber.blablablapp.core.Post.Comment;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -83,8 +82,6 @@ public class DataLoader {
 	private void done() {
 		state = State.DONE;
 	}
-	 
-    // *****************  implementation for JSON  *******************
 	
 	private void parseJSON() {
 
@@ -187,7 +184,7 @@ public class DataLoader {
 						}
 						postObj.put("attachments", attArr);
 						
-						JSONArray commArr = new JSONArray();
+						/*JSONArray commArr = new JSONArray();
 						for (Comment cmnt : p.comments) {
 							JSONObject cmntObj = new JSONObject();
 							cmntObj.put("id", Integer.toString(cmnt.id));
@@ -200,9 +197,10 @@ public class DataLoader {
 							}
 							commArr.put(cmntObj);
 						}
-						postObj.put("comments", commArr);
+						postObj.put("comments", commArr);*/
 						
 						postObj.put("comment_status", p.commentstatus);
+						postObj.put("comment_count", p.commentcount);
 						if (p.favorite == 'Y') {
 							postObj.put("favorite", "Y");
 						} else {
@@ -241,7 +239,35 @@ public class DataLoader {
 				Log.w("error parsing the JSON object", "Status is not 'OK'");
 				return;
 			}
-			JSONcreatePosts(obj.getJSONArray("posts"), synchedOnline);
+			try {
+				JSONArray postsArr = obj.getJSONArray("posts");
+				JSONcreatePosts(postsArr, synchedOnline);
+			} catch (JSONException errorPosts) {
+				// no posts array available in object
+			}
+			try {
+				JSONArray commentsArr = obj.getJSONArray("comments");
+				int postIdParam = 0;
+				String[] params = url.getQuery().split("&");
+				for (String param : params) {
+					if (param.split("=")[0].equals("postId")) {
+						try {
+							postIdParam = Integer.parseInt((param.split("=")[1]));
+						} catch (NumberFormatException e) {
+							throw new JSONException("no valid value given for postId");
+						}
+						break;
+					}
+				}
+				Post post = posts.getPost(postIdParam);
+				if (post != null) {
+					JSONcreateComments(commentsArr, post);
+				}
+			} catch (JSONException errorComments) {
+				// no comments array available in object
+			}
+
+			
 		} catch (JSONException e) {
 			Log.w("error parsing the JSON object", e.toString());
 		}
@@ -301,37 +327,14 @@ public class DataLoader {
 			}
 			p.attachments = tempAttachments;
 			
-			// comments, can be empty:
-			p.comments = new ArrayList<Post.Comment>();
+			// try to read comments, will eventually be empty in the get_recent_posts
 			try {
 				JSONArray cmnts = postobj.getJSONArray("comments");
-				for (int k = 0; k < cmnts.length(); k++) {
-					Post.Comment c = new Post.Comment();
-					try {
-					c.id = Integer.parseInt(getStringFromJSON(cmnts.getJSONObject(k),"id"));
-					} catch (NumberFormatException e) {
-						c.id = 0;
-						Log.d("Error parsing id of a comment " + k + " of post " + p.id + " " + p.title, e.toString());
-					}
-					try {
-						c.parent = Integer.parseInt(getStringFromJSON(cmnts.getJSONObject(k),"parent"));
-					} catch (NumberFormatException e) {
-						c.parent = 0;
-						Log.d("Error parsing parent of a comment " + k + " of post " + p.id + " " + p.title + ", with comment id " + c.id, e.toString());
-					}
-					c.author = getStringFromJSON(cmnts.getJSONObject(k),"author");
-					c.content = getStringFromJSON(cmnts.getJSONObject(k),"content");
-					try {
-						SimpleDateFormat  df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.US);
-							c.date = df.parse(getStringFromJSON(cmnts.getJSONObject(k),"date"));
-					} catch (ParseException e) {
-							Log.d("Error parsing date from JSON comment " + k + " of post " + p.id + " " + p.title, e.toString());
-					}
-					p.comments.add(c);
-				}
+				JSONcreateComments(cmnts,p);
 			} catch (JSONException e) {
-				// no "comments" object in JSON 
+				// no "comments" object in JSON
 			}
+			
 			try {
 				p.commentstatus = postobj.getBoolean("comment_status");
 			} catch (JSONException e) {
@@ -340,6 +343,12 @@ public class DataLoader {
 				} else {
 					p.commentstatus = false;
 				}
+			}
+			try {
+				p.commentcount = Integer.parseInt(getStringFromJSON(postobj,"comment_count"));
+			} catch (NumberFormatException e) {
+				Log.e("no commentcount", e.toString());
+				p.commentcount = 0;
 			}
 			if (p.favorite != 'Y' && p.favorite != 'N') {
 				if (getStringFromJSON(postobj, "favorite") != null && getStringFromJSON(postobj, "favorite").charAt(0) == 'Y') {
@@ -355,6 +364,35 @@ public class DataLoader {
 				}
 			}
 			posts.addPost(p);
+		}
+	}
+	
+	private void JSONcreateComments(JSONArray commentData, Post p) throws JSONException {
+		p.comments = new ArrayList<Post.Comment>();
+		for (int i = 0; i < commentData.length(); i++) {
+			JSONObject commentobj = commentData.getJSONObject(i);
+			Post.Comment c = new Post.Comment();
+			try {
+				c.id = Integer.parseInt(getStringFromJSON(commentobj, "id"));
+			} catch (NumberFormatException e) {
+				c.id = 0;
+				Log.w("Error parsing id of a comment " + i + " of post " + p.id + " " + p.title, e.toString());
+			}
+			try {
+				c.parent = Integer.parseInt(getStringFromJSON(commentobj,"parent"));
+			} catch (NumberFormatException e) {
+				c.parent = 0;
+				Log.w("Error parsing parent of a comment " + i + " of post " + p.id + " " + p.title + ", with comment id " + c.id, e.toString());
+			}
+			c.author = getStringFromJSON(commentobj,"author");
+			c.content = getStringFromJSON(commentobj,"content");
+			try {
+				SimpleDateFormat  df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.US);
+					c.date = df.parse(getStringFromJSON(commentobj,"date"));
+			} catch (ParseException e) {
+					Log.w("Error parsing date from JSON comment " + i + " of post " + p.id + " " + p.title, e.toString());
+			}
+			p.comments.add(c);
 		}
 	}
 
