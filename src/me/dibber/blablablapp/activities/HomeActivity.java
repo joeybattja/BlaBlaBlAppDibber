@@ -154,9 +154,7 @@ public class HomeActivity extends ActionBarActivity implements DataLoaderListene
 	
 	@Override
 	protected void onActivityResult(int requestCode, int responseCode, Intent intent) {
-		if (requestCode == Profile.GOOGLEPLUS_SIGNIN) {
-			getProfile().onActivityResult(requestCode, responseCode, intent);
-		}
+		getProfile().onActivityResult(this, requestCode, responseCode, intent);
 		super.onActivityResult(requestCode, responseCode, intent);
 	}
 

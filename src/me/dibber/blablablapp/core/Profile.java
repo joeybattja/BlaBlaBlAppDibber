@@ -83,6 +83,9 @@ public class Profile {
     private GoogleApiClient mGoogleApiClient;
     private boolean mGoogleResolvingInProgress;
     private boolean mGoogleSignInClicked;
+    
+    // LinkedIn
+    //private LISessionManager linkedInSessionManager;
 	
 	private static Profile defaultProfile;
 	
@@ -119,8 +122,18 @@ public class Profile {
 				} catch (IOException e) {
 				}
 			}
-			if (defaultProfile.mProfileType == ProfileType.FACEBOOK) {
+			switch (defaultProfile.mProfileType) {
+			case FACEBOOK:
 				defaultProfile.initFaceBook();
+				break;
+			case GOOGLEPLUS:
+				defaultProfile.initGooglePlus();
+				break;
+			case MANUALLY_CREATED:
+			case NOT_LOGGED_IN:
+			case TWITTER:
+			default:
+				break;
 			}
 		}
 		return defaultProfile;
@@ -146,6 +159,19 @@ public class Profile {
 				in.close();
 			} catch (FileNotFoundException e) {
 			} catch (IOException e) {
+			}
+			switch (newProfile.mProfileType) {
+			case FACEBOOK:
+				defaultProfile.initFaceBook();
+				break;
+			case GOOGLEPLUS:
+				defaultProfile.initGooglePlus();
+				break;
+			case MANUALLY_CREATED:
+			case NOT_LOGGED_IN:
+			case TWITTER:
+			default:
+				break;
 			}
 		}
 		return newProfile;
@@ -217,6 +243,29 @@ public class Profile {
 		commitProfileChange();
 	}
 	
+	private void setProfilePicFromURL (final String path) {
+		Thread t = new Thread(new Runnable() {
+			
+			@Override
+			public void run() {
+				try {
+					URL url = new URL(path);
+					InputStream in = url.openStream();
+					setIcon(Drawable.createFromStream(in, "src"));
+					in.close();
+				} catch (FileNotFoundException e) {
+					Log.e("FileNotFoundException on getting profile image", e.toString());
+				} catch (IOException e1) {
+					Log.e("IOException on getting profile image", e1.toString());
+				}
+				commitProfileChange();
+			}
+		});
+		t.start();
+		
+		commitProfileChange();
+	}
+
 	private void initFaceBook() {
 		FacebookSdk.sdkInitialize(GlobalState.getContext());
 		mFacebookProfileTracker = new ProfileTracker() {
@@ -250,29 +299,6 @@ public class Profile {
 			@Override
 			public void onCancel() { }
 		});
-	}
-	
-	private void setProfilePicFromURL (final String path) {
-		Thread t = new Thread(new Runnable() {
-			
-			@Override
-			public void run() {
-				try {
-					URL url = new URL(path);
-					InputStream in = url.openStream();
-					setIcon(Drawable.createFromStream(in, "src"));
-					in.close();
-				} catch (FileNotFoundException e) {
-					Log.e("FileNotFoundException on getting Facebook profile image", e.toString());
-				} catch (IOException e1) {
-					Log.e("IOException on getting Facebook profile image", e1.toString());
-				}
-				commitProfileChange();
-			}
-		});
-		t.start();
-		
-		commitProfileChange();
 	}
 	
 	private void loginFaceBook(com.facebook.Profile profile) {
@@ -343,7 +369,7 @@ public class Profile {
 	}
 	
 	private void loginGooglePlus() {
-		if (mGoogleApiClient == null) {
+		if (mGoogleApiClient == null || !mGoogleApiClient.isConnected()) {
 			return;
 		}
 		if (Plus.PeopleApi.getCurrentPerson(mGoogleApiClient) != null) {
@@ -376,9 +402,58 @@ public class Profile {
 		commitProfileChange();
 	}
 	
-	public void onActivityResult(int requestCode, int responseCode, Intent intent) {
+/*	private void initLinkedIn() {
+		if (linkedInSessionManager == null) { 
+			linkedInSessionManager = LISessionManager.getInstance(GlobalState.getContext());
+		}
+		HomeActivity ha = ((GlobalState)GlobalState.getContext()).getCurrentHomeActivity();
+		if (ha == null) {
+			return;
+		}
+		linkedInSessionManager.init(ha,Scope.build(Scope.R_BASICPROFILE,Scope.R_EMAILADDRESS),new AuthListener() {
+			
+			@Override
+			public void onAuthSuccess() {
+				Log.w("onAuthSuccess", "LinkedIn success");
+				loginLinkedIn();
+			}
+			
+			@Override
+			public void onAuthError(LIAuthError error) {
+				Log.w("LinkedIN Authentication error", error.toString());
+			}
+		},true);
+	}
+	
+	private void loginLinkedIn() {
+		if (linkedInSessionManager == null) { 
+			return;
+		}
+		LISession session = linkedInSessionManager.getSession();
+		if (session.isValid()) {
+			APIHelper apiHelper = APIHelper.getInstance(GlobalState.getContext());
+			apiHelper.getRequest(GlobalState.getContext(), "https://api.linkedin.com/v1/people/~?format=json", new ApiListener() {
+				
+				@Override
+				public void onApiSuccess(ApiResponse apiResponse) {
+					Log.e("APIRESPONSE", apiResponse.toString());
+					
+				}
+				
+				@Override
+				public void onApiError(LIApiError LIApiError) {
+					Log.e("LIApiError", LIApiError.toString());
+				}
+			});
+		}
+	}*/
+	
+	public void onActivityResult(Activity activity, int requestCode, int resultCode, Intent data) {
+		/*if (linkedInSessionManager != null) {
+			linkedInSessionManager.onActivityResult(activity, requestCode, resultCode, data);
+		}*/
 		if (requestCode == GOOGLEPLUS_SIGNIN) {
-			if (responseCode != Activity.RESULT_OK) {
+			if (resultCode != Activity.RESULT_OK) {
 				mGoogleSignInClicked = false;
 			}
 			mGoogleResolvingInProgress = false;
@@ -457,6 +532,7 @@ public class Profile {
 		
 		ImageView faceBookLogin;
 		ImageView googlePlusLogin;
+		ImageView linkedInLogin;
 		
 		@Override
 		public Dialog onCreateDialog(Bundle savedInstanceState) {
@@ -506,6 +582,17 @@ public class Profile {
 					d.dismiss();
 				}
 			});
+			
+			// LinkedIn Login, to be finalized.
+			/*linkedInLogin = (ImageView) view.findViewById(R.id.login_linkedin);
+			linkedInLogin.setOnClickListener(new View.OnClickListener() {
+				
+				@Override
+				public void onClick(View v) {
+					getProfile().initLinkedIn();
+					d.dismiss();
+				}
+			});*/
 			
 			d.setOnShowListener(new DialogInterface.OnShowListener() {
 				

@@ -85,10 +85,10 @@ public class CommentsFragment extends Fragment {
 				mCountComments.setVisibility(View.VISIBLE);
 				mCommentsFrame.setVisibility(View.VISIBLE);
 				mCountComments.setTypeface(null,Typeface.BOLD);
-				mCountComments.setText(getResources().getQuantityString(R.plurals.nrOfComments, commentCount, commentCount));
+				mCountComments.setText(GlobalState.getContext().getResources().getQuantityString(R.plurals.nrOfComments, commentCount, commentCount));
 				
 				for (int i = 0; i < commentIds.size(); i++) {
-					FrameLayout frame = new FrameLayout(getActivity().getApplicationContext());
+					FrameLayout frame = new FrameLayout(GlobalState.getContext());
 					frame.setId(commentIds.get(i));
 					mCommentsFrame.addView(frame);
 					CommentItemFragment commentItemFrag = new CommentItemFragment();
@@ -110,12 +110,18 @@ public class CommentsFragment extends Fragment {
 				mLeaveReply.setText(R.string.leave_a_reply);
 			}
 			if (mSubmitComment != null && mNewComment != null) {
-				Profile pr = ((HomeActivity)getActivity()).getProfile();
-				String text;				
-				if (pr.isLoggedIn()) {
-					text = getResources().getString(R.string.Post_comment_as) + " " + pr.getName();
+				String text;	
+				HomeActivity ha = getHomeActivity();
+				if (ha != null) {
+					Profile pr = ha.getProfile();
+								
+					if (pr.isLoggedIn()) {
+						text = GlobalState.getContext().getResources().getString(R.string.Post_comment_as) + " " + pr.getName();
+					} else {
+						text = GlobalState.getContext().getResources().getString(R.string.Post_comment_as) + "...";
+					}
 				} else {
-					text = getResources().getString(R.string.Post_comment_as) + "...";
+					text = GlobalState.getContext().getResources().getString(R.string.Post_comment_as) + "...";
 				}
 				mSubmitComment.setText(text);
 				
@@ -124,41 +130,44 @@ public class CommentsFragment extends Fragment {
 					@Override
 					public void onClick(View v) {
 						boolean error = false;
-						Profile pro = ((HomeActivity)getActivity()).getProfile();
-						if (!pro.isLoggedIn()) {
-							pro.openDialog();
-							error = true;
-						} else if (pro.getName().isEmpty()) {
-							Toast.makeText(getActivity(), R.string.post_error_no_name, Toast.LENGTH_LONG).show();
-							error = true;
-						} else if (!android.util.Patterns.EMAIL_ADDRESS.matcher(pro.getEmail()).matches()) {
-							Toast.makeText(getActivity(), R.string.post_error_invalid_email, Toast.LENGTH_LONG).show();						
-							error = true;
-						} else if (mNewComment.getText().toString().trim().isEmpty()) {
-							mNewComment.setError(getResources().getString(R.string.is_required));
-							error = true;
-						}
-						if (!error) {
-							postComment(pro.getName(), pro.getEmail(), mNewComment.getText().toString().trim(), new OnCommentPostedListener() {
-								
-								@Override
-								public void onCommentPosted(final boolean success) {
-									HomeActivity ha = ((GlobalState)GlobalState.getContext()).getCurrentHomeActivity();
-									if (ha != null) {
-										ha.runOnUiThread(new Runnable() {
-											
-											@Override
-											public void run() {
-												if (!success) {
-													Toast.makeText(GlobalState.getContext(), getResources().getString(R.string.post_error_exception), Toast.LENGTH_LONG).show();
+						HomeActivity ha = getHomeActivity();
+						if (ha != null) {
+							Profile pro = ha.getProfile();
+							if (!pro.isLoggedIn()) {
+								pro.openDialog();
+								error = true;
+							} else if (pro.getName().isEmpty()) {
+								Toast.makeText(GlobalState.getContext(), R.string.post_error_no_name, Toast.LENGTH_LONG).show();
+								error = true;
+							} else if (!android.util.Patterns.EMAIL_ADDRESS.matcher(pro.getEmail()).matches()) {
+								Toast.makeText(GlobalState.getContext(), R.string.post_error_invalid_email, Toast.LENGTH_LONG).show();						
+								error = true;
+							} else if (mNewComment.getText().toString().trim().isEmpty()) {
+								mNewComment.setError(GlobalState.getContext().getResources().getString(R.string.is_required));
+								error = true;
+							}
+							if (!error) {
+								postComment(pro.getName(), pro.getEmail(), mNewComment.getText().toString().trim(), new OnCommentPostedListener() {
+									
+									@Override
+									public void onCommentPosted(final boolean success) {
+										HomeActivity ha = ((GlobalState)GlobalState.getContext()).getCurrentHomeActivity();
+										if (ha != null) {
+											ha.runOnUiThread(new Runnable() {
+												
+												@Override
+												public void run() {
+													if (!success) {
+														Toast.makeText(GlobalState.getContext(), GlobalState.getContext().getResources().getString(R.string.post_error_exception), Toast.LENGTH_LONG).show();
+													}
+													mNewComment.setText("");
+													invalidateComments();
 												}
-												mNewComment.setText("");
-												invalidateComments();
-											}
-										});
+											});
+										}
 									}
-								}
-							});
+								});
+							}
 						}
 					}
 				});
@@ -235,7 +244,10 @@ public class CommentsFragment extends Fragment {
 			}
 		});
 		t.start();
-		
+	}
+	
+	private HomeActivity getHomeActivity() {
+		return ((GlobalState)GlobalState.getContext()).getCurrentHomeActivity();
 	}
 	
 	public interface OnCommentPostedListener {
