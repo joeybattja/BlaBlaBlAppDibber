@@ -71,6 +71,7 @@ android:layout_height="wrap_content" >
 	            android:layout_weight="1"
 	            android:layout_height="wrap_content"
 	            android:adjustViewBounds="true"
+	            android:src="@drawable/linkedin_icon_125x125"
 		        android:paddingTop="4dp"
 		        android:paddingLeft="4dp"
 		        android:paddingRight="4dp"

@@ -10,6 +10,7 @@ import java.net.URL;
 import java.util.Arrays;
 
 import me.dibber.blablablapp.R;
+import me.dibber.blablablapp.activities.HomeActivity;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -61,6 +62,15 @@ import com.google.android.gms.common.api.GoogleApiClient.ConnectionCallbacks;
 import com.google.android.gms.common.api.GoogleApiClient.OnConnectionFailedListener;
 import com.google.android.gms.plus.Plus;
 import com.google.android.gms.plus.model.people.Person;
+import com.linkedin.platform.APIHelper;
+import com.linkedin.platform.LISession;
+import com.linkedin.platform.LISessionManager;
+import com.linkedin.platform.errors.LIApiError;
+import com.linkedin.platform.errors.LIAuthError;
+import com.linkedin.platform.listeners.ApiListener;
+import com.linkedin.platform.listeners.ApiResponse;
+import com.linkedin.platform.listeners.AuthListener;
+import com.linkedin.platform.utils.Scope;
 
 public class Profile {
 	
@@ -85,7 +95,7 @@ public class Profile {
     private boolean mGoogleSignInClicked;
     
     // LinkedIn
-    //private LISessionManager linkedInSessionManager;
+    private LISessionManager linkedInSessionManager;
 	
 	private static Profile defaultProfile;
 	
@@ -402,7 +412,7 @@ public class Profile {
 		commitProfileChange();
 	}
 	
-/*	private void initLinkedIn() {
+	private void initLinkedIn() {
 		if (linkedInSessionManager == null) { 
 			linkedInSessionManager = LISessionManager.getInstance(GlobalState.getContext());
 		}
@@ -446,12 +456,12 @@ public class Profile {
 				}
 			});
 		}
-	}*/
+	}
 	
 	public void onActivityResult(Activity activity, int requestCode, int resultCode, Intent data) {
-		/*if (linkedInSessionManager != null) {
+		if (linkedInSessionManager != null) {
 			linkedInSessionManager.onActivityResult(activity, requestCode, resultCode, data);
-		}*/
+		}
 		if (requestCode == GOOGLEPLUS_SIGNIN) {
 			if (resultCode != Activity.RESULT_OK) {
 				mGoogleSignInClicked = false;
@@ -584,7 +594,7 @@ public class Profile {
 			});
 			
 			// LinkedIn Login, to be finalized.
-			/*linkedInLogin = (ImageView) view.findViewById(R.id.login_linkedin);
+			linkedInLogin = (ImageView) view.findViewById(R.id.login_linkedin);
 			linkedInLogin.setOnClickListener(new View.OnClickListener() {
 				
 				@Override
@@ -592,7 +602,7 @@ public class Profile {
 					getProfile().initLinkedIn();
 					d.dismiss();
 				}
-			});*/
+			});
 			
 			d.setOnShowListener(new DialogInterface.OnShowListener() {
 				
