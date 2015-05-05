@@ -15,7 +15,8 @@ import android.util.Log;
 public class AppConfig {
 	
 	// Blog API parameters:
-	private static final String API_URL = "http://www.blablablog.nl/"; 	// test server = "http://server.dibber.me/wordpress/";
+	private static boolean isProd = true; 
+	private static final String API_URL = isProd ? "http://www.blablablog.nl/" : "http://server.dibber.me/wordpress/"; 	
 
 	private static final String API_PHP = "new_api.php";
 	private static final String API_GET_RECENT_POSTS = "?function=get_recent_posts";

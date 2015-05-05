@@ -66,12 +66,11 @@ android:layout_height="wrap_content" >
 		        android:contentDescription="@string/Image" />
 	        
 	        <ImageView
-	            android:id="@+id/login_linkedin"
+	            android:id="@+id/login_instagram"
 	            android:layout_width="0dp"
 	            android:layout_weight="1"
 	            android:layout_height="wrap_content"
 	            android:adjustViewBounds="true"
-	            android:src="@drawable/linkedin_icon_125x125"
 		        android:paddingTop="4dp"
 		        android:paddingLeft="4dp"
 		        android:paddingRight="4dp"

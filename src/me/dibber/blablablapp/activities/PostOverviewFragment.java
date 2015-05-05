@@ -111,11 +111,21 @@ public class PostOverviewFragment extends Fragment {
 		return rootView;
 	}
 	
+	@Override
+	public void onResume() {
+		super.onResume();
+		invalidatePostOverview();
+	}
+
 	public boolean invalidatePostOverview() {
 		if (postsIds == null || posts == null || mAdapter == null) {
 			return false;
 		}
 		postsIds = posts.getAllPosts();
+		if (postsIds.size() > 0) {
+			SharedPreferences prefs = getActivity().getSharedPreferences(PREF_POSTDATA,Context.MODE_PRIVATE);
+			prefs.edit().putInt(PREF_MOST_RECENT_POST, postsIds.get(0)).commit();
+		}
 		int lastSynchId = ((GlobalState)GlobalState.getContext()).getOldestSynchedPost();
 		posToSynch = postsIds.indexOf(lastSynchId);
 

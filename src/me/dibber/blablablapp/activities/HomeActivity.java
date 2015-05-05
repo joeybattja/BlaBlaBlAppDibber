@@ -120,10 +120,7 @@ public class HomeActivity extends ActionBarActivity implements DataLoaderListene
         
         invalidateContentFrame();
         invalidateProfile();
-        
-        if (((GlobalState)GlobalState.getContext()).getPosts().getAllPosts().size() == 0) {
-        	refreshPosts();
-        }
+        refreshPosts();
 	}
 
 

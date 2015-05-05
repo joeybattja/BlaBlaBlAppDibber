@@ -236,7 +236,8 @@ public class DataLoader {
 		try {
 			JSONObject obj = new JSONObject(JSONobject);
 			if (obj == null || !getStringFromJSON(obj,"status").equals("OK")) {
-				Log.w("error parsing the JSON object", "Status is not 'OK'");
+				String reason = getStringFromJSON(obj,"reason");
+				Log.w("error parsing the JSON object", "Status is not 'OK', reason: " + (reason == null ? "unknown" : reason));
 				return;
 			}
 			try {
@@ -393,6 +394,9 @@ public class DataLoader {
 					Log.w("Error parsing date from JSON comment " + i + " of post " + p.id + " " + p.title, e.toString());
 			}
 			p.comments.add(c);
+		}
+		if (p.comments.size() > 0) {
+			p.commentcount = p.comments.size();
 		}
 	}
 

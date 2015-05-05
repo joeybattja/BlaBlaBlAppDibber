@@ -96,7 +96,10 @@ public class CommentsFragment extends Fragment {
 					args.putInt(CommentItemFragment.ARG_POSTID, postId);
 					args.putInt(CommentItemFragment.ARG_COMMENTID, commentIds.get(i));
 					commentItemFrag.setArguments(args);
-					getChildFragmentManager().beginTransaction().add(commentIds.get(i), commentItemFrag).commit();
+					// need to check if the activity is not destroyed before adding the comments.
+					if (getActivity() != null  && getActivity().equals(   ((GlobalState)GlobalState.getContext()).getCurrentHomeActivity() )) {
+						getChildFragmentManager().beginTransaction().add(commentIds.get(i), commentItemFrag).commit();
+					}
 				}
 			} 
 		}

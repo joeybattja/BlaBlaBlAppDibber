@@ -56,7 +56,7 @@ public class SettingsActivity extends ActionBarActivity {
 				@Override
 				public void onSharedPreferenceChanged(SharedPreferences sharedPreferences,
 						String key) {
-					if (key.equals("pref_max_post_stored")) {
+					if (key.equals("pref_max_post_stored") || key.equals("pref_use_storage")) {
 						Preference npref = findPreference("pref_max_post_stored");
 						npref.setSummary(AppConfig.getMaxPostStored() + "");
 					}
