@@ -90,11 +90,12 @@ public class CommentsFragment extends Fragment {
 				for (int i = 0; i < commentIds.size(); i++) {
 					FrameLayout frame = new FrameLayout(GlobalState.getContext());
 					frame.setId(commentIds.get(i));
-					mCommentsFrame.addView(frame);
+					mCommentsFrame.addView(frame, i);
 					CommentItemFragment commentItemFrag = new CommentItemFragment();
 					Bundle args = new Bundle();
 					args.putInt(CommentItemFragment.ARG_POSTID, postId);
 					args.putInt(CommentItemFragment.ARG_COMMENTID, commentIds.get(i));
+					commentItemFrag.setCommentFragment(this);
 					commentItemFrag.setArguments(args);
 					// need to check if the activity is not destroyed before adding the comments.
 					if (getActivity() != null  && getActivity().equals(   ((GlobalState)GlobalState.getContext()).getCurrentHomeActivity() )) {
@@ -150,7 +151,7 @@ public class CommentsFragment extends Fragment {
 								error = true;
 							}
 							if (!error) {
-								postComment(pro.getName(), pro.getEmail(), mNewComment.getText().toString().trim(), new OnCommentPostedListener() {
+								postComment(postId,pro.getName(), pro.getEmail(), mNewComment.getText().toString().trim(), new OnCommentPostedListener() {
 									
 									@Override
 									public void onCommentPosted(final boolean success) {
@@ -193,7 +194,7 @@ public class CommentsFragment extends Fragment {
 		
 		DataLoader dl = new DataLoader();
 		try {
-			dl.setDataSource(AppConfig.getURLPath(Function.GET_COMMENTS,Integer.toString(postId)));
+			dl.setDataSource(new AppConfig.APIURLBuilder(Function.GET_COMMENTS).setPostId(postId).create());
 		} catch (MalformedURLException e) {
 			Log.w("Path incorrect", e.toString());
 		}
@@ -219,8 +220,12 @@ public class CommentsFragment extends Fragment {
 		dl.prepareAsync();
 	}
 	
-	private void postComment(String name, String email, String comment, final OnCommentPostedListener listener) {
-		final String path = AppConfig.getURLPathPostComment(postId, name, email, comment);
+	private static void postComment(int postId, String name, String email, String comment, final OnCommentPostedListener listener) {
+		postComment(postId,name,email,comment,0,listener);
+	}
+	
+	private static void postComment(int postId, String name, String email, String comment, int parent, final OnCommentPostedListener listener) {
+		final String path = new AppConfig.APIURLBuilder(Function.POST_COMMENT).setPostId(postId).setComment(parent,name, email, comment).create(); 
 		Thread t = new Thread(new Runnable() {
 			
 			@Override
@@ -249,7 +254,7 @@ public class CommentsFragment extends Fragment {
 		t.start();
 	}
 	
-	private HomeActivity getHomeActivity() {
+	private static HomeActivity getHomeActivity() {
 		return ((GlobalState)GlobalState.getContext()).getCurrentHomeActivity();
 	}
 	
@@ -262,11 +267,21 @@ public class CommentsFragment extends Fragment {
 		public final static String ARG_POSTID = "arg postid";
 		public final static String ARG_COMMENTID = "arg commentid";
 		
+		private CommentsFragment commentFragment;
+		
 		private View mIndentView;
 		private View mLine;
 		private TextView mAuthorView;
+		private TextView mParentName;
 		private TextView mDateView;
 		private TextView mContentView;
+		
+		private EditText mNewReply;
+		private Button mSubmitReply;
+		
+		private LinearLayout mCommentBody;
+		private LinearLayout mReplyComment;
+		
 		private PostCollection psts;
 		
 		private int pstId;
@@ -283,16 +298,39 @@ public class CommentsFragment extends Fragment {
 			mIndentView = commentRootView.findViewById(R.id.item_comment_indent);
 			mLine = commentRootView.findViewById(R.id.item_comment_bottomline);
 			mAuthorView = (TextView) commentRootView.findViewById(R.id.item_comment_author);
+			mParentName = (TextView) commentRootView.findViewById(R.id.item_comment_parentName);
 			mDateView = (TextView) commentRootView.findViewById(R.id.item_comment_date);
 			mContentView = (TextView) commentRootView.findViewById(R.id.item_comment_content);
+			
+			mCommentBody = (LinearLayout) commentRootView.findViewById(R.id.item_comment_body);
+			mReplyComment = (LinearLayout) commentRootView.findViewById(R.id.item_comment_reply);
+			mNewReply = (EditText) commentRootView.findViewById(R.id.item_comment_reply_content);
+			mSubmitReply = (Button) commentRootView.findViewById(R.id.item_comment_reply_submitButton);
+
+			mCommentBody.setOnClickListener(new View.OnClickListener() {
+				
+				@Override
+				public void onClick(View v) {
+					if (mReplyComment.getVisibility() == View.GONE) {
+						mReplyComment.setVisibility(View.VISIBLE);
+					} else {
+						mReplyComment.setVisibility(View.GONE);
+					}
+				}
+			});
 			
 			mAuthorView.setTypeface(null,Typeface.BOLD);
 			mAuthorView.setText(psts.getCommentAuthor(pstId, cmntId));
 			mDateView.setTypeface(null,Typeface.ITALIC);
 			mDateView.setText(psts.getCommentDateAsString(pstId, cmntId));
 			
-			indent = 0;
 			int parent = psts.getCommentParent(pstId, cmntId);
+			if (parent != 0) {
+				mParentName.setTypeface(null,Typeface.ITALIC);
+				mParentName.setText(" @" + psts.getCommentAuthor(pstId,parent));
+			}
+			
+			indent = 0;
 			while (parent != 0) {
 				indent++;
 				parent = psts.getCommentParent(pstId, parent);
@@ -307,13 +345,87 @@ public class CommentsFragment extends Fragment {
 			mIndentView.setLayoutParams(indentParams);
 			
 			mContentView.setText(psts.getCommentContent(pstId, cmntId));
-	
 			
 			if (psts.getItemComments(pstId).get(psts.getItemComments(pstId).size() -1) == cmntId) {
 				mLine.setVisibility(View.GONE);
 			}
 			
+			mReplyComment.setVisibility(View.GONE);
+			
+			if (mNewReply != null && mSubmitReply != null) {
+				String replyHint = GlobalState.getContext().getResources().getString(R.string.Reply_to) + " " + psts.getCommentAuthor(pstId, cmntId);
+				mNewReply.setHint(replyHint);
+				String replySubmit;
+				HomeActivity ha = getHomeActivity();
+				if (ha != null) {
+					Profile pr = ha.getProfile();
+								
+					if (pr.isLoggedIn()) {
+						replySubmit = GlobalState.getContext().getResources().getString(R.string.Post_reply_as) + " " + pr.getName();
+					} else {
+						replySubmit = GlobalState.getContext().getResources().getString(R.string.Post_reply_as) + "...";
+					}
+				} else {
+					replySubmit = GlobalState.getContext().getResources().getString(R.string.Post_reply_as) + "...";
+				}
+				
+				mSubmitReply.setText(replySubmit);
+				
+				mSubmitReply.setOnClickListener(new View.OnClickListener() {
+					
+					@Override
+					public void onClick(View v) {
+						boolean error = false;
+						HomeActivity ha = getHomeActivity();
+						if (ha != null) {
+							Profile pro = ha.getProfile();
+							if (!pro.isLoggedIn()) {
+								pro.openDialog();
+								error = true;
+							} else if (pro.getName().isEmpty()) {
+								Toast.makeText(GlobalState.getContext(), R.string.post_error_no_name, Toast.LENGTH_LONG).show();
+								error = true;
+							} else if (!android.util.Patterns.EMAIL_ADDRESS.matcher(pro.getEmail()).matches()) {
+								Toast.makeText(GlobalState.getContext(), R.string.post_error_invalid_email, Toast.LENGTH_LONG).show();						
+								error = true;
+							} else if (mNewReply.getText().toString().trim().isEmpty()) {
+								mNewReply.setError(GlobalState.getContext().getResources().getString(R.string.is_required));
+								error = true;
+							}
+							if (!error) {
+								postComment(pstId,pro.getName(), pro.getEmail(), mNewReply.getText().toString().trim(), cmntId, new OnCommentPostedListener() {
+									
+									@Override
+									public void onCommentPosted(final boolean success) {
+										HomeActivity ha = ((GlobalState)GlobalState.getContext()).getCurrentHomeActivity();
+										if (ha != null) {
+											ha.runOnUiThread(new Runnable() {
+												
+												@Override
+												public void run() {
+													if (!success) {
+														Toast.makeText(GlobalState.getContext(), GlobalState.getContext().getResources().getString(R.string.post_error_exception), Toast.LENGTH_LONG).show();
+													}
+													mNewReply.setText("");
+													mReplyComment.setVisibility(View.GONE);
+													if (commentFragment != null) {
+														commentFragment.invalidateComments();
+													}
+												}
+											});
+										}
+									}
+								});
+							}
+						}
+					}
+				});
+			}
 			return commentRootView;
+		}
+		
+		public void setCommentFragment(CommentsFragment parent) {
+			commentFragment = parent;
 		}
 	}
 	

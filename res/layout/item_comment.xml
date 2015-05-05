@@ -4,14 +4,15 @@
     android:layout_height="wrap_content"
     android:orientation="vertical" >
     
-	    <LinearLayout 
-	        android:layout_width="match_parent"
-	        android:layout_height="wrap_content"
-	        android:orientation="horizontal"
-	        android:background="@drawable/item_curved_corners"
-   			android:padding="10dp" >
-	    
-	    <View 
+    <LinearLayout 
+        android:id="@+id/item_comment_body"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:background="@drawable/item_curved_corners"
+        android:padding="10dp" >
+        
+        <View 
 	        android:id="@+id/item_comment_indent"
 	        android:layout_width="0dp"
 		    android:layout_height="match_parent"
@@ -23,12 +24,24 @@
 		    android:layout_weight="10"
 		    android:orientation="vertical" >
 	    
-		    <TextView 
-		        android:id="@+id/item_comment_author"
+		    <LinearLayout
 		        android:layout_width="wrap_content"
 		        android:layout_height="wrap_content"
-		        android:textSize="17sp" />
-		    
+		        android:orientation="horizontal" >
+		        
+		        <TextView 
+			        android:id="@+id/item_comment_author"
+			        android:layout_width="wrap_content"
+			        android:layout_height="wrap_content"
+			        android:textSize="17sp" />
+		        
+		        <TextView 
+			        android:id="@+id/item_comment_parentName"
+			        android:layout_width="wrap_content"
+			        android:layout_height="wrap_content" />
+		        
+		    </LinearLayout>
+		        
 		    <TextView 
 		        android:id="@+id/item_comment_date"
 		        android:layout_width="wrap_content"
@@ -42,6 +55,39 @@
 	    </LinearLayout>
     
     </LinearLayout>
+    
+    <LinearLayout
+        android:id="@+id/item_comment_reply"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+	    android:background="@drawable/item_curved_corners"
+	    android:layout_marginStart="10dp"
+	    android:layout_marginLeft="10dp"
+	    android:layout_marginBottom="5dp"
+	    android:layout_marginTop="1dp"
+        android:orientation="vertical" >
+        
+        <EditText
+	        android:id="@+id/item_comment_reply_content"
+	        android:layout_width="wrap_content"
+	        android:layout_height="wrap_content" 
+            android:minLines="5"
+            android:gravity="start"
+            android:hint="@string/comment"
+            android:inputType="textMultiLine"
+            android:padding="5dp" />
+        
+        <Button
+  		    android:id="@+id/item_comment_reply_submitButton"
+	        android:layout_width="match_parent"
+	        android:layout_height="wrap_content"
+	        android:clickable="true"
+	        android:background="@drawable/custom_button"
+	        android:textColor="@color/action_foreground" />
+        
+        
+
+        </LinearLayout>
     
     <View 
         android:id="@+id/item_comment_bottomline"

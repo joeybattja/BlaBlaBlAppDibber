@@ -474,7 +474,7 @@ public class HomeActivity extends ActionBarActivity implements DataLoaderListene
 		dl.setDataLoaderListener(this);
 		dl.isInSynchWithExistingPosts(true);
 		try {
-			dl.setDataSource(AppConfig.getURLPath(Function.GET_RECENT_POSTS));
+			dl.setDataSource(new AppConfig.APIURLBuilder(Function.GET_RECENT_POSTS).create());
 		} catch (MalformedURLException e) {
 			Log.d("Path incorrect", e.toString());
 		}
@@ -519,7 +519,7 @@ public class HomeActivity extends ActionBarActivity implements DataLoaderListene
 		dl.setDataLoaderListener(this);
 		dl.isInSynchWithExistingPosts(true);
 		try {
- 			dl.setDataSource(AppConfig.getURLPath(Function.GET_POSTS_AFTER, Integer.toString(lastPostId)));
+ 			dl.setDataSource(new AppConfig.APIURLBuilder(Function.GET_POSTS_AFTER).setPostId(lastPostId).create());
 		} catch (MalformedURLException e) {
 			Log.w("Path incorrect", e.toString());
 		}

@@ -15,7 +15,7 @@ import android.util.Log;
 public class AppConfig {
 	
 	// Blog API parameters:
-	private static boolean isProd = true; 
+	private static boolean isProd = false; 
 	private static final String API_URL = isProd ? "http://www.blablablog.nl/" : "http://server.dibber.me/wordpress/"; 	
 
 	private static final String API_PHP = "new_api.php";
@@ -39,8 +39,117 @@ public class AppConfig {
 	// name of properties file
     private static String PROPERTY_FILENAME = "blog.properties";
 	
-	public enum Function {GET_RECENT_POSTS,GET_COMMENTS,GET_POST_BY_ID,GET_POSTS_AFTER,GET_SUPPORTED_VERSIONS,ADD_DEVICE};
+	public enum Function {GET_RECENT_POSTS,GET_COMMENTS,POST_COMMENT,GET_POST_BY_ID,GET_POSTS_AFTER,GET_SUPPORTED_VERSIONS,ADD_DEVICE};
 	
+	public static class APIURLBuilder {
+		
+		private Function function;
+		private int count;
+		private int postId;
+		private String deviceId;
+		
+		private String commentAuthor;
+		private String commentEmail;
+		private String commentContent;
+		private int commentParent;
+		
+		public APIURLBuilder(Function function) {
+			this.function = function;
+			String nr = getProperties(GlobalState.getContext()).getProperty("NUMBER_OF_POSTS_PER_REQUEST","20");
+			try {
+				count = Integer.parseInt(nr);
+			} catch (NumberFormatException e) {
+				Log.w("error parsing property to int: NUMBER_OF_POSTS_PER_REQUEST", e.toString());
+				count=20;
+			}
+		}
+		
+		public APIURLBuilder setCount(int count) {
+			if (count < 0) {
+				count = 0;
+			}
+			this.count = count;
+			return this;
+		}
+		
+		public APIURLBuilder setPostId(int postId) {
+			this.postId = postId;
+			return this;
+		}
+		
+		public APIURLBuilder setDeviceId(String deviceId) {
+			this.deviceId = deviceId;
+			return this;
+		}
+		
+		public APIURLBuilder setComment(String author, String email, String comment) {
+			return setComment(0,author,email,comment);
+		}
+		
+		public APIURLBuilder setComment(int parent, String author, String email, String comment) {
+			commentParent = parent;
+			commentAuthor = author;
+			commentEmail = email;
+			commentContent = comment;
+			return this;
+		}
+		
+		public String create() {
+			String path = null;
+			switch (function) {
+			case ADD_DEVICE:
+				if (deviceId == null) {
+					throw new IllegalArgumentException("DeviceId is missing; first call setDeviceId()");
+				}
+				path = API_URL + API_PHP + API_ADD_DEVICE + deviceId;
+				break;
+			case GET_COMMENTS:
+				if (postId == 0) {
+					throw new IllegalArgumentException("postId is missing; first call setPostId()");
+				}
+				path = API_URL + API_PHP + API_GET_COMMENTS + API_POSTID_PARAM + postId;
+				break;
+			case GET_POSTS_AFTER:
+				if (postId == 0) {
+					throw new IllegalArgumentException("postId is missing; first call setPostId()");
+				}
+				path = API_URL + API_PHP + API_GET_RECENT_POSTS + API_COUNT_PARAM + count + API_AFTERID_PARAM + postId;
+				break;
+			case GET_POST_BY_ID:
+				if (postId == 0) {
+					throw new IllegalArgumentException("postId is missing; first call setPostId()");
+				}
+				path = API_URL + API_PHP + API_GET_RECENT_POSTS + API_POSTID_PARAM + postId + API_COUNT_PARAM + count;
+				break;
+			case GET_RECENT_POSTS:
+				path = API_URL + API_PHP + API_GET_RECENT_POSTS + API_COUNT_PARAM + count;
+				break;
+			case GET_SUPPORTED_VERSIONS:
+				path = API_URL + API_PHP + API_GET_SUPPORTED_VERSIONS;
+				break;
+			case POST_COMMENT:
+				if (commentAuthor == null || commentEmail == null || commentContent == null) {
+					throw new IllegalArgumentException("comment is missing; first call setComment()");
+				}
+				try {
+					path = API_URL + API_PHP + API_POST_COMMENT + "&postId=" + postId + "&commentAuthor=" + URLEncoder.encode(commentAuthor, "UTF-8") +
+							"&commentAuthorEmail=" + URLEncoder.encode(commentEmail, "UTF-8") + "&commentContent=" + URLEncoder.encode(commentContent, "UTF-8");
+				} catch (UnsupportedEncodingException e) {
+					Log.w("Error while trying to encode URL for post comment", e.toString());
+					path = API_URL + API_PHP + API_POST_COMMENT + "&postId=" + postId + "&commentAuthor=" + commentAuthor + 
+							"&commentAuthorEmail=" + commentEmail + "&commentContent=" + commentContent;
+					path = path.replace(" ", "%20").replace("\n","%0A");
+				}
+				if (commentParent != 0) {
+					path = path + "&commentParent=" + commentParent;
+				}
+			default:
+				break;
+			}
+			return path;
+		}
+	}
+	/*
 	public static String getURLPath(Function function) {
 		return getURLPath(function,null);
 	}
@@ -117,7 +226,7 @@ public class AppConfig {
 			path = path.replace(" ", "%20").replace("\n","%0A");
 		}
 		return path;
-	}
+	}*/
 	
 	public static String getYouTubeAPIKey() {
 		return YOUTUBE_API_KEY;

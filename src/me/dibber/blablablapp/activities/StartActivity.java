@@ -131,7 +131,7 @@ public class StartActivity extends FragmentActivity  {
 	 */
 	private void checkVersionOnline() {
 		try {
-			URL checkVersionURL = new URL(AppConfig.getURLPath(Function.GET_SUPPORTED_VERSIONS));
+			URL checkVersionURL = new URL(new AppConfig.APIURLBuilder(Function.GET_SUPPORTED_VERSIONS).create());
 			HttpURLConnection connection = (HttpURLConnection) checkVersionURL.openConnection();
 			InputStream in = connection.getInputStream();
 			BufferedReader r = new BufferedReader(new InputStreamReader(in));
@@ -248,7 +248,7 @@ public class StartActivity extends FragmentActivity  {
 	
 	private void sendGCMRegistrationIdToServer(String regId) {
 		try {
-			URL url = new URL(AppConfig.getURLPath(Function.ADD_DEVICE,regId));
+			URL url = new URL(new AppConfig.APIURLBuilder(Function.ADD_DEVICE).setDeviceId(regId).create());
 			HttpURLConnection connection = (HttpURLConnection) url.openConnection();
 			InputStream in = connection.getInputStream();
 			BufferedReader r = new BufferedReader(new InputStreamReader(in));

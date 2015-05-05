@@ -168,7 +168,7 @@ public class Notifications {
 			});
 			dl.isInSynchWithExistingPosts(true);
 			try {
-				dl.setDataSource(AppConfig.getURLPath(Function.GET_RECENT_POSTS));
+				dl.setDataSource(new AppConfig.APIURLBuilder(Function.GET_RECENT_POSTS).create());
 			} catch (MalformedURLException e) {
 				Log.d("Path incorrect", e.toString());
 			}
