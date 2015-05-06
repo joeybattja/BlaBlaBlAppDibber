@@ -573,7 +573,9 @@ public class HomeActivity extends ActionBarActivity implements DataLoaderListene
 			
 			@Override
 			public void run() {
-				homeA.refresh.setActionView(null);
+				if (homeA.refresh != null) {
+					homeA.refresh.setActionView(null);
+				}
 				saveLastPosition();
 				invalidateContentFrame();
 			}

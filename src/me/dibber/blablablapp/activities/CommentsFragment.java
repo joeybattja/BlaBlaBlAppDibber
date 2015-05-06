@@ -29,7 +29,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -47,6 +46,8 @@ public class CommentsFragment extends Fragment {
 	PostCollection posts;
 	private ArrayList<Integer> commentIds;
 	
+	volatile boolean canUpdateFragments;
+	
 	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 		postId = getArguments().getInt(PostDetailFragment.ARG_ID);
 		posts = ((GlobalState) GlobalState.getContext() ).getPosts();
@@ -59,11 +60,34 @@ public class CommentsFragment extends Fragment {
 		mNewComment = (EditText) rootView.findViewById(R.id.newComment_comment);
 		mSubmitComment = (Button) rootView.findViewById(R.id.newComment_submitButton);
 		
+		synchronized (this) {
+			canUpdateFragments = true;
+		}
+		
 		invalidateComments();
 		
 		return rootView;
 	}
 	
+	
+	
+	@Override
+	public void onPause() {
+		synchronized (this) {
+			canUpdateFragments = false;
+		}
+		super.onPause();
+	}
+
+	@Override
+	public void onResume() {
+		super.onResume();
+		synchronized (this) {
+			canUpdateFragments = true;
+		}
+
+	}
+
 	private void displayComments() {
 		if (postId <= 0) {
 			return;
@@ -95,8 +119,10 @@ public class CommentsFragment extends Fragment {
 					args.putInt(CommentItemFragment.ARG_COMMENTID, commentIds.get(i));
 					commentItemFrag.setCommentFragment(this);
 					commentItemFrag.setArguments(args);
+					
 					// need to check if the activity is not destroyed before adding the comments.
-					if (getActivity() != null  && getActivity().equals(   ((GlobalState)GlobalState.getContext()).getCurrentHomeActivity() )) {
+					HomeActivity ha = ((GlobalState)GlobalState.getContext()).getCurrentHomeActivity();
+					if (getActivity() != null && getActivity().equals(ha)) {
 						Fragment f = getChildFragmentManager().findFragmentByTag(postId + "pos" + i);
 						if (f != null) {
 							getChildFragmentManager().beginTransaction().replace(mCommentsFrame.getId(), commentItemFrag, postId + "pos" + i).commit();
@@ -210,8 +236,12 @@ public class CommentsFragment extends Fragment {
 					ha.runOnUiThread(new Runnable() {
 						@Override
 						public void run() {
-							displayComments();
-							displayReplySection();
+							synchronized (this) {
+								if (canUpdateFragments) {
+									displayComments();
+									displayReplySection();
+								}
+							}
 						}
 					});
 				}
@@ -349,7 +379,9 @@ public class CommentsFragment extends Fragment {
 			
 			mContentView.setText(psts.getCommentContent(pstId, cmntId));
 			
-			if (psts.getItemComments(pstId).get(psts.getItemComments(pstId).size() -1) == cmntId) {
+			// If this is the last comment, don't show a line
+			ArrayList<Integer> commentIds = psts.getItemComments(pstId);
+			if (commentIds.size() == 0 || commentIds.get(commentIds.size()-1) == cmntId) {
 				mLine.setVisibility(View.GONE);
 			}
 			

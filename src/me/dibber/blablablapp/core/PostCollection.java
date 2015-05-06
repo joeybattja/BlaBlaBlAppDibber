@@ -210,17 +210,17 @@ public class PostCollection {
 	
 	public Date getCommentDate(int postId, int commentId) {
 		if (posts.get(postId) == null) {
-			return null;
+			return new Date(0);
 		} 
 		if (posts.get(postId).comments == null) {
-			return null;
+			return new Date(0);
 		} 
 		for (Post.Comment c : posts.get(postId).comments) {
 			if (c.id == commentId) {
 				return c.date;
 			}
 		} 
-		return null;
+		return new Date(0);
 	}
 	
 	public int getCommentParent(int postId, int commentId) {
@@ -266,14 +266,14 @@ public class PostCollection {
 	
 	public Date getItemDate(int postId) {
 		if (posts.get(postId) == null) {
-			return null;
+			return new Date(0);
 		} 
 		Date d = posts.get(postId).date;
 		
 		if (d != null) {
 			return d;
 		} else {
-			return null;
+			return new Date(0);
 		}
 	}
 	
