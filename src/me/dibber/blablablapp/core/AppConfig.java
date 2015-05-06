@@ -15,7 +15,7 @@ import android.util.Log;
 public class AppConfig {
 	
 	// Blog API parameters:
-	private static boolean isProd = true; 
+	private static boolean isProd = false; 
 	private static final String API_URL = isProd ? "http://www.blablablog.nl/" : "http://server.dibber.me/wordpress/"; 	
 
 	private static final String API_PHP = "new_api.php";

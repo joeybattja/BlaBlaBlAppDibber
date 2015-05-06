@@ -88,9 +88,7 @@ public class CommentsFragment extends Fragment {
 				mCountComments.setText(GlobalState.getContext().getResources().getQuantityString(R.plurals.nrOfComments, commentCount, commentCount));
 				
 				for (int i = 0; i < commentIds.size(); i++) {
-					FrameLayout frame = new FrameLayout(GlobalState.getContext());
-					frame.setId(commentIds.get(i));
-					mCommentsFrame.addView(frame, i);
+					
 					CommentItemFragment commentItemFrag = new CommentItemFragment();
 					Bundle args = new Bundle();
 					args.putInt(CommentItemFragment.ARG_POSTID, postId);
@@ -99,7 +97,12 @@ public class CommentsFragment extends Fragment {
 					commentItemFrag.setArguments(args);
 					// need to check if the activity is not destroyed before adding the comments.
 					if (getActivity() != null  && getActivity().equals(   ((GlobalState)GlobalState.getContext()).getCurrentHomeActivity() )) {
-						getChildFragmentManager().beginTransaction().add(commentIds.get(i), commentItemFrag).commit();
+						Fragment f = getChildFragmentManager().findFragmentByTag(postId + "pos" + i);
+						if (f != null) {
+							getChildFragmentManager().beginTransaction().replace(mCommentsFrame.getId(), commentItemFrag, postId + "pos" + i).commit();
+						} else {
+							getChildFragmentManager().beginTransaction().add(mCommentsFrame.getId(), commentItemFrag, postId + "pos" + i).commit();
+						}
 					}
 				}
 			} 
