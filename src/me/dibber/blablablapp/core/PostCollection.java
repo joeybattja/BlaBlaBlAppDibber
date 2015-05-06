@@ -24,7 +24,6 @@ import android.content.Context;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.Handler;
 import android.os.Looper;
@@ -633,6 +632,7 @@ public class PostCollection {
 									if (fullsized) {
 										FileInputStream fis = c.openFileInput("" + postId + a.id);
 										a.image = Drawable.createFromStream(fis, "src");
+
 										fis.close();
 									} else {
 										a.thumbnail = decodeThumbnailFromFile(c, "" + postId + a.id);
@@ -644,15 +644,20 @@ public class PostCollection {
 								try {
 									URL url = new URL(a.url); 
 									InputStream is = url.openStream();
-									Bitmap b = ((BitmapDrawable) Drawable.createFromStream(is, "src")).getBitmap();
+									Bitmap b = BitmapFactory.decodeStream(is);
+									is.close();
+
 									ByteArrayOutputStream stream = new ByteArrayOutputStream();
 									if (a.mimeType.equals(MIMETYPE_JPEG)){
 										b.compress(Bitmap.CompressFormat.JPEG, 100, stream);
 									} else {
 										b.compress(Bitmap.CompressFormat.PNG, 100, stream);
 									}
+									b.recycle();
+									b = null;
 									FileOutputStream fos = c.openFileOutput("" + postId + a.id, Context.MODE_PRIVATE);
 									fos.write(stream.toByteArray());
+									stream.close();
 									fos.close();
 									
 								} catch (IOException e2) {
