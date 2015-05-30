@@ -23,10 +23,13 @@ public class AppConfig {
 	private static final String API_GET_COMMENTS = "?function=get_comments";
 	private static final String API_COUNT_PARAM = "&count=";
 	private static final String API_AFTERID_PARAM = "&afterPostId=";
+	private static final String API_URL_PARAM = "&url=";
 	private static final String API_POSTID_PARAM = "&postId=";
 	private static final String API_GET_SUPPORTED_VERSIONS = "?function=get_supported_versions";
 	private static final String API_ADD_DEVICE = "?function=add_device&deviceId=";
 	private static final String API_POST_COMMENT = "?function=post_comment";
+	
+	private static final String PODCAST_FEED_URL = "http://www.blablablog.nl/blablablog.xml"; 
 	
 	// API Keys:
 	private static final String YOUTUBE_API_KEY = "AIzaSyD7xWiQl4I8KW987uZyns8qma0eWfCY_8c";
@@ -39,13 +42,15 @@ public class AppConfig {
 	// name of properties file
     private static String PROPERTY_FILENAME = "blog.properties";
 	
-	public enum Function {GET_RECENT_POSTS,GET_COMMENTS,POST_COMMENT,GET_POST_BY_ID,GET_POSTS_AFTER,GET_SUPPORTED_VERSIONS,ADD_DEVICE};
+	public enum Function {GET_RECENT_POSTS,GET_COMMENTS,POST_COMMENT,GET_POST_BY_ID,GET_POST_BY_URL,
+		GET_POSTS_AFTER,GET_SUPPORTED_VERSIONS,ADD_DEVICE,GET_PODCAST_POSTS};
 	
 	public static class APIURLBuilder {
 		
 		private Function function;
 		private int count;
 		private int postId;
+		private String URL;
 		private String deviceId;
 		
 		private String commentAuthor;
@@ -55,13 +60,7 @@ public class AppConfig {
 		
 		public APIURLBuilder(Function function) {
 			this.function = function;
-			String nr = getProperties(GlobalState.getContext()).getProperty("NUMBER_OF_POSTS_PER_REQUEST","20");
-			try {
-				count = Integer.parseInt(nr);
-			} catch (NumberFormatException e) {
-				Log.w("error parsing property to int: NUMBER_OF_POSTS_PER_REQUEST", e.toString());
-				count=20;
-			}
+			count = getDefaultNrPerRequest();
 		}
 		
 		public APIURLBuilder setCount(int count) {
@@ -74,6 +73,11 @@ public class AppConfig {
 		
 		public APIURLBuilder setPostId(int postId) {
 			this.postId = postId;
+			return this;
+		}
+		
+		public APIURLBuilder setURL(String URL) {
+			this.URL = URL;
 			return this;
 		}
 		
@@ -121,6 +125,12 @@ public class AppConfig {
 				}
 				path = API_URL + API_PHP + API_GET_RECENT_POSTS + API_POSTID_PARAM + postId + API_COUNT_PARAM + count;
 				break;
+			case GET_POST_BY_URL:
+				if (URL == null) {
+					throw new IllegalArgumentException("url is missing; first call setURL()");
+				}
+				path = API_URL + API_PHP + API_GET_RECENT_POSTS + API_URL_PARAM + URL + API_COUNT_PARAM + count;
+				break;
 			case GET_RECENT_POSTS:
 				path = API_URL + API_PHP + API_GET_RECENT_POSTS + API_COUNT_PARAM + count;
 				break;
@@ -143,90 +153,29 @@ public class AppConfig {
 				if (commentParent != 0) {
 					path = path + "&commentParent=" + commentParent;
 				}
+				break;
+			case GET_PODCAST_POSTS:
+				path = PODCAST_FEED_URL;
+				break;
 			default:
 				break;
 			}
 			return path;
 		}
 	}
-	/*
-	public static String getURLPath(Function function) {
-		return getURLPath(function,null);
-	}
 	
-	public static String getURLPath(Function function, String param) {
-		int count = 0;
-		switch (function) {
-		case ADD_DEVICE:
-		case GET_SUPPORTED_VERSIONS:
-			break;
-		case GET_POSTS_AFTER:
-		case GET_RECENT_POSTS:
-		case GET_POST_BY_ID:
-		case GET_COMMENTS:
-			String nr = getProperties(GlobalState.getContext()).getProperty("NUMBER_OF_POSTS_PER_REQUEST","20");
-			try {
-				count = Integer.parseInt(nr);
-			} catch (NumberFormatException e) {
-				Log.w("error parsing property to int: NUMBER_OF_POSTS_PER_REQUEST", e.toString());
-				count=20;
-			}
-			break;
-		}
-		return getURLPath(function,param,count);
-	}
-	
-	public static String getURLPath(Function function, int count) {
-		return getURLPath(function,null,count);
-	}
-	
-	public static String getURLPath(Function function, String param, int count) {
-		String path = null;
-		switch (function) {
-		case GET_RECENT_POSTS:
-			path = API_URL + API_PHP + API_GET_RECENT_POSTS + API_COUNT_PARAM + count;
-			break;
-		case GET_COMMENTS:
-			path = API_URL + API_PHP + API_GET_COMMENTS + API_POSTID_PARAM + param;
-			break;
-		case GET_POST_BY_ID:
-			if (param != null) {
-				path = API_URL + API_PHP + API_GET_RECENT_POSTS + API_POSTID_PARAM + param + API_COUNT_PARAM + count;
-			} else {
-				path = API_URL + API_PHP + API_GET_RECENT_POSTS + API_COUNT_PARAM + count;
-			}
-			break;
-		case GET_POSTS_AFTER:
-			if (param != null) {
-				path = API_URL + API_PHP + API_GET_RECENT_POSTS + API_COUNT_PARAM + count + API_AFTERID_PARAM + param;
-			} else {
-				path = API_URL + API_PHP + API_GET_RECENT_POSTS + API_COUNT_PARAM + count;
-			}
-			break;
-		case GET_SUPPORTED_VERSIONS:
-			path = API_URL + API_PHP + API_GET_SUPPORTED_VERSIONS;
-			break;
-		case ADD_DEVICE:
-			path = API_URL + API_PHP + API_ADD_DEVICE + param;
-			break;
-		}
-		return path;
-	}
-	
-	public static String getURLPathPostComment(int postId, String author, String email, String comment) {
-		String path; 
-		
+	public static int getDefaultNrPerRequest() {
+		int count;
+		String nr = getProperties(GlobalState.getContext()).getProperty("NUMBER_OF_POSTS_PER_REQUEST","20");
 		try {
-			path = API_URL + API_PHP + API_POST_COMMENT + "&postId=" + postId + "&commentAuthor=" + URLEncoder.encode(author, "UTF-8") +
-					"&commentAuthorEmail=" + URLEncoder.encode(email, "UTF-8") + "&commentContent=" + URLEncoder.encode(comment, "UTF-8");
-		} catch (UnsupportedEncodingException e) {
-			Log.w("Error while trying to encode URL for post comment", e.toString());
-			path = API_URL + API_PHP + API_POST_COMMENT + "&postId=" + postId + "&commentAuthor=" + author + 
-					"&commentAuthorEmail=" + email + "&commentContent=" + comment;
-			path = path.replace(" ", "%20").replace("\n","%0A");
+			count = Integer.parseInt(nr);
+		} catch (NumberFormatException e) {
+			Log.w("error parsing property to int: NUMBER_OF_POSTS_PER_REQUEST", e.toString());
+			count=20;
 		}
-		return path;
-	}*/
+		return count;
+	}
+
 	
 	public static String getYouTubeAPIKey() {
 		return YOUTUBE_API_KEY;

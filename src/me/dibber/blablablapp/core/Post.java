@@ -14,6 +14,7 @@ public class Post {
 	public int authorid;
 	public ArrayList<Attachment> attachments;
 	public ArrayList<Comment> comments; 
+	public PodCast podcast;
 	public int commentcount;
 	public boolean commentstatus; 
 	public char favorite; // 'Y' = favorite; 'N' = not favorite; 
@@ -34,4 +35,13 @@ public class Post {
 		public String content;
 		public int parent;
 	}
+	
+	public static class PodCast {
+		public String title;
+		public String link;
+		public String duration;
+		public String audioUrl;
+		public Date date;
+	}
+	
 }

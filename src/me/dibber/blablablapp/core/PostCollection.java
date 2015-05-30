@@ -48,10 +48,26 @@ public class PostCollection {
 	private final static String THUMBNAIL = "thumb";
 	private final static String IMAGE = "img";
 	
+	private boolean isPodcastCollection;
+	private boolean isFavoriteCollection;
+	private String[] filter;
+	
 	private TreeMap<Integer,Post> posts;
 	
 	private PostCollection() {
 		posts = new TreeMap<Integer,Post>();
+	}
+	
+	public void showFavorite(boolean showFavorite) {
+		isFavoriteCollection = showFavorite;
+	}
+	
+	public void showPodcast(boolean showPodcast) {
+		isPodcastCollection = showPodcast;
+	}
+	
+	public void setFilter(String[] filter) {
+		this.filter = filter;
 	}
 	
 	public void addPost(Post post) {
@@ -68,17 +84,63 @@ public class PostCollection {
 		return	posts.get(postId);
 	}
 	
+	public Post getPostByURL(String URL) {
+		for (Post p : posts.values()) {
+			if (p.url != null && p.url.equals(URL)) {
+				return p;
+			}
+		}
+		return null;
+	}
+	
 	public List<Integer> getAllPosts() {
 		ArrayList<Integer> list = new ArrayList<Integer>();
-		for (Integer i : posts.keySet()) {
-			list.add(i);
+		
+		if (isFavoriteCollection) {
+			for (Integer i : posts.keySet()) {
+				if (itemIsFavorite(i)) {
+					list.add(i);
+				}
+			}
+		} else if (isPodcastCollection) {
+			for (Integer i : posts.keySet()) {
+				if (itemHasPodcast(i)) {
+					list.add(i);
+				}
+			}
+		} else {
+			for (Integer i : posts.keySet()) {
+				list.add(i);
+			}
 		}
+		
+		if (filter != null) {
+			ArrayList<Integer> filteredList = new ArrayList<Integer>();
+			for (int j : list) {
+				boolean addToList = true;
+				for (String arg : filter) {
+					if (!(getPost(j).title.toLowerCase().contains(arg.toLowerCase()) || getPost(j).content.toLowerCase().contains(arg.toLowerCase())) ) {
+						addToList = false;
+						break;
+					}
+				} 
+				if (addToList) {
+					filteredList.add(j);
+				}
+			}
+			list = filteredList;
+		}
+		
 		Collections.sort(list, new Comparator<Integer>() {
 
 			@Override
 			public int compare(Integer lhs, Integer rhs) {
 				
-				return getItemDate(rhs).compareTo(getItemDate(lhs));
+				if (isPodcastCollection) {
+					return getItemPodcastDate(rhs).compareTo(getItemPodcastDate(lhs));
+				} else {
+					return getItemDate(rhs).compareTo(getItemDate(lhs));
+				}
 			}
 		});
 		return list;
@@ -344,6 +406,31 @@ public class PostCollection {
 		}
 	}
 	
+	public String getItemPodcastAudioUrl(int postId) {
+		if (posts.get(postId) == null) {
+			return null;
+		} else if (posts.get(postId).podcast == null) {
+			return null;
+		} else {
+			return posts.get(postId).podcast.audioUrl;
+		}
+	}
+	
+	public Date getItemPodcastDate(int postId) {
+		if (posts.get(postId) == null) {
+			return new Date(0);
+		}  else if (posts.get(postId).podcast == null) {
+			return new Date(0);
+		}
+		Date d = posts.get(postId).podcast.date;
+		if (d != null) {
+			return d;
+		} else {
+			return new Date(0);
+		}
+	}
+
+	
 	public boolean itemIsFavorite(int postId) {
 		if (posts.get(postId) == null) {
 			return false;
@@ -412,6 +499,13 @@ public class PostCollection {
 			return 0;
 		}
 		return posts.get(postId).commentcount;
+	}
+	
+	public boolean itemHasPodcast(int postId) {
+		if (posts.get(postId) == null) {
+			return false;
+		}
+		return posts.get(postId).podcast != null;
 	}
 	
 	private ArrayList<Post.Attachment> getAttachments(int postId) {
@@ -517,15 +611,9 @@ public class PostCollection {
 		return postCollection;
 	}
 	
-	public static PostCollection getFilteredPostCollection(String[] query, boolean filterFromFavorites) {
-		PostCollection sourcePc;
-		if (filterFromFavorites) {
-			sourcePc = getFavoritesPostCollection();
-		} else {
-			sourcePc = getPostCollection();
-		}
+/*	private static PostCollection getFilteredPostCollection(String[] query, PostCollection sourceCollection ) {
 		PostCollection filteredPostCollection = new PostCollection();
-		for (Post p : sourcePc.posts.values()) {
+		for (Post p : sourceCollection.posts.values()) {
 			boolean addToPC = true;
 			for (String arg : query) {
 				if (!(p.title.toLowerCase().contains(arg.toLowerCase()) || p.content.toLowerCase().contains(arg.toLowerCase())) ) {
@@ -540,7 +628,7 @@ public class PostCollection {
 		return filteredPostCollection;
 	}
 	
-	public static PostCollection getFavoritesPostCollection() {
+	private static PostCollection getFavoritesPostCollection() {
 		if (postCollection == null) {
 			postCollection = new PostCollection();
 		}
@@ -552,6 +640,20 @@ public class PostCollection {
 		}
 		return favoritesPostCollection;
 	}
+	
+	private static PostCollection getPodCastPostCollection() {
+		if (postCollection == null) {
+			postCollection = new PostCollection();
+		}
+		PostCollection podcastCollection = new PostCollection();
+		for (Post p : postCollection.posts.values()) {
+			if (p.podcast != null) {
+				podcastCollection.addPost(p);
+			}
+		}
+		podcastCollection.isPodcastCollection = true;
+		return podcastCollection;
+	}*/
 	
 	private static CharSequence trimTrailingWhitespace(CharSequence source) {
 	    if(source == null)
@@ -748,22 +850,15 @@ public class PostCollection {
 		
 		if (d == null) {
 			retrieveImage(postId, position, true, new ImagesRetrievalListener() {
-				
-				@Override
-				public void onImagesRetrieved() {
-					// setImage(v, getPostCollection().getImages(postId).get(position), postId, position, listener);
-				}
 
 				@Override
 				public void onImageRetrievedSuccess(Bitmap bitmap) {
 					setImage(v, bitmap, postId, position, listener);
-					
 				}
 
 				@Override
 				public void onImageRetrievedFailed(Error e) {
 					Log.e("Error on retrieving image", e.toString());
-					
 				}
 			});
 			return;
@@ -790,11 +885,6 @@ public class PostCollection {
 		if (b == null) {
 			setThumbnail(v, decodeThumbnailFromResources(GlobalState.getContext().getResources(), R.drawable.logo_grey), postId, listener);
 			retrieveImage(postId, 0, false, new ImagesRetrievalListener() {
-				
-				@Override
-				public void onImagesRetrieved() {
-					// setThumbnail(v, getPostCollection().getThumbnail(postId), postId, listener);
-				}
 
 				@Override
 				public void onImageRetrievedSuccess(Bitmap bitmap) {
@@ -804,7 +894,6 @@ public class PostCollection {
 				@Override
 				public void onImageRetrievedFailed(Error e) {
 					Log.e("Error on retrieving image", e.toString());
-					
 				}
 			});
 			return;
@@ -993,7 +1082,6 @@ public class PostCollection {
 	}
 	
 	private interface ImagesRetrievalListener {
-		void onImagesRetrieved();
 		void onImageRetrievedSuccess(Bitmap bitmap);
 		void onImageRetrievedFailed(Error e);
 	}

@@ -11,6 +11,7 @@
 	<!-- Pages titles -->
 	<string name="Home">Home</string>
 	<string name="Favorites">Favorites</string>
+    <string name="Podcast">Podcast</string>
 	<string name="About_Theo">About Theo</string>
 	
     <!-- Menu -->

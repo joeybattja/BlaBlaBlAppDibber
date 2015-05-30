@@ -16,7 +16,6 @@ public class GlobalState extends Application {
 	private static Context context;
 	String[] options;
 	private String searchQuery;
-	private boolean showOnlyFavorites;
 	private boolean refreshing;
 	private HomeActivity homeActivity;
 	private int oldestSynchedPost;
@@ -36,19 +35,18 @@ public class GlobalState extends Application {
 	}
 	
 	public PostCollection getPosts() {
-		if (searchQuery == null) {
-			if (!showOnlyFavorites) {
-				return PostCollection.getPostCollection();
-			} else {
-				return PostCollection.getFavoritesPostCollection();
-			}
-		} else {
-			return PostCollection.getFilteredPostCollection(searchQuery.split(" "), showOnlyFavorites);
+		if (posts == null) {
+			posts = PostCollection.getPostCollection();
 		}
+		return posts;
 	}
 	
 	public void showOnlyFavorites(boolean favorites) {
-		showOnlyFavorites = favorites;
+		getPosts().showFavorite(favorites);
+	}
+	
+	public void showPodcast(boolean podcast) {
+		getPosts().showPodcast(podcast);
 	}
 	
 	public void search(String query) {
@@ -58,6 +56,7 @@ public class GlobalState extends Application {
 				query = null;
 		}
 		searchQuery = query;
+		getPosts().setFilter(searchQuery.split(" "));
 	}
 	
 	public String getSearchQuery() {

@@ -41,6 +41,7 @@ import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -61,6 +62,7 @@ public class HomeActivity extends ActionBarActivity implements DataLoaderListene
 	private MenuItem refresh;
 	private MenuItem share;
 	
+	private ProgressBar mProgressBar;
 	private DrawerLayout mDrawerLayout;
 	private ActionBarDrawerToggle mDrawerToggle;
     private ListView mDrawerList;
@@ -83,6 +85,8 @@ public class HomeActivity extends ActionBarActivity implements DataLoaderListene
 	        currentType = (ContentFrameType) savedInstanceState.getSerializable(CURRENT_TYPE);
         }
 		
+		mProgressBar = (ProgressBar) findViewById(R.id.home_progressbar);
+		mProgressBar.setVisibility(View.GONE);
 		mDrawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
 		mDrawerView = (LinearLayout) findViewById(R.id.drawer_view);
 		mDrawerList = (ListView) findViewById(R.id.drawer_list);
@@ -347,6 +351,9 @@ public class HomeActivity extends ActionBarActivity implements DataLoaderListene
     }
     
     private void invalidateContentFrame() {
+    	if (mProgressBar != null) {
+    		mProgressBar.setVisibility(View.GONE);
+    	}    		
     	if (currentType == null) {
     		currentType = ContentFrameType.PAGE;
         	replaceContentFrame(ContentFrameType.PAGE, currentPage);
@@ -358,7 +365,11 @@ public class HomeActivity extends ActionBarActivity implements DataLoaderListene
         		if (((PostOverviewFragment)frag).invalidatePostOverview()) {
         			return;
         		};
-        	} 
+        	}
+    		if (mProgressBar != null && ((GlobalState)GlobalState.getContext()).isRefreshing() 
+    				&& frag instanceof PostOverviewFragment && ((PostOverviewFragment)frag).getLastPosition() == 0) {
+    			mProgressBar.setVisibility(View.VISIBLE);
+    		}
         	replaceContentFrame(ContentFrameType.PAGE, currentPage);
         }
     }
@@ -376,8 +387,10 @@ public class HomeActivity extends ActionBarActivity implements DataLoaderListene
 			switch (Pages.getPageType(currentPage)) {
 			case POSTS:
 			case FAVORITES:
+			case PODCAST:
 				simpleOptionsMenu(false);
 				((GlobalState)GlobalState.getContext()).showOnlyFavorites(Pages.getPageType(currentPage) == Pages.PageType.FAVORITES);
+				((GlobalState)GlobalState.getContext()).showPodcast(Pages.getPageType(currentPage) == Pages.PageType.PODCAST);
 				fragment = new PostOverviewFragment();
 				Bundle argsO = new Bundle();
 				argsO.putInt(PostOverviewFragment.ARG_ID, currentPost);
@@ -482,6 +495,12 @@ public class HomeActivity extends ActionBarActivity implements DataLoaderListene
 		if (refresh != null) {
 			refresh.setActionView(R.layout.actionbar_indeterminate_progress);
 		}
+		if (mProgressBar != null) {
+			Fragment frag = getSupportFragmentManager().findFragmentByTag(TAG_FRAGMENT_CONTENT);
+			if (frag instanceof PostOverviewFragment && ((PostOverviewFragment)frag).getLastPosition() == 0) {
+				mProgressBar.setVisibility(View.VISIBLE);
+			}
+		}
 		dl.prepareAsync();
 	}
 	
@@ -506,7 +525,7 @@ public class HomeActivity extends ActionBarActivity implements DataLoaderListene
 		startActivity(Intent.createChooser(intent, getResources().getString(R.string.share_title)));
 	}
 	
-	public void getMorePosts(int lastPostId) {
+	public void getMorePosts(int lastPostId,int currentPosition) {
 		if (Pages.getPageType(currentPage) == PageType.FAVORITES) { // nothing to refresh if showing favorites 
 			return;
 		}
@@ -517,15 +536,36 @@ public class HomeActivity extends ActionBarActivity implements DataLoaderListene
 		((GlobalState)GlobalState.getContext()).refresh(true);
 		DataLoader dl = new DataLoader();
 		dl.setDataLoaderListener(this);
-		dl.isInSynchWithExistingPosts(true);
-		try {
- 			dl.setDataSource(new AppConfig.APIURLBuilder(Function.GET_POSTS_AFTER).setPostId(lastPostId).create());
-		} catch (MalformedURLException e) {
-			Log.w("Path incorrect", e.toString());
+		if (Pages.getPageType(currentPage) == PageType.PODCAST) {
+			dl.isInSynchWithExistingPosts(false);
+			dl.setAsPodcastLoader(true);
+			dl.setPodcastRange(currentPosition, currentPosition + AppConfig.getDefaultNrPerRequest());
+			try {
+	 			dl.setDataSource(new AppConfig.APIURLBuilder(Function.GET_PODCAST_POSTS).create());
+			} catch (MalformedURLException e) {
+				Log.w("Path incorrect", e.toString());
+			}
+		} else {
+			dl.isInSynchWithExistingPosts(true);
+			try {
+				if (lastPostId != 0) {
+					dl.setDataSource(new AppConfig.APIURLBuilder(Function.GET_POSTS_AFTER).setPostId(lastPostId).create());
+				} else {
+					dl.setDataSource(new AppConfig.APIURLBuilder(Function.GET_RECENT_POSTS).create());
+				}
+			} catch (MalformedURLException e) {
+				Log.w("Path incorrect", e.toString());
+			}
 		}
 		// Need to check if the MenuItem is already available, since this method is called in onCreate and onCreateOptionsMenu is called after onCreate has ended.
 		if (refresh != null) {
 			refresh.setActionView(R.layout.actionbar_indeterminate_progress);
+		}
+		if (mProgressBar != null) {
+			Fragment frag = getSupportFragmentManager().findFragmentByTag(TAG_FRAGMENT_CONTENT);
+			if (frag instanceof PostOverviewFragment && ((PostOverviewFragment)frag).getLastPosition() == 0) {
+				mProgressBar.setVisibility(View.VISIBLE);
+			}
 		}
 		dl.prepareAsync();
 	}
@@ -576,6 +616,10 @@ public class HomeActivity extends ActionBarActivity implements DataLoaderListene
 				if (homeA.refresh != null) {
 					homeA.refresh.setActionView(null);
 				}
+				if (homeA.mProgressBar != null) {
+					homeA.mProgressBar.setVisibility(View.GONE);
+				}
+
 				saveLastPosition();
 				invalidateContentFrame();
 			}

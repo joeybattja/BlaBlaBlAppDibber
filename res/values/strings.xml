@@ -7,12 +7,12 @@
     <string name="drawer_close">Close drawer</string>
     <string name="logo">Logo</string>
     <string name="Image">Image</string>
-    
     <string name="facebook_app_id">358465337681276</string>
 	
 	<!-- Pages titles -->
 	<string name="Home">Home</string>
 	<string name="Favorites">Favorites</string>
+    <string name="Podcast">Podcast</string>
 	<string name="About_Theo">About Theo</string>
 	
     <!-- Menu -->

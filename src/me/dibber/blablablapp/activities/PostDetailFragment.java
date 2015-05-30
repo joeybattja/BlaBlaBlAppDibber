@@ -93,7 +93,7 @@ public class PostDetailFragment extends Fragment {
 		@Override
 		public Fragment getItem(int position) {
 			if (posToSynch != -1 && position > posToSynch - 2 && postIds.get(posToSynch) >= 0) {
-				((HomeActivity) getActivity()).getMorePosts(postIds.get(posToSynch));
+				((HomeActivity) getActivity()).getMorePosts(postIds.get(posToSynch), posToSynch);
 			}
 			PostFragment f = new PostFragment();
 			Bundle args = new Bundle();

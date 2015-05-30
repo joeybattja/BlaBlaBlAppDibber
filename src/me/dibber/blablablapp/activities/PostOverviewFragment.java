@@ -97,12 +97,14 @@ public class PostOverviewFragment extends Fragment {
 				// refreshing posts when reaching the bottom of the view
 				if(firstVisibleItem + visibleItemCount >= totalItemCount) {
 					if ( postsIds.size() > 0 ) {
-						((HomeActivity) getActivity()).getMorePosts(postsIds.get(postsIds.size() - 1));
+						((HomeActivity) getActivity()).getMorePosts(postsIds.get(postsIds.size() - 1),totalItemCount);
+					} else {
+						((HomeActivity) getActivity()).getMorePosts(0,0);
 					}
 				}
 				
 				if (posToSynch != -1 && firstVisibleItem + visibleItemCount > posToSynch) {
-					((HomeActivity) getActivity()).getMorePosts(postsIds.get(posToSynch));
+					((HomeActivity) getActivity()).getMorePosts(postsIds.get(posToSynch),posToSynch);
 				}
 			}
 		});
