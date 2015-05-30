@@ -1,6 +1,5 @@
 package me.dibber.blablablapp.core;
 
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -24,12 +23,15 @@ import android.content.Context;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.drawable.Drawable;
+import android.graphics.Point;
 import android.os.Handler;
 import android.os.Looper;
+import android.support.v4.util.LruCache;
 import android.text.Html;
 import android.util.Log;
 import android.util.SparseArray;
+import android.view.Display;
+import android.view.WindowManager;
 import android.widget.ImageView;
 
 public class PostCollection {
@@ -41,6 +43,10 @@ public class PostCollection {
 	private final static int THUMBNAIL_WIDTH = 240;
 	private final static int THUMBNAIL_HEIGHT = 180;
 	private static SparseArray<Handler> activeHandlers;
+	
+	private LruCache<String, Bitmap> mMemoryCache;
+	private final static String THUMBNAIL = "thumb";
+	private final static String IMAGE = "img";
 	
 	private TreeMap<Integer,Post> posts;
 	
@@ -415,19 +421,65 @@ public class PostCollection {
 		return posts.get(postId).attachments;
 	}
 	
-	private ArrayList<Drawable> getImages(int postId) {
+	private ArrayList<Bitmap> getImages(int postId) {
 		if (posts.get(postId) == null) {
-			return new ArrayList<Drawable>();
+			return new ArrayList<Bitmap>();
 		} 
-		ArrayList<Drawable> images = new ArrayList<Drawable>();
+		ArrayList<Bitmap> images = new ArrayList<Bitmap>();
 		ArrayList<Post.Attachment> att = posts.get(postId).attachments;
 		for (int i = 0; i < att.size(); i++) {
-			if (att.get(i).mimeType.equals(MIMETYPE_JPEG) || att.get(i).mimeType.equals(MIMETYPE_PNG)) {
-				images.add(att.get(i).image);
+			if ((att.get(i).mimeType.equals(MIMETYPE_JPEG) || att.get(i).mimeType.equals(MIMETYPE_PNG))) {
+				images.add(getImagefromMemoryCache(att.get(i).filePath));
 			}
 		}
 		return images;
 	}
+	
+	private void initMemoryCache() {
+		final int maxMemory = (int) (Runtime.getRuntime().maxMemory() / 1024);
+		final int cacheSize = maxMemory / 4;
+		mMemoryCache = new LruCache<String, Bitmap>(cacheSize) {
+	        @Override
+	        protected int sizeOf(String key, Bitmap bitmap) {
+	            // The cache size will be measured in kilobytes rather than
+	            // number of items.
+	            return bitmap.getByteCount() / 1024;
+	        }
+	    };
+	}
+	
+	private Bitmap getImagefromMemoryCache(String imagePath) {
+		if (mMemoryCache == null) {
+			initMemoryCache();
+		}
+		return mMemoryCache.get(imagePath+IMAGE);
+	}
+	
+	private void addImageToMemoryCache(String imagePath, Bitmap bitmap) {
+		if (mMemoryCache == null) {
+			initMemoryCache();
+		}
+	    if (getImagefromMemoryCache(imagePath) == null) {
+	        mMemoryCache.put(imagePath+IMAGE, bitmap);
+	    }
+	}
+	
+	private Bitmap getThumbnailfromMemoryCache(String imagePath) {
+		if (mMemoryCache == null) {
+			initMemoryCache();
+		}
+		return mMemoryCache.get(imagePath+THUMBNAIL);
+	}
+	
+	private void addThumbnailToMemoryCache(String imagePath, Bitmap bitmap) {
+		if (mMemoryCache == null) {
+			initMemoryCache();
+		}
+	    if (getThumbnailfromMemoryCache(imagePath) == null) {
+	        mMemoryCache.put(imagePath+THUMBNAIL, bitmap);
+	    }
+	}
+	
 	
 	/**
 	 * Returns the maximum ratio as a double height/width of all images related to this post. 
@@ -437,11 +489,11 @@ public class PostCollection {
 	 */
 	public double maxImageRatio(int postId) {
 		double maxRatio = 0;
-		for (Drawable d : getPostCollection().getImages(postId)) {
+		for (Bitmap d : getPostCollection().getImages(postId)) {
 			if (d == null) {
 				return 0;
 			}
-			double ratio = (double) d.getIntrinsicHeight() / d.getIntrinsicWidth();
+			double ratio = (double) d.getHeight() / d.getWidth();
 			if (ratio > maxRatio) {
 				maxRatio = ratio;
 			}
@@ -450,13 +502,11 @@ public class PostCollection {
 	}
 	
 	private Bitmap getThumbnail(int postId) {
-		if (posts.get(postId) == null) {
+		if (posts.get(postId) == null || posts.get(postId).attachments.size() == 0 || posts.get(postId).attachments.get(0).filePath == null) {
 			return null;
 		} 
-		return posts.get(postId).attachments.get(0).thumbnail;		
+		return getThumbnailfromMemoryCache(posts.get(postId).attachments.get(0).filePath);
 	}
-	
-	
 	
 	// ---------------- static and utility stuff, mostly for the picture things... ----------------
 	
@@ -564,15 +614,15 @@ public class PostCollection {
 		
 		switch (type) {
 		case LOGO_COLOR:
-			setImage(v, ((GlobalState) GlobalState.getContext()).getResources().getDrawable(R.drawable.logo_color), 0, 0, listener);
+			setImage(v, BitmapFactory.decodeResource(v.getContext().getResources(),R.drawable.logo_color), 0, 0, listener);
 			break;
 		case LOGO_GREYSCALE:
-			setImage(v, ((GlobalState) GlobalState.getContext()).getResources().getDrawable(R.drawable.logo_grey), 0, 0, listener);
+			setImage(v, BitmapFactory.decodeResource(v.getContext().getResources(), R.drawable.logo_grey), 0, 0, listener);
 			break;
 		case POST_IMAGE:
 			if (pc.countImages(postId) != 0) {
 				if (pc.countImages(postId) > 1) {
-					ArrayList<Drawable> images = pc.getImages(postId);
+					ArrayList<Bitmap> images = pc.getImages(postId);
 		
 					if (position < 0 || position > images.size() ) {
 						setMultipleImages(v, images, postId, listener);
@@ -594,7 +644,7 @@ public class PostCollection {
 		case FULLSCREEN_IMAGE:
 			if (pc.countImages(postId) != 0) {
 				if (pc.countImages(postId) > 1) {
-					ArrayList<Drawable> images = pc.getImages(postId);
+					ArrayList<Bitmap> images = pc.getImages(postId);
 					
 					if (position < 0 || position > images.size() ) {
 						setMultipleImages(v, images, postId, listener);
@@ -610,90 +660,110 @@ public class PostCollection {
 		}
 	}
 	
-	private static void retrieveImages(final int postId, final boolean fullsized, final ImagesRetrievalListener listener) {
-		
+	private static void retrieveImage(final int postId, final int position, final boolean fullsized, final ImagesRetrievalListener listener) {
 		Thread t = new Thread(new Runnable() {
 			
 			@Override
 			public void run() {
 				Context c = GlobalState.getContext();
 				PostCollection pc = getPostCollection();
-				ArrayList<Post.Attachment> att = pc.getAttachments(postId); 
-				for (Post.Attachment a : att) {
+				int i = 0;
+				Post.Attachment img = null;
+				for (Post.Attachment a : pc.getAttachments(postId)) {
 					if (a.mimeType.equals(MIMETYPE_JPEG) || a.mimeType.equals(MIMETYPE_PNG)) {
-						
-						try {
-							boolean fileExists = true;
-							File file = c.getFileStreamPath("" + postId + a.id);
-							if (file == null || !file.exists())
-								fileExists = false;
-							if (fileExists) {
-								try {
-									if (fullsized) {
-										FileInputStream fis = c.openFileInput("" + postId + a.id);
-										a.image = Drawable.createFromStream(fis, "src");
-
-										fis.close();
-									} else {
-										a.thumbnail = decodeThumbnailFromFile(c, "" + postId + a.id);
-									}
-								} catch (IOException e1) {
-									Log.w("error retrieving file from internal storage", e1.toString());
-								}
-							} else {
-								try {
-									URL url = new URL(a.url); 
-									InputStream is = url.openStream();
-									Bitmap b = BitmapFactory.decodeStream(is);
-									is.close();
-
-									ByteArrayOutputStream stream = new ByteArrayOutputStream();
-									if (a.mimeType.equals(MIMETYPE_JPEG)){
-										b.compress(Bitmap.CompressFormat.JPEG, 100, stream);
-									} else {
-										b.compress(Bitmap.CompressFormat.PNG, 100, stream);
-									}
-									b.recycle();
-									b = null;
-									FileOutputStream fos = c.openFileOutput("" + postId + a.id, Context.MODE_PRIVATE);
-									fos.write(stream.toByteArray());
-									stream.close();
-									fos.close();
-									
-								} catch (IOException e2) {
-									Log.w("error retrieving image from web or saving image in internal storage", e2.toString());
-								}
-								try {
-									if (fullsized) {
-										FileInputStream fis = c.openFileInput("" + postId + a.id);
-										a.image = Drawable.createFromStream(fis, "src");
-										fis.close();
-									} else {
-										a.thumbnail = decodeThumbnailFromFile(c, "" + postId + a.id);
-									}
-								} catch (IOException e3) {
-									Log.w("error retrieving image from internal storage", e3.toString());
-								}
-							} 
-						} catch (Exception e) {
-							Log.e("Unexpected error for post " + postId + "/" + a.id + " titled: " + pc.getItemTitle(postId), e.toString());
+						i++;
+						if (i > position) {
+							img = a;
+							break;
 						}
-					} 
+					}
 				}
-				listener.onImagesRetrieved();
+				if (img == null) {
+					listener.onImageRetrievedFailed(new Error("Post does not have an image for given position"));
+					return;
+				}
+				Bitmap bitmap = null;
+				
+				// First try to get the bitmap from memory
+				if (fullsized) {
+					bitmap = pc.getImagefromMemoryCache(img.filePath);
+				} else {
+					bitmap = pc.getThumbnailfromMemoryCache(img.filePath);
+				}
+				if (bitmap != null) {
+					listener.onImageRetrievedSuccess(bitmap);
+					return;
+				}
+				
+				// Secondly try to get the bitmap from disk
+				boolean fileExists = true;
+				img.filePath = "" + postId + img.id;
+				File file = c.getFileStreamPath(img.filePath);
+				if (file == null || !file.exists()) {
+					fileExists = false;
+				}
+				if (fileExists) {
+					try {
+						if (fullsized) {
+							bitmap = getImageFromDisk(c, img.filePath, fullsized);
+							pc.addImageToMemoryCache(img.filePath, bitmap);
+							listener.onImageRetrievedSuccess(bitmap);
+							return;
+						} else {
+							bitmap = getImageFromDisk(c, img.filePath, fullsized);
+							pc.addImageToMemoryCache(img.filePath, bitmap);
+							listener.onImageRetrievedSuccess(bitmap);
+							return;
+						}
+					} catch (IOException e1) {
+						Log.w("error retrieving file from internal storage", e1.toString());
+					}
+				} 
+				
+				// Last, try to download the bitmap from the URL
+				try {
+					URL url = new URL(img.url); 
+					if (fullsized) {
+						bitmap = decodeImageFromURL(c, url);
+						storeImageOnDisk(c, bitmap, img.filePath, img.mimeType);
+						pc.addImageToMemoryCache(img.filePath, bitmap);
+						listener.onImageRetrievedSuccess(bitmap);
+						return;
+					} else {
+						bitmap = decodeThumbnailFromURL(c, url);
+						storeThumbnailOnDisk(c, bitmap, img.filePath, img.mimeType);
+						pc.addThumbnailToMemoryCache(img.filePath, bitmap);
+						listener.onImageRetrievedSuccess(bitmap);
+						return;
+					}
+				} catch (IOException e2) {
+					Log.w("error retrieving image from web or saving image in internal storage", e2.toString());
+				}
 			}
 		});
 		t.start(); 
 	}
 
-	private static void setImage(final ImageView v, final Drawable d, final int postId, final int position, final SetImageListener listener) { 
+	private static void setImage(final ImageView v, final Bitmap d, final int postId, final int position, final SetImageListener listener) { 
 		
 		if (d == null) {
-			retrieveImages(postId, true, new ImagesRetrievalListener() {
+			retrieveImage(postId, position, true, new ImagesRetrievalListener() {
 				
 				@Override
 				public void onImagesRetrieved() {
-					setImage(v, getPostCollection().getImages(postId).get(position), postId, position, listener);
+					// setImage(v, getPostCollection().getImages(postId).get(position), postId, position, listener);
+				}
+
+				@Override
+				public void onImageRetrievedSuccess(Bitmap bitmap) {
+					setImage(v, bitmap, postId, position, listener);
+					
+				}
+
+				@Override
+				public void onImageRetrievedFailed(Error e) {
+					Log.e("Error on retrieving image", e.toString());
+					
 				}
 			});
 			return;
@@ -706,7 +776,7 @@ public class PostCollection {
 			public void run() {
 								
 				v.setAdjustViewBounds(true);
-				v.setImageDrawable(d);
+				v.setImageBitmap(d);
 				
 				if (listener != null) {
 					listener.onImageSet();
@@ -714,16 +784,27 @@ public class PostCollection {
 			}
 		});
 	}
-	
+		
 	private static void setThumbnail(final ImageView v, final Bitmap b, final int postId, final SetImageListener listener) {
 		
 		if (b == null) {
 			setThumbnail(v, decodeThumbnailFromResources(GlobalState.getContext().getResources(), R.drawable.logo_grey), postId, listener);
-			retrieveImages(postId, false, new ImagesRetrievalListener() {
+			retrieveImage(postId, 0, false, new ImagesRetrievalListener() {
 				
 				@Override
 				public void onImagesRetrieved() {
-					setThumbnail(v, getPostCollection().getThumbnail(postId), postId, listener);
+					// setThumbnail(v, getPostCollection().getThumbnail(postId), postId, listener);
+				}
+
+				@Override
+				public void onImageRetrievedSuccess(Bitmap bitmap) {
+					setThumbnail(v, bitmap, postId, listener);
+				}
+
+				@Override
+				public void onImageRetrievedFailed(Error e) {
+					Log.e("Error on retrieving image", e.toString());
+					
 				}
 			});
 			return;
@@ -741,7 +822,7 @@ public class PostCollection {
 		});
 	}
 
-	private static void setMultipleImages(final ImageView v, final ArrayList<Drawable> images, final int postId, final SetImageListener listener) {
+	private static void setMultipleImages(final ImageView v, final ArrayList<Bitmap> images, final int postId, final SetImageListener listener) {
 		if (activeHandlers == null) {
 			activeHandlers = new SparseArray<Handler>();
 		}
@@ -796,19 +877,71 @@ public class PostCollection {
 	    return inSampleSize;
 	}
 	
-	private static Bitmap decodeThumbnailFromFile(Context c, String filePath) throws IOException {
-		FileInputStream fis = c.openFileInput(filePath);
+	private static Bitmap decodeImageFromURL(Context c, URL url) throws IOException {
+		WindowManager wm = (WindowManager) c.getSystemService(Context.WINDOW_SERVICE);
+		Display display = wm.getDefaultDisplay();
+		Point imageSize = new Point();
+		display.getSize(imageSize);
+		
+		InputStream is = url.openStream();
 		BitmapFactory.Options options = new BitmapFactory.Options();
 		options.inJustDecodeBounds = true;
-	    BitmapFactory.decodeStream(fis, null, options);
+		BitmapFactory.decodeStream(is, null, options);
+		int ratio = options.outHeight / options.outWidth;
+		options.inSampleSize =  calculateInSampleSize(options, imageSize.x, imageSize.x * ratio);
+		options.inJustDecodeBounds = false;
+		is.close();
+		is = url.openStream();
+		Bitmap bitmap = BitmapFactory.decodeStream(is, null, options);
+		is.close();
+		return bitmap;
+	}
+	
+	private static void storeImageOnDisk(Context context, Bitmap bitmap, String filePath, String mimeType) throws IOException {
+		FileOutputStream fos = context.openFileOutput(filePath+IMAGE, Context.MODE_PRIVATE);
+		if (mimeType.equals(MIMETYPE_JPEG)){
+			bitmap.compress(Bitmap.CompressFormat.JPEG, 100, fos);
+		} else if (mimeType.equals(MIMETYPE_PNG)) {
+			bitmap.compress(Bitmap.CompressFormat.PNG, 100, fos);
+		}
+		fos.close();
+	}
+	
+	private static Bitmap decodeThumbnailFromURL(Context c, URL url) throws IOException {
+		InputStream is = url.openStream();
+		BitmapFactory.Options options = new BitmapFactory.Options();
+		options.inJustDecodeBounds = true;
+		options.inJustDecodeBounds = true;
+	    BitmapFactory.decodeStream(is, null, options);
 	    options.inSampleSize = calculateInSampleSize(options, THUMBNAIL_WIDTH, THUMBNAIL_HEIGHT);
 	    options.inJustDecodeBounds = false;
+		is.close();
+		is = url.openStream();
+		Bitmap bitmap = Bitmap.createScaledBitmap(BitmapFactory.decodeStream(is, null, options), THUMBNAIL_WIDTH, THUMBNAIL_HEIGHT, false);
+		is.close();
+	    return bitmap;
+	}
+	
+	private static void storeThumbnailOnDisk(Context context, Bitmap bitmap, String filePath, String mimeType) throws IOException {
+		FileOutputStream fos = context.openFileOutput(filePath+THUMBNAIL, Context.MODE_PRIVATE);
+		if (mimeType.equals(MIMETYPE_JPEG)){
+			bitmap.compress(Bitmap.CompressFormat.JPEG, 100, fos);
+		} else if (mimeType.equals(MIMETYPE_PNG)) {
+			bitmap.compress(Bitmap.CompressFormat.PNG, 100, fos);
+		}
+		fos.close();
+	}
+	
+	private static Bitmap getImageFromDisk(Context c, String filePath, boolean fullsized) throws IOException {
+		if (fullsized) {
+			filePath = filePath+IMAGE;
+		} else {
+			filePath = filePath+THUMBNAIL;
+		}
+		FileInputStream fis = c.openFileInput(filePath);
+		Bitmap bitmap = BitmapFactory.decodeStream(fis, null, null);
 		fis.close();
-		
-		fis = c.openFileInput(filePath);
-	    Bitmap bm = Bitmap.createScaledBitmap(BitmapFactory.decodeStream(fis, null, options), THUMBNAIL_WIDTH, THUMBNAIL_HEIGHT, false);
-	    fis.close();
-	    return bm;
+		return bitmap;
 	}
 	
 	private static Bitmap decodeThumbnailFromResources(Resources res, int id) {
@@ -861,5 +994,7 @@ public class PostCollection {
 	
 	private interface ImagesRetrievalListener {
 		void onImagesRetrieved();
+		void onImageRetrievedSuccess(Bitmap bitmap);
+		void onImageRetrievedFailed(Error e);
 	}
 }

@@ -33,7 +33,7 @@ public class AppConfig {
 	private static final String GOOGLE_CLOUD_MESSAGING_SENDER_ID = "1024871846922";
 
 	// oldest app version with same data structure (if update is done on older version, all files will be deleted after startup 
-	private static final int OLDEST_SUPPORTED_VERSION = 3;
+	private static final int OLDEST_SUPPORTED_VERSION = 14;
 	
 	
 	// name of properties file

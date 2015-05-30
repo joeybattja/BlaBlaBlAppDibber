@@ -36,6 +36,7 @@ import android.widget.Toast;
 public class CommentsFragment extends Fragment {
 	
 	private TextView mCountComments;
+	private int nrOfComments;
 	private LinearLayout mCommentsFrame;
 	private TextView mLeaveReply;
 	private LinearLayout mNewCommentForm;	
@@ -99,15 +100,21 @@ public class CommentsFragment extends Fragment {
 		if (commentIds.size() != commentCount) {
 			Log.w("Warning, comment size is not equal:", "commentCount parameter is: " + commentCount + 
 					", while there are " + commentIds.size() + " actual comments.");
-		}
+		} 
 		
 		if (mCountComments != null && mCommentsFrame != null) {
 			if (commentCount == 0) {
 				mCountComments.setVisibility(View.GONE);
 				mCommentsFrame.setVisibility(View.GONE);
 			} else {
+				if (nrOfComments == commentCount) {
+					return;
+				}
+				nrOfComments = commentCount;
+
 				mCountComments.setVisibility(View.VISIBLE);
 				mCommentsFrame.setVisibility(View.VISIBLE);
+				mCommentsFrame.removeAllViews();
 				mCountComments.setTypeface(null,Typeface.BOLD);
 				mCountComments.setText(GlobalState.getContext().getResources().getQuantityString(R.plurals.nrOfComments, commentCount, commentCount));
 				
@@ -123,12 +130,7 @@ public class CommentsFragment extends Fragment {
 					// need to check if the activity is not destroyed before adding the comments.
 					HomeActivity ha = ((GlobalState)GlobalState.getContext()).getCurrentHomeActivity();
 					if (getActivity() != null && getActivity().equals(ha)) {
-						Fragment f = getChildFragmentManager().findFragmentByTag(postId + "pos" + i);
-						if (f != null) {
-							getChildFragmentManager().beginTransaction().replace(mCommentsFrame.getId(), commentItemFrag, postId + "pos" + i).commit();
-						} else {
-							getChildFragmentManager().beginTransaction().add(mCommentsFrame.getId(), commentItemFrag, postId + "pos" + i).commit();
-						}
+						getChildFragmentManager().beginTransaction().add(mCommentsFrame.getId(), commentItemFrag, postId + "pos" + i).commit();
 					}
 				}
 			} 
