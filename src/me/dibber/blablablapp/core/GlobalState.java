@@ -56,7 +56,7 @@ public class GlobalState extends Application {
 				query = null;
 		}
 		searchQuery = query;
-		getPosts().setFilter(searchQuery.split(" "));
+		getPosts().setFilter(query == null ? null : searchQuery.split(" "));
 	}
 	
 	public String getSearchQuery() {
