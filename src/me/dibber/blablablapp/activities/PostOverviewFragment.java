@@ -142,8 +142,8 @@ public class PostOverviewFragment extends Fragment {
 			return 0;
 		}		
 		int firstPos = mGridView.getFirstVisiblePosition();		
-		if (firstPos >= 0) {
-			return postsIds.get(mGridView.getFirstVisiblePosition());
+		if (firstPos >= 0 && firstPos < postsIds.size()) {
+			return postsIds.get(firstPos);
 		} else { 
 			return 0;
 		}
