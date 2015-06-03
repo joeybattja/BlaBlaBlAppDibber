@@ -1,21 +1,21 @@
 package me.dibber.blablablapp.core;
 
-import java.io.IOException;
-import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
-import java.util.Properties;
 
-import android.content.Context;
 import android.content.SharedPreferences;
-import android.content.res.AssetManager;
 import android.preference.PreferenceManager;
 import android.util.Log;
 
 public class AppConfig {
 	
+	// properties
+	private static final boolean isProd = true; 
+	private static final boolean ALLOW_WRITE_COMMENTS = true;
+	private static final int DEF_MAX_NUMBER_OF_POSTS = 100;
+	private static final int DEF_NUMBER_OF_POSTS_PER_REQUEST = 20;
+	
 	// Blog API parameters:
-	private static boolean isProd = true; 
 	private static final String API_URL = isProd ? "http://www.blablablog.nl/" : "http://server.dibber.me/wordpress/"; 	
 
 	private static final String API_PHP = "new_api.php";
@@ -37,10 +37,6 @@ public class AppConfig {
 
 	// oldest app version with same data structure (if update is done on older version, all files will be deleted after startup 
 	private static final int OLDEST_SUPPORTED_VERSION = 14;
-	
-	
-	// name of properties file
-    private static String PROPERTY_FILENAME = "blog.properties";
 	
 	public enum Function {GET_RECENT_POSTS,GET_COMMENTS,POST_COMMENT,GET_POST_BY_ID,GET_POST_BY_URL,
 		GET_POSTS_AFTER,GET_SUPPORTED_VERSIONS,ADD_DEVICE,GET_PODCAST_POSTS};
@@ -165,15 +161,7 @@ public class AppConfig {
 	}
 	
 	public static int getDefaultNrPerRequest() {
-		int count;
-		String nr = getProperties(GlobalState.getContext()).getProperty("NUMBER_OF_POSTS_PER_REQUEST","20");
-		try {
-			count = Integer.parseInt(nr);
-		} catch (NumberFormatException e) {
-			Log.w("error parsing property to int: NUMBER_OF_POSTS_PER_REQUEST", e.toString());
-			count=20;
-		}
-		return count;
+		return DEF_NUMBER_OF_POSTS_PER_REQUEST;
 	}
 
 	
@@ -193,24 +181,14 @@ public class AppConfig {
 	public static int getMaxPostStored() {
 		SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(GlobalState.getContext());
 		if ( prefs.getBoolean("pref_use_storage", true) ) {
-	        Properties p = AppConfig.getProperties(GlobalState.getContext());
-	        int defaultMax = Integer.parseInt(p.getProperty("MAX_NUMBER_OF_POSTS","100"));
-			return prefs.getInt("pref_max_post_stored", defaultMax);
+			return prefs.getInt("pref_max_post_stored", DEF_MAX_NUMBER_OF_POSTS);
 		} else {
 			return 0;
 		}
 	}
 	
-    public static Properties getProperties(Context context) {
-    	Properties properties = new Properties();
-    	try {
-    		AssetManager assetManager = context.getAssets();
-    		InputStream inputStream = assetManager.open(PROPERTY_FILENAME);
-    		properties.load(inputStream);
-    	} catch (IOException e) {
-            Log.e("AssetsPropertyReader",e.toString());
-    	}
-    	return properties;
-    }
+	public static boolean allowWriteComments() {
+		return ALLOW_WRITE_COMMENTS;
+	}
     
 }

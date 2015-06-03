@@ -13,6 +13,7 @@ import me.dibber.blablablapp.core.DataLoader.DataLoaderListener;
 import me.dibber.blablablapp.core.GlobalState;
 import me.dibber.blablablapp.core.Pages;
 import me.dibber.blablablapp.core.Pages.PageType;
+import me.dibber.blablablapp.core.PodCastPlayer;
 import me.dibber.blablablapp.core.PostCollection;
 import me.dibber.blablablapp.core.Profile;
 import android.app.SearchManager;
@@ -502,6 +503,18 @@ public class HomeActivity extends ActionBarActivity implements DataLoaderListene
 			}
 		}
 		dl.prepareAsync();
+		
+		// Also get the first podcast results, to prevent long loading screen when opening podcast page
+		DataLoader podCastdl = new DataLoader();
+		podCastdl.setAsPodcastLoader(true);
+		podCastdl.isInSynchWithExistingPosts(false);
+		podCastdl.setPodcastRange(0, AppConfig.getDefaultNrPerRequest());
+		try {
+			podCastdl.setDataSource(new AppConfig.APIURLBuilder(Function.GET_PODCAST_POSTS).create());
+		} catch (MalformedURLException e) {
+			Log.w("Path for podcast incorrect", e.toString());
+		}
+		podCastdl.prepareAsync();
 	}
 	
 	public void sharePost() {
@@ -672,6 +685,7 @@ public class HomeActivity extends ActionBarActivity implements DataLoaderListene
 	    int max = AppConfig.getMaxPostStored();
 	    PostCollection.cleanUpPostCollection(max);
 	    ((GlobalState)GlobalState.getContext()).setOldestSynchedPost(0);
+	    PodCastPlayer.done();
 	    this.finish();
 	}
 }

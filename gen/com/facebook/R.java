@@ -474,7 +474,7 @@ public final class R {
 		public static final int left = 0x7f0b002f;
 		public static final int listMode = 0x7f0b000c;
 		public static final int list_item = 0x7f0b004c;
-		public static final int messenger_send_button = 0x7f0b00a8;
+		public static final int messenger_send_button = 0x7f0b00a9;
 		public static final int middle = 0x7f0b001f;
 		public static final int never = 0x7f0b0019;
 		public static final int never_display = 0x7f0b0022;

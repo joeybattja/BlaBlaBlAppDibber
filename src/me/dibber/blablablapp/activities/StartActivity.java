@@ -206,9 +206,6 @@ public class StartActivity extends FragmentActivity  {
     }
 	
 	private void checkGCMRegistrationId() {
-		if (!((GlobalState)GlobalState.getContext()).optionNotifications()) {
-			return;
-		}
 		SharedPreferences prefs = getPreferences(Context.MODE_PRIVATE);
 		String regId = prefs.getString(PREF_GCM_REG_ID, "");
 		if (regId.isEmpty()) {

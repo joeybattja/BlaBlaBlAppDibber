@@ -138,7 +138,7 @@ public class CommentsFragment extends Fragment {
 	}
 	
 	private void displayReplySection() {
-		if ( ((GlobalState)GlobalState.getContext()).optionWriteComments() ) {
+		if (AppConfig.allowWriteComments()) {
 			
 			if (mLeaveReply != null) {
 				mLeaveReply.setTypeface(null,Typeface.BOLD);

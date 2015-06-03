@@ -70,12 +70,12 @@ public class PostCollection {
 		this.filter = filter;
 	}
 	
-	public void addPost(Post post) {
+	public synchronized void addPost(Post post) {
 		posts.put(post.id, post);
 	}
 	
 	
-	public void removePost(int postId) {
+	public synchronized void removePost(int postId) {
 		cleanUpAttachments(postId, getAttachments(postId));
 		posts.remove(postId);
 	}

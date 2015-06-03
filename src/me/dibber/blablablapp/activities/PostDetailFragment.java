@@ -1,12 +1,14 @@
 package me.dibber.blablablapp.activities;
 
+import java.io.IOException;
 import java.util.List;
 
+import me.dibber.blablablapp.R;
 import me.dibber.blablablapp.core.AppConfig;
 import me.dibber.blablablapp.core.GlobalState;
+import me.dibber.blablablapp.core.PodCastPlayer;
 import me.dibber.blablablapp.core.PostCollection;
 import me.dibber.blablablapp.core.PostCollection.DrawableType;
-import me.dibber.blablablapp.R;
 import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.graphics.Canvas;
@@ -24,6 +26,7 @@ import android.text.SpannableStringBuilder;
 import android.text.TextUtils;
 import android.text.style.LeadingMarginSpan;
 import android.util.DisplayMetrics;
+import android.util.Log;
 import android.util.SparseArray;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -133,10 +136,18 @@ public class PostDetailFragment extends Fragment {
 		}
 
 		@Override
-		public void onPageScrollStateChanged(int position) { }
+		public void onPageScrollStateChanged(int position) {
+		}
 
 		@Override
-		public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) { }
+		public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) { 
+			if (posts.itemHasPodcast(postIds.get(position))) {
+				PostFragment f = (PostFragment) getActiveFragment(postIds.get(position));
+				if (f != null) {
+					f.playPodCast();
+				}
+			}
+		}
 
 		@Override
 		public void onPageSelected(int position) {
@@ -151,6 +162,7 @@ public class PostDetailFragment extends Fragment {
 	}
 	
 	public static class PostFragment extends Fragment {
+		private LinearLayout mMainView;
 		private ImageView mImageView;
 		private ImageView mFavoView;
 		private FrameLayout mYouTubeFrame;
@@ -177,6 +189,7 @@ public class PostDetailFragment extends Fragment {
 			
 			View rootView = inflater.inflate(R.layout.fragment_post_details, container, false);
 			
+			mMainView = (LinearLayout) rootView.findViewById(R.id.postMain);
 			mTitleView = (TextView) rootView.findViewById(R.id.postTitle);
 			mMetaView = (TextView) rootView.findViewById(R.id.postMeta);
 			mFavoView = (ImageView) rootView.findViewById(R.id.postFavoIcon);
@@ -252,7 +265,7 @@ public class PostDetailFragment extends Fragment {
 			}
 			
 			if (mCommentFrame != null) {
-				if ( ((GlobalState)GlobalState.getContext()).optionReadComments() && posts.itemCommentsOpen(postId)) {
+				if (posts.itemCommentsOpen(postId)) {
 					mCommentsFragment = new CommentsFragment();
 					Bundle args = new Bundle();
 					args.putInt(ARG_ID, postId);
@@ -262,6 +275,7 @@ public class PostDetailFragment extends Fragment {
 					mCommentFrame.setVisibility(View.GONE);
 				}
 			}
+			
 			return rootView;
 		}
 		
@@ -396,6 +410,18 @@ public class PostDetailFragment extends Fragment {
 			return false;
 		}
 		
+		public void playPodCast() {
+			if (mMainView == null) {
+				return;
+			}
+			if (posts.itemHasPodcast(postId)) {
+				try {
+					PodCastPlayer.playPodcast(mMainView, posts.getItemPodcastAudioUrl(postId));
+				} catch (IllegalArgumentException | SecurityException | IllegalStateException | IOException e) {
+					Log.w("Error preparing podcast", e.toString());
+				}
+			}
+		}
 	}
 	
 	public static class PostYouTubeFragment extends YouTubePlayerSupportFragment {

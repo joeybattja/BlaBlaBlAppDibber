@@ -125,11 +125,15 @@ public class DataLoader {
 						}
 						bin.close();
 						JSONreceived(sb.toString(), false);
-						dll.onDataLoaderDiskDone(true);
+						if (dll != null) {
+							dll.onDataLoaderDiskDone(true);
+						}
 					} catch (IOException e) {
 						Log.w("Error trying to read file from disk",
 								e.toString());
-						dll.onDataLoaderDiskDone(false);
+						if (dll != null) {
+							dll.onDataLoaderDiskDone(false);
+						}
 					}
 				}
 
@@ -547,6 +551,12 @@ public class DataLoader {
 						post.podcast = podcastData;
 					} else {
 						Log.w("No post found for podcast", "titled: " + podcastData.title);
+					}
+				} else {
+					Post.PodCast podcastData = readItem();
+					Post post = posts.getPostByURL(podcastData.link);
+					if (post != null) {
+						post.podcast = podcastData;
 					}
 				}
 				index++;

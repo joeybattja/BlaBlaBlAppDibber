@@ -38,10 +38,6 @@ public class Notifications {
 
 		@Override
 		public void onReceive(Context context, Intent intent) {
-			if (!((GlobalState)GlobalState.getContext()).optionNotifications()) {
-				return;
-			}
-
 			// Explicitly specify that GcmIntentService will handle the intent.
 	        ComponentName comp = new ComponentName(context.getPackageName(),NotificationIntentService.class.getName());
 	        // Start the service, keeping the device awake while it is launching.
@@ -61,11 +57,6 @@ public class Notifications {
 		@Override
 		protected void onHandleIntent(Intent intent) {
 			Log.i("Notification", "Notification received");
-			if (!((GlobalState)GlobalState.getContext()).optionNotifications()) {
-				Log.i("Notification", "notification option deactivated");
-				notifyDone(intent);
-				return;
-			}
 			
 			Bundle extras = intent.getExtras();
 			GoogleCloudMessaging gcm = GoogleCloudMessaging.getInstance(this);
