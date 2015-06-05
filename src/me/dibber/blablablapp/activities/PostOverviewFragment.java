@@ -126,7 +126,12 @@ public class PostOverviewFragment extends Fragment {
 		postsIds = posts.getAllPosts();
 		if (postsIds.size() > 0) {
 			SharedPreferences prefs = getActivity().getSharedPreferences(PREF_POSTDATA,Context.MODE_PRIVATE);
-			prefs.edit().putInt(PREF_MOST_RECENT_POST, postsIds.get(0)).commit();
+			int curRecentPost = prefs.getInt(PREF_MOST_RECENT_POST, 0);
+			int newRecentPost = postsIds.get(0);
+			if (curRecentPost == 0 || posts.getItemDate(curRecentPost) == null || 
+					posts.getItemDate(newRecentPost).after(posts.getItemDate(curRecentPost))) {
+				prefs.edit().putInt(PREF_MOST_RECENT_POST, newRecentPost).commit();
+			}
 		}
 		int lastSynchId = ((GlobalState)GlobalState.getContext()).getOldestSynchedPost();
 		posToSynch = postsIds.indexOf(lastSynchId);
