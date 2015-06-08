@@ -16,6 +16,14 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.Paint;
+import android.graphics.PorterDuff;
+import android.graphics.PorterDuffXfermode;
+import android.graphics.Rect;
+import android.graphics.RectF;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v4.app.NotificationCompat;
@@ -66,35 +74,18 @@ public class Notifications {
 				String title = extras.getString("title", "");
 				String content = extras.getString("content","");
 				if (!title.isEmpty()) {
-					postMessage(title, content);
+					Log.i("Notification", "new message: " + title);
+					if (PreferenceManager.getDefaultSharedPreferences(this).getBoolean("pref_notifications_messages", true)) {
+						postNotification(title, content, null);
+					} else {
+						Log.i("Notification", "Receive news messages option deactivated");
+					}
 				}
 				checkNewPost(intent);
 			} else {
 				notifyDone(intent);
 			}
 		}
-		
-		private void postMessage(String title, String content) {
-			Log.i("Notification", "new message: " + title);
-			if (PreferenceManager.getDefaultSharedPreferences(this).getBoolean("pref_notifications_messages", true)) {
-				PendingIntent notifyIntent =  PendingIntent.getActivity(this, 0, new Intent(this, StartActivity.class), 0);
-	
-				NotificationCompat.Builder mNotifBuilder = new NotificationCompat.Builder(this)
-				.setAutoCancel(true)
-				.setOnlyAlertOnce(true)
-				.setDefaults(Notification.DEFAULT_SOUND|Notification.DEFAULT_LIGHTS|Notification.DEFAULT_VIBRATE)
-				.setSmallIcon(R.drawable.ic_launcher)
-				.setContentTitle(title)
-				.setContentText(content)								
-				.setContentIntent(notifyIntent);
-				
-				NotificationManager mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-				mNotificationManager.notify(NOTIFICATION_ID_MESSAGES, mNotifBuilder.build());
-			} else {
-				Log.i("Notification", "Receive news messages option deactivated");
-			}
-		}
-		
 		
 		private void checkNewPost(final Intent intent) {
 			if (((GlobalState)GlobalState.getContext()).getCurrentHomeActivity() != null) {
@@ -118,8 +109,8 @@ public class Notifications {
 				
 				@Override
 				public void onDataLoaderOnlineDone(boolean success) {
-					Context c = GlobalState.getContext();
-					PostCollection newPc = ((GlobalState)c).getPosts();
+					final Context c = GlobalState.getContext();
+					final PostCollection newPc = ((GlobalState)c).getPosts();
 					if (mostRecentPost == null) {
 						return;
 					}
@@ -129,32 +120,30 @@ public class Notifications {
 						return;
 					}
 					Log.i("Notification", index + " new posts");
-					PendingIntent notifyIntent;
-					String title;
-					String content;
 				
 					if (index == 1) {
-						int postId = newPc.getAllPosts().get(0); 
-						notifyIntent =  PendingIntent.getActivity(c, 0, new Intent(c, StartActivity.class), 0);
-						title = c.getResources().getString(R.string.app_name) + ": " + newPc.getItemTitle(postId);
-						content = newPc.getItemContentReplaceBreaks(postId).toString();
+						final int postId = newPc.getAllPosts().get(0); 
+						newPc.getItemThumbnail(postId, new PostCollection.ImagesRetrievalListener() {
+							
+							@Override
+							public void onImageRetrievedSuccess(Bitmap bitmap) {
+								postNotification(getResources().getString(R.string.app_name) + ": " + newPc.getItemTitle(postId),
+										newPc.getItemContentReplaceBreaks(postId).toString(), bitmap);
+								notifyDone(intent);
+							}
+							
+							@Override
+							public void onImageRetrievedFailed(Error e) {
+								postNotification(getResources().getString(R.string.app_name) + ": " + newPc.getItemTitle(postId),
+										newPc.getItemContentReplaceBreaks(postId).toString(), null);
+								notifyDone(intent);
+							}
+						});
 					} else {
-						notifyIntent =  PendingIntent.getActivity(c, 0, new Intent(c, StartActivity.class), 0);
-						title = c.getResources().getString(R.string.app_name);
-						content = c.getResources().getString(R.string.notify_new_posts, index);
+						postNotification(getResources().getString(R.string.app_name), 
+								getResources().getString(R.string.notify_new_posts, index), null);
+						notifyDone(intent);
 					}
-					NotificationCompat.Builder mNotifBuilder = new NotificationCompat.Builder(c)
-					.setAutoCancel(true)
-					.setOnlyAlertOnce(true)
-					.setDefaults(Notification.DEFAULT_SOUND|Notification.DEFAULT_LIGHTS|Notification.DEFAULT_VIBRATE)
-					.setSmallIcon(R.drawable.ic_launcher)
-					.setContentTitle(title)
-					.setContentText(content)								
-					.setContentIntent(notifyIntent);
-					
-					NotificationManager mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-					mNotificationManager.notify(NOTIFICATION_ID_NEW_POSTS, mNotifBuilder.build());
-					notifyDone(intent);
 				}
 			});
 			dl.isInSynchWithExistingPosts(true);
@@ -166,9 +155,47 @@ public class Notifications {
 			dl.prepareAsync();
 		}
 		
+		private void postNotification(String title, String content, Bitmap largeIcon) {
+			PendingIntent notifyIntent =  PendingIntent.getActivity(this, 0, new Intent(this, StartActivity.class), 0);
+			NotificationCompat.Builder mNotifBuilder = new NotificationCompat.Builder(GlobalState.getContext())
+			.setAutoCancel(true)
+			.setOnlyAlertOnce(true)
+			.setDefaults(Notification.DEFAULT_SOUND|Notification.DEFAULT_LIGHTS|Notification.DEFAULT_VIBRATE)
+			.setSmallIcon(R.drawable.ic_launcher_white)
+			.setColor(getResources().getColor(R.color.red))
+			.setContentTitle(title)
+			.setContentText(content)								
+			.setContentIntent(notifyIntent);
+			
+			if (largeIcon != null) {
+				mNotifBuilder.setLargeIcon(getCircleBitmap(largeIcon));
+			}
+			NotificationManager mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+			mNotificationManager.notify(NOTIFICATION_ID_NEW_POSTS, mNotifBuilder.build());
+		}
+		
 		private void notifyDone(Intent intent) {
 			NotificationBroadcastReceiver.completeWakefulIntent(intent);
 		}
+		
+		private static Bitmap getCircleBitmap(Bitmap bitmap) {
+			 final Bitmap output = Bitmap.createBitmap(bitmap.getHeight(), bitmap.getHeight(), Bitmap.Config.ARGB_8888);
+			 final Canvas canvas = new Canvas(output);
+			 final int color = Color.RED;
+			 final Paint paint = new Paint();
+			 final Rect rect = new Rect(0, 0, bitmap.getHeight(), bitmap.getHeight());
+			 final RectF rectF = new RectF(rect);
+
+			 paint.setAntiAlias(true);
+			 canvas.drawARGB(0, 0, 0, 0);
+			 paint.setColor(color);
+			 canvas.drawOval(rectF, paint);
+			 paint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.SRC_IN));
+			 canvas.drawBitmap(bitmap, rect, rect, paint);
+
+			 bitmap.recycle();
+			 return output;
+			}
 		
 	}	
 

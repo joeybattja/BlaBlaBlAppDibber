@@ -582,6 +582,9 @@ public class PostCollection {
 	 * @return the maximum ratio h/w as a double, or 0 if the images are not yet received.
 	 */
 	public double maxImageRatio(int postId) {
+		if (posts.get(postId) == null) {
+			return 0;
+		}
 		double maxRatio = 0;
 		for (Bitmap d : getPostCollection().getImages(postId)) {
 			if (d == null) {
@@ -593,6 +596,13 @@ public class PostCollection {
 			}
 		}
 		return maxRatio;
+	}
+	
+	public void getItemThumbnail(int postId, ImagesRetrievalListener imageRetrievalListener) {
+		if (posts.get(postId) == null) {
+			return;
+		}
+		retrieveImage(postId, 0, false, imageRetrievalListener);
 	}
 	
 	private Bitmap getThumbnail(int postId) {
@@ -1081,7 +1091,7 @@ public class PostCollection {
 		void onImageSet();
 	}
 	
-	private interface ImagesRetrievalListener {
+	public interface ImagesRetrievalListener {
 		void onImageRetrievedSuccess(Bitmap bitmap);
 		void onImageRetrievedFailed(Error e);
 	}
