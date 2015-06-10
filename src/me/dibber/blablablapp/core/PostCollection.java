@@ -176,14 +176,19 @@ public class PostCollection {
 				while (true) {
 					endlessLoopCheck++;
 					if (endlessLoopCheck > 10000) {
-						Log.e("POSTCOLLECTION ENDLESS LOOP!!", "breaking now...");
+						Log.e("POSTCOLLECTION ENDLESS LOOP!!", "params: " + lhs + "," + rhs);
+						break;
+					}
+					if (lhs.equals(rhs)) {
+						// Shouldn't happen, unless there's some hickup showing the same comment twice.
 						break;
 					}
 					templhs = lhs;
 					temprhs = rhs;
 					rhsParent = getCommentParent(postId, temprhs);
 					lhsParent = getCommentParent(postId, templhs);
-					while (rhsParent != root && temprhs != root && rhsParent != 0) {
+					while (rhsParent != root && temprhs != root && rhsParent != 0 && endlessLoopCheck < 10000) {
+						endlessLoopCheck++;
 						if (rhsParent == (int) lhs) {
 							// If rhs is a child of lhs, lhs is earlier than rhs.  
 							return -1;
@@ -191,7 +196,8 @@ public class PostCollection {
 						temprhs = rhsParent;
 						rhsParent = getCommentParent(postId, temprhs);
 					}
-					while (lhsParent != root && templhs != root && lhsParent != 0) {
+					while (lhsParent != root && templhs != root && lhsParent != 0 && endlessLoopCheck < 10000) {
+						endlessLoopCheck++;
 						if (lhsParent == (int) rhs) {
 							// If lhs is a child of rhs, lhs is later than rhs.  
 							return 1;
