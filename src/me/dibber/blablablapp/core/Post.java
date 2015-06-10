@@ -24,7 +24,6 @@ public class Post {
 	public static class Attachment {
 		public int id; 
 		public String mimeType;
-		public String filePath;
 		public String url;
 	}
 	

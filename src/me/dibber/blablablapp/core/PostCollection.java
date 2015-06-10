@@ -1,7 +1,6 @@
 package me.dibber.blablablapp.core;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -523,7 +522,7 @@ public class PostCollection {
 		ArrayList<Post.Attachment> att = posts.get(postId).attachments;
 		for (int i = 0; i < att.size(); i++) {
 			if ((att.get(i).mimeType.equals(MIMETYPE_JPEG) || att.get(i).mimeType.equals(MIMETYPE_PNG))) {
-				images.add(getImagefromMemoryCache(att.get(i).filePath));
+				images.add(getImagefromMemoryCache(postId,att.get(i).id, false));
 			}
 		}
 		return images;
@@ -542,38 +541,39 @@ public class PostCollection {
 	    };
 	}
 	
-	private Bitmap getImagefromMemoryCache(String imagePath) {
+	private Bitmap getImagefromMemoryCache(int postId, int attachmentId, boolean thumbnail) {
+		if (postId == 0 || attachmentId == 0) {
+			return null;
+		}
+		String imagepath = ""+postId+attachmentId;
+		if (thumbnail) {
+			imagepath = imagepath+THUMBNAIL;
+		} else {
+			imagepath = imagepath+IMAGE;
+		}
 		if (mMemoryCache == null) {
 			initMemoryCache();
 		}
-		return mMemoryCache.get(imagePath+IMAGE);
+		return mMemoryCache.get(imagepath);
 	}
 	
-	private void addImageToMemoryCache(String imagePath, Bitmap bitmap) {
+	private void addImageToMemoryCache(int postId, int attachmentId, Bitmap bitmap, boolean thumbnail) {
+		if (postId == 0 || attachmentId == 0) {
+			return;
+		}
+		String imagepath = ""+postId+attachmentId;
+		if (thumbnail) {
+			imagepath = imagepath+THUMBNAIL;
+		} else {
+			imagepath = imagepath+IMAGE;
+		}
 		if (mMemoryCache == null) {
 			initMemoryCache();
 		}
-	    if (getImagefromMemoryCache(imagePath) == null) {
-	        mMemoryCache.put(imagePath+IMAGE, bitmap);
+	    if (getImagefromMemoryCache(postId,attachmentId, thumbnail) == null) {
+	        mMemoryCache.put(imagepath, bitmap);
 	    }
 	}
-	
-	private Bitmap getThumbnailfromMemoryCache(String imagePath) {
-		if (mMemoryCache == null) {
-			initMemoryCache();
-		}
-		return mMemoryCache.get(imagePath+THUMBNAIL);
-	}
-	
-	private void addThumbnailToMemoryCache(String imagePath, Bitmap bitmap) {
-		if (mMemoryCache == null) {
-			initMemoryCache();
-		}
-	    if (getThumbnailfromMemoryCache(imagePath) == null) {
-	        mMemoryCache.put(imagePath+THUMBNAIL, bitmap);
-	    }
-	}
-	
 	
 	/**
 	 * Returns the maximum ratio as a double height/width of all images related to this post. 
@@ -602,14 +602,14 @@ public class PostCollection {
 		if (posts.get(postId) == null) {
 			return;
 		}
-		retrieveImage(postId, 0, false, imageRetrievalListener);
+		retrieveImage(postId, 0, true, imageRetrievalListener);
 	}
 	
 	private Bitmap getThumbnail(int postId) {
-		if (posts.get(postId) == null || posts.get(postId).attachments.size() == 0 || posts.get(postId).attachments.get(0).filePath == null) {
+		if (posts.get(postId) == null || posts.get(postId).attachments.size() == 0) {
 			return null;
 		} 
-		return getThumbnailfromMemoryCache(posts.get(postId).attachments.get(0).filePath);
+		return getImagefromMemoryCache(postId,posts.get(postId).attachments.get(0).id, false);
 	}
 	
 	// ---------------- static and utility stuff, mostly for the picture things... ----------------
@@ -772,7 +772,7 @@ public class PostCollection {
 		}
 	}
 	
-	private static void retrieveImage(final int postId, final int position, final boolean fullsized, final ImagesRetrievalListener listener) {
+	private static void retrieveImage(final int postId, final int position, final boolean thumbnail, final ImagesRetrievalListener listener) {
 		Thread t = new Thread(new Runnable() {
 			
 			@Override
@@ -795,66 +795,41 @@ public class PostCollection {
 					return;
 				}
 				Bitmap bitmap = null;
+				String filePath = "" + postId + img.id;
+				if (thumbnail) {
+					filePath = filePath+THUMBNAIL;
+				} else {
+					filePath = filePath+IMAGE;
+				}
 				
 				// First try to get the bitmap from memory
-				if (fullsized) {
-					bitmap = pc.getImagefromMemoryCache(img.filePath);
-				} else {
-					bitmap = pc.getThumbnailfromMemoryCache(img.filePath);
-				}
+				bitmap = pc.getImagefromMemoryCache(postId,img.id,thumbnail);
 				if (bitmap != null) {
 					listener.onImageRetrievedSuccess(bitmap);
 					return;
 				}
 				
 				// Secondly try to get the bitmap from disk
-				boolean fileExists = true;
-				img.filePath = "" + postId + img.id;
-				File file = c.getFileStreamPath(img.filePath);
-				if (file == null || !file.exists()) {
-					fileExists = false;
-				}
-				if (fileExists) {
-					try {
-						if (fullsized) {
-							bitmap = getImageFromDisk(c, img.filePath, fullsized);
-							if (bitmap != null) {
-								pc.addImageToMemoryCache(img.filePath, bitmap);
-								listener.onImageRetrievedSuccess(bitmap);
-								return;
-							}
-						} else {
-							bitmap = getImageFromDisk(c, img.filePath, fullsized);
-							if (bitmap != null) {
-								pc.addImageToMemoryCache(img.filePath, bitmap);
-								listener.onImageRetrievedSuccess(bitmap);
-								return;
-							}
-						}
-					} catch (IOException e1) {
-						Log.w("error retrieving file from internal storage", e1.toString());
+				try {
+					bitmap = decodeImageFromDisk(c, filePath);
+					if (bitmap != null) {
+						pc.addImageToMemoryCache(postId,img.id, bitmap, thumbnail);
+						listener.onImageRetrievedSuccess(bitmap);
+						return;
 					}
-				} 
+				} catch (IOException e1) {
+					Log.w("error retrieving file from internal storage", e1.toString());
+				}
 				
 				// Last, try to download the bitmap from the URL
 				try {
 					URL url = new URL(img.url); 
-					if (fullsized) {
-						bitmap = decodeImageFromURL(c, url);
-						if (bitmap != null) {
-							storeImageOnDisk(c, bitmap, img.filePath, img.mimeType);
-							pc.addImageToMemoryCache(img.filePath, bitmap);
-							listener.onImageRetrievedSuccess(bitmap);
-							return;
-						}
-					} else {
-						bitmap = decodeThumbnailFromURL(c, url);
-						if (bitmap != null) {
-							storeThumbnailOnDisk(c, bitmap, img.filePath, img.mimeType);
-							pc.addThumbnailToMemoryCache(img.filePath, bitmap);
-							listener.onImageRetrievedSuccess(bitmap);
-							return;
-						}
+					bitmap = decodeImageFromURL(c, url, thumbnail); 
+					if (bitmap != null) {
+						storeImageOnDisk(c, bitmap, filePath, img.mimeType);
+						pc.addImageToMemoryCache(postId,img.id, bitmap, thumbnail);
+						listener.onImageRetrievedSuccess(bitmap);
+						return;
 					}
 				} catch (IOException e2) {
 					Log.w("error retrieving image from web or saving image in internal storage", e2.toString());
@@ -872,7 +847,7 @@ public class PostCollection {
 	private static void setImage(final ImageView v, final Bitmap d, final int postId, final int position, final SetImageListener listener) { 
 		
 		if (d == null) {
-			retrieveImage(postId, position, true, new ImagesRetrievalListener() {
+			retrieveImage(postId, position, false, new ImagesRetrievalListener() {
 
 				@Override
 				public void onImageRetrievedSuccess(Bitmap bitmap) {
@@ -907,7 +882,7 @@ public class PostCollection {
 		
 		if (b == null) {
 			setThumbnail(v, decodeThumbnailFromResources(GlobalState.getContext().getResources(), R.drawable.logo_grey), postId, listener);
-			retrieveImage(postId, 0, false, new ImagesRetrievalListener() {
+			retrieveImage(postId, 0, true, new ImagesRetrievalListener() {
 
 				@Override
 				public void onImageRetrievedSuccess(Bitmap bitmap) {
@@ -989,22 +964,63 @@ public class PostCollection {
 	    return inSampleSize;
 	}
 	
-	private static Bitmap decodeImageFromURL(Context c, URL url) throws IOException {
+	private static Bitmap decodeImageFromURL(Context c, URL url, boolean thumbnail) throws IOException {
 		try {
-			WindowManager wm = (WindowManager) c.getSystemService(Context.WINDOW_SERVICE);
-			Display display = wm.getDefaultDisplay();
-			Point imageSize = new Point();
-			display.getSize(imageSize);
-			
 			InputStream is = url.openStream();
 			BitmapFactory.Options options = new BitmapFactory.Options();
 			options.inJustDecodeBounds = true;
-			BitmapFactory.decodeStream(is, null, options);
-			int ratio = options.outHeight / options.outWidth;
-			options.inSampleSize =  calculateInSampleSize(options, imageSize.x, imageSize.x * ratio);
-			options.inJustDecodeBounds = false;
+		    BitmapFactory.decodeStream(is, null, options);
+		    
+		    if (thumbnail) {
+		    	options.inSampleSize = calculateInSampleSize(options, THUMBNAIL_WIDTH, THUMBNAIL_HEIGHT);
+		    } else {
+		    	WindowManager wm = (WindowManager) c.getSystemService(Context.WINDOW_SERVICE);
+				Display display = wm.getDefaultDisplay();
+				Point imageSize = new Point();
+				display.getSize(imageSize);
+				
+				int maxSize = imageSize.x > imageSize.y ? imageSize.y : imageSize.x;
+				int lowSize;
+				double ratio;
+				if (options.outHeight > options.outWidth) {
+					ratio = (double) options.outWidth / options.outHeight;
+					lowSize = (int) (maxSize * ratio);
+					options.inSampleSize =  calculateInSampleSize(options, lowSize, maxSize);
+				} else {
+					ratio = (double) options.outHeight / options.outWidth;
+					lowSize = (int) (maxSize * ratio);
+					options.inSampleSize =  calculateInSampleSize(options, maxSize, lowSize);
+				}
+		    }
+		    options.inJustDecodeBounds = false;
+			options.inPreferredConfig = Bitmap.Config.RGB_565;
+			options.inDither = true;
 			is.close();
 			is = url.openStream();
+			Bitmap bitmap;
+			if (thumbnail) {
+				bitmap = Bitmap.createScaledBitmap(BitmapFactory.decodeStream(is, null, options), THUMBNAIL_WIDTH, THUMBNAIL_HEIGHT, false);
+			} else {
+				bitmap = BitmapFactory.decodeStream(is, null, options);
+			}
+			is.close();
+		    return bitmap;
+		} catch (OutOfMemoryError e) {
+			Log.e("OutOfMemoryError while decoding thumbnail from URL", e.toString());
+			return null;
+		}
+	}
+	
+	private static Bitmap decodeImageFromDisk(Context c, String filePath) throws IOException {
+		File file = c.getFileStreamPath(filePath);
+		if (file == null || !file.exists()) {
+			return null;
+		}
+		try {
+			InputStream is = c.openFileInput(filePath);
+			BitmapFactory.Options options = new BitmapFactory.Options();
+			options.inPreferredConfig = Bitmap.Config.RGB_565;
+			options.inDither = true;
 			Bitmap bitmap = BitmapFactory.decodeStream(is, null, options);
 			is.close();
 			return bitmap;
@@ -1016,7 +1032,7 @@ public class PostCollection {
 	
 	private static void storeImageOnDisk(Context context, Bitmap bitmap, String filePath, String mimeType) throws IOException {
 		try {
-			FileOutputStream fos = context.openFileOutput(filePath+IMAGE, Context.MODE_PRIVATE);
+			FileOutputStream fos = context.openFileOutput(filePath, Context.MODE_PRIVATE);
 			if (mimeType.equals(MIMETYPE_JPEG)){
 				bitmap.compress(Bitmap.CompressFormat.JPEG, 100, fos);
 			} else if (mimeType.equals(MIMETYPE_PNG)) {
@@ -1026,58 +1042,6 @@ public class PostCollection {
 		} catch (OutOfMemoryError e) {
 			Log.e("OutOfMemoryError while storing image on disk", e.toString());
 		}
-	}
-	
-	private static Bitmap decodeThumbnailFromURL(Context c, URL url) throws IOException {
-		try {
-			InputStream is = url.openStream();
-			BitmapFactory.Options options = new BitmapFactory.Options();
-			options.inJustDecodeBounds = true;
-			options.inJustDecodeBounds = true;
-		    BitmapFactory.decodeStream(is, null, options);
-		    options.inSampleSize = calculateInSampleSize(options, THUMBNAIL_WIDTH, THUMBNAIL_HEIGHT);
-		    options.inJustDecodeBounds = false;
-			is.close();
-			is = url.openStream();
-			Bitmap bitmap = Bitmap.createScaledBitmap(BitmapFactory.decodeStream(is, null, options), THUMBNAIL_WIDTH, THUMBNAIL_HEIGHT, false);
-			is.close();
-		    return bitmap;
-		} catch (OutOfMemoryError e) {
-			Log.e("OutOfMemoryError while decoding thumbnail from URL", e.toString());
-			return null;
-		}
-	}
-	
-	private static void storeThumbnailOnDisk(Context context, Bitmap bitmap, String filePath, String mimeType) throws IOException {
-		try {
-			FileOutputStream fos = context.openFileOutput(filePath+THUMBNAIL, Context.MODE_PRIVATE);
-			if (mimeType.equals(MIMETYPE_JPEG)){
-				bitmap.compress(Bitmap.CompressFormat.JPEG, 100, fos);
-			} else if (mimeType.equals(MIMETYPE_PNG)) {
-				bitmap.compress(Bitmap.CompressFormat.PNG, 100, fos);
-			}
-			fos.close();
-		} catch (OutOfMemoryError e) {
-			Log.e("OutOfMemoryError while storing thumbnail on disk", e.toString());
-		}
-	}
-	
-	private static Bitmap getImageFromDisk(Context c, String filePath, boolean fullsized) throws IOException {
-		try {
-			if (fullsized) {
-				filePath = filePath+IMAGE;
-			} else {
-				filePath = filePath+THUMBNAIL;
-			}
-			FileInputStream fis = c.openFileInput(filePath);
-			Bitmap bitmap = BitmapFactory.decodeStream(fis, null, null);
-			fis.close();
-			return bitmap;
-		} catch (OutOfMemoryError e) {
-			Log.e("OutOfMemoryError while getting image from disk", e.toString());
-			return null;
-		}
-
 	}
 	
 	private static Bitmap decodeThumbnailFromResources(Resources res, int id) {
