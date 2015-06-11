@@ -4,11 +4,11 @@ import java.io.IOException;
 import java.util.List;
 
 import me.dibber.blablablapp.R;
-import me.dibber.blablablapp.core.AppConfig;
 import me.dibber.blablablapp.core.GlobalState;
 import me.dibber.blablablapp.core.PodCastPlayer;
 import me.dibber.blablablapp.core.PostCollection;
 import me.dibber.blablablapp.core.PostCollection.DrawableType;
+import me.dibber.blablablapp.core.YouTubeAdapter;
 import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.graphics.Canvas;
@@ -38,11 +38,6 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
-
-import com.google.android.youtube.player.YouTubeInitializationResult;
-import com.google.android.youtube.player.YouTubePlayer;
-import com.google.android.youtube.player.YouTubePlayer.Provider;
-import com.google.android.youtube.player.YouTubePlayerSupportFragment;
 
 public class PostDetailFragment extends Fragment {
 	
@@ -166,7 +161,6 @@ public class PostDetailFragment extends Fragment {
 		private ImageView mImageView;
 		private ImageView mFavoView;
 		private FrameLayout mYouTubeFrame;
-		private PostYouTubeFragment mYouTubeFragment;
 		private FrameLayout mCommentFrame;
 		private CommentsFragment mCommentsFragment;
 		private String videoId;
@@ -259,8 +253,7 @@ public class PostDetailFragment extends Fragment {
 				if (videoId == null) {
 					mYouTubeFrame.setVisibility(View.GONE);
 				} else {
-					mYouTubeFragment = PostYouTubeFragment.newInstance(videoId);
-					getChildFragmentManager().beginTransaction().replace(R.id.postYouTubeFrame, mYouTubeFragment).commit();
+					getChildFragmentManager().beginTransaction().replace(R.id.postYouTubeFrame, YouTubeAdapter.PostYouTubeFragment.newInstance(videoId)).commit();
 				}
 			}
 			
@@ -393,23 +386,6 @@ public class PostDetailFragment extends Fragment {
 			});
 		}
 		
-		/**
-		 * Sets the YouTubePlayer to fullscreen or back depending on the parameter.
-		 * If the PostFragment does not have a YouTubePlayer active or if this call will have no effect (e.g. it is already fullscreen) 
-		 * this will return false 
-		 * @param fullscreen true to set the player fullscreen, false otherwise
-		 * @return true if it changes the player to or from fullscreen, false otherwise; also false if the PostFragment does not have an active YouTubePlayer.
-		 */
-		public boolean setYouTubeFullscreen(boolean fullscreen) {
-			if (mYouTubeFragment != null && mYouTubeFragment.youTubePlayer != null) {
-				if (mYouTubeFragment.isFullscreen != fullscreen) {
-					mYouTubeFragment.youTubePlayer.setFullscreen(fullscreen);
-					return true;
-				}
-			}
-			return false;
-		}
-		
 		public void playPodCast() {
 			if (mMainView == null) {
 				return;
@@ -424,70 +400,6 @@ public class PostDetailFragment extends Fragment {
 		}
 	}
 	
-	public static class PostYouTubeFragment extends YouTubePlayerSupportFragment {
-		
-		private static String youTubeApiKey;
-		public static String VIDEO_ID = "YouTube ID";
-	    public YouTubePlayer youTubePlayer;
-	    public boolean isFullscreen;
-	    private static String youTubeVideo;
-
-	    public static PostYouTubeFragment newInstance(String videoID) {
-
-	    	PostYouTubeFragment youTubeFragment = new PostYouTubeFragment();
-
-	        Bundle bundle = new Bundle();
-	        bundle.putString(VIDEO_ID, videoID);
-	        youTubeFragment.setArguments(bundle);
-	        youTubeVideo = videoID;
-	        	        
-	        youTubeApiKey = AppConfig.getYouTubeAPIKey();
-	        
-	        youTubeFragment.init();
-	        
-	        return youTubeFragment;
-	    }
-
-	    private void init() {
-
-	        initialize(youTubeApiKey, new YouTubePlayer.OnInitializedListener() {
-
-	            @Override
-	            public void onInitializationFailure(Provider provider, YouTubeInitializationResult error) { }
-
-	            @Override
-	            public void onInitializationSuccess(YouTubePlayer.Provider provider, YouTubePlayer player, boolean wasRestored) {
-	            	youTubePlayer = player;
-	                
-	                youTubePlayer.setFullscreenControlFlags(0);
-	                youTubePlayer.setOnFullscreenListener(new YouTubePlayer.OnFullscreenListener() {
-						
-						@Override
-						public void onFullscreen(boolean isFullscr) {
-							youTubePlayer.setFullscreen(isFullscr);
-							isFullscreen = isFullscr;
-						}
-					});
-	                if (!wasRestored) {
-	                	String currentVideo = ((GlobalState)GlobalState.getContext()).getCurrentYouTubeVideo();
-	                	if (currentVideo != null && currentVideo.equals(youTubeVideo)) {
-	            			youTubePlayer.loadVideo(youTubeVideo, ((GlobalState)GlobalState.getContext()).getYouTubeCurrentTimeMilis());
-	                	} else {
-		                	youTubePlayer.cueVideo(youTubeVideo);
-	                	}
-	                }
-	            }
-	        });
-	    }
-
-		@Override
-		public void onStop() {
-			if (youTubePlayer != null && youTubePlayer.isPlaying()) {
-				((GlobalState)GlobalState.getContext()).setCurrentYouTubeVideoTime(youTubeVideo, youTubePlayer.getCurrentTimeMillis());
-			}
-			super.onStop();
-		}
-	}
 			
 	static class ImageMarginSpan implements LeadingMarginSpan.LeadingMarginSpan2 {
 		

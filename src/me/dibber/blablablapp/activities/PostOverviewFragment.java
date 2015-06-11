@@ -28,15 +28,10 @@ import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ArrayAdapter;
 import android.widget.GridView;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.TextView;
 
-import com.google.android.youtube.player.YouTubeInitializationResult;
 import com.google.android.youtube.player.YouTubeThumbnailLoader;
-import com.google.android.youtube.player.YouTubeThumbnailLoader.ErrorReason;
-import com.google.android.youtube.player.YouTubeThumbnailLoader.OnThumbnailLoadedListener;
 import com.google.android.youtube.player.YouTubeThumbnailView;
-import com.google.android.youtube.player.YouTubeThumbnailView.OnInitializedListener;
 
 public class PostOverviewFragment extends Fragment {
 	
@@ -154,7 +149,7 @@ public class PostOverviewFragment extends Fragment {
 		}
 	}
 	
-	private class PostOverviewAdapter extends ArrayAdapter<Integer> implements OnInitializedListener {
+	private class PostOverviewAdapter extends ArrayAdapter<Integer> {
 		
 		private Activity activity;
 		private String youTubeApiKey;
@@ -163,7 +158,7 @@ public class PostOverviewFragment extends Fragment {
 		private PostOverviewAdapter(Activity context, int resourceId, List<Integer> list) {
 			super(context, resourceId, list);
 			activity = context;
-			loaders = ((GlobalState)GlobalState.getContext()).getYouTubeThumbnailLoaderList();
+			loaders = ((GlobalState)GlobalState.getContext()).getYouTubeAdapter().getYouTubeThumbnailLoaderList();
 	        youTubeApiKey = AppConfig.getYouTubeAPIKey();
 		}
 		
@@ -303,7 +298,7 @@ public class PostOverviewFragment extends Fragment {
 					YouTubeThumbnailLoader loader = loaders.get(mYouTubeView);
 					if (loader == null && mYouTubeView.getTag() == null) {
 						mYouTubeView.setTag(vh);
-						mYouTubeView.initialize(youTubeApiKey, this);
+						mYouTubeView.initialize(youTubeApiKey, ((GlobalState)GlobalState.getContext()).getYouTubeAdapter());
 					} else if (loader != null) {
 						loader.setVideo(videoID);
 					}
@@ -311,47 +306,18 @@ public class PostOverviewFragment extends Fragment {
 			}
 			return listItem;
 		}
-		
-		private class ViewHolder {
-			public TextView mTitleView;
-			public TextView mMetaView;
-			public TextView mContEllipsView;
-			public ImageView mImageView;
-			public ImageView mFavoIconView;
-			public YouTubeThumbnailView mYouTubeView;
-			public String videoID;
-			public int postId;
-			public boolean isLandscape;
-			}
-
-		@Override
-		public void onInitializationFailure(YouTubeThumbnailView thumbnailView,
-				YouTubeInitializationResult error) {}
-
-		@Override
-		public void onInitializationSuccess(YouTubeThumbnailView thumbnailView,
-				YouTubeThumbnailLoader thumbnailLoader) {
-			ViewHolder vh = (ViewHolder) thumbnailView.getTag();
-			thumbnailLoader.setOnThumbnailLoadedListener(new OnThumbnailLoadedListener() {
-				
-				@Override
-				public void onThumbnailLoaded(YouTubeThumbnailView thumbnail, String videoId) {
-					ViewHolder vh = (ViewHolder) thumbnail.getTag();
-					int desiredWidth = vh.mImageView.getMeasuredWidth();
-					int desiredHeight = vh.mImageView.getMeasuredHeight();
-					vh.mImageView.setVisibility(View.GONE);
-					
-					LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(desiredWidth, desiredHeight);
-					thumbnail.setLayoutParams(params);
-					thumbnail.setVisibility(View.VISIBLE);
-				}
-				
-				@Override
-				public void onThumbnailError(YouTubeThumbnailView a, ErrorReason reason) {}
-			});
-			
-			loaders.put(thumbnailView, thumbnailLoader);
-			thumbnailLoader.setVideo(vh.videoID);
-		}
 	}
+	
+	public class ViewHolder {
+		public TextView mTitleView;
+		public TextView mMetaView;
+		public TextView mContEllipsView;
+		public ImageView mImageView;
+		public ImageView mFavoIconView;
+		public YouTubeThumbnailView mYouTubeView;
+		public String videoID;
+		public int postId;
+		public boolean isLandscape;
+		}
+	
 }

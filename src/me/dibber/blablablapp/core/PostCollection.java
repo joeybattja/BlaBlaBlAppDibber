@@ -92,7 +92,7 @@ public class PostCollection {
 		return null;
 	}
 	
-	public List<Integer> getAllPosts() {
+	public synchronized List<Integer> getAllPosts() {
 		ArrayList<Integer> list = new ArrayList<Integer>();
 		
 		if (isFavoriteCollection) {

@@ -1,8 +1,6 @@
 package me.dibber.blablablapp.activities;
 
 import java.net.MalformedURLException;
-import java.util.HashMap;
-import java.util.Map.Entry;
 
 import me.dibber.blablablapp.R;
 import me.dibber.blablablapp.activities.PostDetailFragment.PostFragment;
@@ -45,8 +43,6 @@ import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
-
-import com.google.android.youtube.player.YouTubeThumbnailLoader;
 
 public class HomeActivity extends ActionBarActivity implements DataLoaderListener {
 	
@@ -147,7 +143,7 @@ public class HomeActivity extends ActionBarActivity implements DataLoaderListene
 	@Override
 	protected void onDestroy() {
 		clearHomeActivityReference();
-		releaseYoutubeLoaders();
+		((GlobalState)GlobalState.getContext()).getYouTubeAdapter().releaseYoutubeLoaders();
 	    if (mCurrentProfile != null) {
 	    	mCurrentProfile.close();
 	    }
@@ -158,15 +154,6 @@ public class HomeActivity extends ActionBarActivity implements DataLoaderListene
 	protected void onActivityResult(int requestCode, int responseCode, Intent intent) {
 		getProfile().onActivityResult(this, requestCode, responseCode, intent);
 		super.onActivityResult(requestCode, responseCode, intent);
-	}
-
-
-	private void releaseYoutubeLoaders() {
-	    HashMap<View,YouTubeThumbnailLoader> loaders = ((GlobalState)GlobalState.getContext()).getYouTubeThumbnailLoaderList();
-	    for (Entry<View, YouTubeThumbnailLoader> entry : loaders.entrySet() ) {
-	    	entry.getValue().release();
-	    }
-	    loaders.clear();
 	}
 	
 	@Override
@@ -190,7 +177,7 @@ public class HomeActivity extends ActionBarActivity implements DataLoaderListene
 		Fragment fragment = (Fragment) getSupportFragmentManager().findFragmentByTag(TAG_FRAGMENT_CONTENT);
 		if (fragment instanceof PostDetailFragment) {
 			// close the YouTubePlayer's fullscreen in case it was fullscreen, else...
-			if (getCurrentPostFragment().setYouTubeFullscreen(false)){
+			if (((GlobalState)GlobalState.getContext()).getYouTubeAdapter().removeYouTubeFullscreen()){
 				return;
 			}
 			// Go back to the Home screen, else...

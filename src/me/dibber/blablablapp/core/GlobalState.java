@@ -1,13 +1,8 @@
 package me.dibber.blablablapp.core;
 
-import java.util.HashMap;
-
 import me.dibber.blablablapp.activities.HomeActivity;
 import android.app.Application;
 import android.content.Context;
-import android.view.View;
-
-import com.google.android.youtube.player.YouTubeThumbnailLoader;
 
 public class GlobalState extends Application {
 	
@@ -17,6 +12,8 @@ public class GlobalState extends Application {
 	private boolean refreshing;
 	private HomeActivity homeActivity;
 	private int oldestSynchedPost;
+	
+	private YouTubeAdapter youTubeAdapter;
 	
 	@Override
 	public void onCreate() {
@@ -82,32 +79,12 @@ public class GlobalState extends Application {
 	public void setOldestSynchedPost(int oldestSynchedPost) {
 		this.oldestSynchedPost = oldestSynchedPost;
 	}
-
 	
-//--------------------------- YouTube support -----------------------------------
-	
-	private HashMap<View,YouTubeThumbnailLoader> youTubeThumbnailLoaders;
-	private String currentYouTubeVideo;
-	private int currentYouTubeTime;
-	
-	public HashMap<View,YouTubeThumbnailLoader> getYouTubeThumbnailLoaderList() {
-		if (youTubeThumbnailLoaders == null) {
-			youTubeThumbnailLoaders = new HashMap<View,YouTubeThumbnailLoader>();
+	public YouTubeAdapter getYouTubeAdapter() {
+		if (youTubeAdapter == null) {
+			youTubeAdapter = new YouTubeAdapter();
 		}
-		return youTubeThumbnailLoaders;
+		return youTubeAdapter;
 	}
-	
-	public void setCurrentYouTubeVideoTime(String videoID, int currentTimeMillis) {
-		currentYouTubeVideo = videoID;
-		currentYouTubeTime = currentTimeMillis;
-	}
-	
-	public int getYouTubeCurrentTimeMilis() {
-		return currentYouTubeTime;
-	}
-	
-	public String getCurrentYouTubeVideo() {
-		return currentYouTubeVideo;
-	}
-	
+
 }
