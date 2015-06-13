@@ -36,7 +36,7 @@ public class AppConfig {
 	private static final String GOOGLE_CLOUD_MESSAGING_SENDER_ID = "1024871846922";
 
 	// oldest app version with same data structure (if update is done on older version, all files will be deleted after startup 
-	private static final int OLDEST_SUPPORTED_VERSION = 14;
+	private static final int OLDEST_SUPPORTED_VERSION = 17;
 	
 	public enum Function {GET_RECENT_POSTS,GET_COMMENTS,POST_COMMENT,GET_POST_BY_ID,GET_POST_BY_URL,
 		GET_POSTS_AFTER,GET_SUPPORTED_VERSIONS,ADD_DEVICE,GET_PODCAST_POSTS};

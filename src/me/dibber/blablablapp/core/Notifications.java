@@ -3,6 +3,7 @@ package me.dibber.blablablapp.core;
 import java.net.MalformedURLException;
 
 import me.dibber.blablablapp.R;
+import me.dibber.blablablapp.activities.HomeActivity;
 import me.dibber.blablablapp.activities.PostOverviewFragment;
 import me.dibber.blablablapp.activities.StartActivity;
 import me.dibber.blablablapp.core.AppConfig.Function;
@@ -76,7 +77,7 @@ public class Notifications {
 				if (!title.isEmpty()) {
 					Log.i("Notification", "new message: " + title);
 					if (PreferenceManager.getDefaultSharedPreferences(this).getBoolean("pref_notifications_messages", true)) {
-						postNotification(title, content, null);
+						postNotification(title, content, null, 0);
 					} else {
 						Log.i("Notification", "Receive news messages option deactivated");
 					}
@@ -128,20 +129,20 @@ public class Notifications {
 							@Override
 							public void onImageRetrievedSuccess(Bitmap bitmap) {
 								postNotification(getResources().getString(R.string.app_name) + ": " + newPc.getItemTitle(postId),
-										newPc.getItemContentReplaceBreaks(postId).toString(), bitmap);
+										newPc.getItemContentReplaceBreaks(postId).toString(), bitmap, postId);
 								notifyDone(intent);
 							}
 							
 							@Override
 							public void onImageRetrievedFailed(Error e) {
 								postNotification(getResources().getString(R.string.app_name) + ": " + newPc.getItemTitle(postId),
-										newPc.getItemContentReplaceBreaks(postId).toString(), null);
+										newPc.getItemContentReplaceBreaks(postId).toString(), null, postId);
 								notifyDone(intent);
 							}
 						});
 					} else {
 						postNotification(getResources().getString(R.string.app_name), 
-								getResources().getString(R.string.notify_new_posts, index), null);
+								getResources().getString(R.string.notify_new_posts, index), null, 0);
 						notifyDone(intent);
 					}
 				}
@@ -155,8 +156,15 @@ public class Notifications {
 			dl.prepareAsync();
 		}
 		
-		private void postNotification(String title, String content, Bitmap largeIcon) {
-			PendingIntent notifyIntent =  PendingIntent.getActivity(this, 0, new Intent(this, StartActivity.class), 0);
+		private void postNotification(String title, String content, Bitmap largeIcon, int postId) {
+			Intent intent = new Intent(this, StartActivity.class);
+			if (postId != 0) {
+				Bundle b = new Bundle();
+				b.putInt(HomeActivity.ARG_POST_ID, postId);
+				intent.setAction("me.dibber.blablablapp.activities.Startactivity");
+				intent.putExtras(b);
+			}
+			PendingIntent notifyIntent =  PendingIntent.getActivity(this, 0, intent, 0);		
 			NotificationCompat.Builder mNotifBuilder = new NotificationCompat.Builder(GlobalState.getContext())
 			.setAutoCancel(true)
 			.setOnlyAlertOnce(true)
@@ -192,8 +200,6 @@ public class Notifications {
 			 canvas.drawOval(rectF, paint);
 			 paint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.SRC_IN));
 			 canvas.drawBitmap(bitmap, rect, rect, paint);
-
-			 bitmap.recycle();
 			 return output;
 			}
 		

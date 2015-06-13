@@ -69,6 +69,9 @@ public class StartActivity extends FragmentActivity  {
 
 	private void startHomeActivity () {
 		Intent intent = new Intent(this, HomeActivity.class);
+		if (getIntent().getExtras() != null) {
+			intent.putExtras(getIntent().getExtras());
+		}
 		startActivity(intent);
 		this.finish();
 	}

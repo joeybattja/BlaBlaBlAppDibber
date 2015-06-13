@@ -46,6 +46,8 @@ import android.widget.Toast;
 
 public class HomeActivity extends ActionBarActivity implements DataLoaderListener {
 	
+	public final static String ARG_POST_ID = "ARG_POSTID";
+	
 	private final static String TAG_FRAGMENT_CONTENT = "TAG_FR_C";
 	private final static String CURRENT_TYPE = "CUR_TYPE";
 	private final static String CURRENT_PAGE = "CUR_PAGE";
@@ -76,11 +78,21 @@ public class HomeActivity extends ActionBarActivity implements DataLoaderListene
 		
 		getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 		
+		Bundle b = getIntent().getExtras();
+		if (b != null) {
+			int intentId = b.getInt(ARG_POST_ID);
+
+			if (intentId != 0) {
+				currentPost = intentId;
+				currentType = ContentFrameType.POST;
+			}
+		}
+		
 		if (savedInstanceState != null) {
 	        currentPost = savedInstanceState.getInt(CURRENT_POST);
 	    	currentPage = savedInstanceState.getInt(CURRENT_PAGE);
 	        currentType = (ContentFrameType) savedInstanceState.getSerializable(CURRENT_TYPE);
-        }
+        }		
 		
 		mProgressBar = (ProgressBar) findViewById(R.id.home_progressbar);
 		mProgressBar.setVisibility(View.GONE);
