@@ -56,6 +56,7 @@ public class HomeActivity extends ActionBarActivity implements DataLoaderListene
 	private int currentPost;
 	private int currentPage;
 	private ContentFrameType currentType;
+	private boolean intentChecked; 
 	
 	private MenuItem searchItem;
 	private MenuItem refresh;
@@ -77,16 +78,6 @@ public class HomeActivity extends ActionBarActivity implements DataLoaderListene
 		setContentView(R.layout.activity_home);
 		
 		getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-		
-		Bundle b = getIntent().getExtras();
-		if (b != null) {
-			int intentId = b.getInt(ARG_POST_ID);
-
-			if (intentId != 0) {
-				currentPost = intentId;
-				currentType = ContentFrameType.POST;
-			}
-		}
 		
 		if (savedInstanceState != null) {
 	        currentPost = savedInstanceState.getInt(CURRENT_POST);
@@ -597,6 +588,18 @@ public class HomeActivity extends ActionBarActivity implements DataLoaderListene
 			@Override
 			public void run() {
 				saveLastPosition();
+				if (!intentChecked) {
+					Bundle b = getIntent().getExtras();
+					if (b != null) {
+						int intentId = b.getInt(ARG_POST_ID);
+
+						if (intentId != 0) {
+							currentPost = intentId;
+							currentType = ContentFrameType.POST;
+						}
+					}
+					intentChecked = true;
+				}
 				invalidateContentFrame();
 			}
 		});
